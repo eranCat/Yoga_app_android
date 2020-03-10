@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#1E88E5</color>
+    <color name="colorPrimaryDark">#3949AB</color>
+    <color name="colorAccent">#6A1B9A</color>
+    <color name="tab_normal_color">#CFCFCF</color>
+    <color name="hint_color">#B3FFFFFF</color>
+
+    <array name="tabs_colors">
+        <item>#1E88E5</item>
+        <item>#5E001F</item>
+        <item>#F49F1C</item>
+    </array>
+
+    <array name="tabs_indicators">
+        <item>#210070</item>
+        <item>#7CB342</item>
+        <item>#1A237E</item>
+    </array>
+
+</resources>

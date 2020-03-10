@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingBottom="8dp">
+
+    <Button android:id="@+id/sign_btn"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:drawableEnd="@drawable/signin"
+        android:drawableTint="#fff"
+        android:drawablePadding="8dp"
+        android:layout_weight="1"
+        android:text="Sign in"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/edit_btn"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:drawableEnd="@drawable/ic_edit"
+        android:drawableTint="#fff"
+        android:fontFamily="@font/archivo_narrow"
+        android:text="Edit"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        tools:visibility="visible" />
+
+    <Button
+        android:id="@+id/delete_btn"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:backgroundTint="#C62828"
+        android:drawableEnd="@drawable/ic_delete"
+        android:drawableTint="#fff"
+        android:fontFamily="@font/archivo_narrow"
+        android:text="Delete"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        tools:visibility="visible" />
+
+
+</LinearLayout>

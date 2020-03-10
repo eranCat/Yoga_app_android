@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp"
+    android:elevation="4dp"
+    app:cardBackgroundColor="@color/colorPrimary"
+    app:cardCornerRadius="8dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="160dp"
+            android:orientation="horizontal"
+            android:paddingBottom="8dp"
+            android:showDividers="none">
+
+            <com.erank.yogappl.utils.custom_views.RoundedImageView
+                android:id="@+id/event_img_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:contentDescription="event image"
+                android:elevation="4dp"
+                android:maxHeight="100dp"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/img_placeholder" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:divider="?attr/dividerHorizontal"
+                android:dividerPadding="4dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:showDividers="middle">
+
+                <TextView
+                    android:id="@+id/nameTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/archivo_narrow"
+                    android:maxLines="2"
+                    android:paddingBottom="8dp"
+                    android:text="Name"
+                    android:textAlignment="viewStart"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/dateTV"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/archivo_narrow"
+                    android:maxLines="2"
+                    android:paddingBottom="8dp"
+                    android:text="Date"
+                    android:textAlignment="viewStart"
+                    android:textColor="#E9E9E9"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/timeTV"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/archivo_narrow"
+                    android:maxLines="2"
+                    android:paddingBottom="8dp"
+                    android:text="Time"
+                    android:textAlignment="viewStart"
+                    android:textColor="#E9E9E9"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <include layout="@layout/drop_down_btn" />
+        </LinearLayout>
+
+        <include
+            android:id="@+id/drop_down"
+            layout="@layout/dropdown_menu"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

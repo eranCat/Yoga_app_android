@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dropdown_btn"
+    style="@style/Widget.AppCompat.ButtonBar"
+    android:layout_width="32dp"
+    android:layout_height="match_parent"
+    android:scaleType="fitCenter"
+    android:tint="#FFFFFF"
+    android:visibility="visible"
+    app:srcCompat="@drawable/ic_arrow_drop_down"
+    tools:visibility="visible" />

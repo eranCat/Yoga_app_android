@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="tab_titles">
+        <item>Lesson</item>
+        <item>Event</item>
+    </string-array>
+
+    <string-array name="reminders_items" >
+        <item>Notify me when it\'s time</item>
+        <item>Add to calendar</item>
+    </string-array>
+</resources>

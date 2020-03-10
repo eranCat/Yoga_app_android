@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_all"
+        android:enabled="true"
+        android:icon="@drawable/home"
+        android:title="All"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_signed"
+        android:enabled="true"
+        android:icon="@drawable/starred_list"
+        android:title="Signed"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_uploads"
+        android:enabled="true"
+        android:icon="@drawable/edit_list"
+        android:title="Uploads"
+        app:showAsAction="ifRoom" />
+
+</menu>

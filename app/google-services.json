@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "905130335975",
+    "firebase_url": "https://yoga-7fba6.firebaseio.com",
+    "project_id": "yoga-7fba6",
+    "storage_bucket": "yoga-7fba6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:905130335975:android:fa17889de62ae921cf8c42",
+        "android_client_info": {
+          "package_name": "com.erank.yogappl"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "905130335975-4v7imvj01ejp4nm9fqu1ubrb8ngrl744.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.erank.yogappl",
+            "certificate_hash": "dda48b7956fef2a97ff4db024f5eb38ca7eeded1"
+          }
+        },
+        {
+          "client_id": "905130335975-eknuavap4bj277ese0ova6ffupn23pq9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPvSoxSeFprsjLiFmE5KyEGM3f0mvy6Nw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "905130335975-eknuavap4bj277ese0ova6ffupn23pq9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "905130335975-q0fku4fvvd92q0skin9j3fanadrfb47r.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "stuff.YogaLessons"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

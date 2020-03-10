@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/profile_Img"
+    android:layout_width="80dp"
+    android:layout_height="80dp"
+    android:layout_gravity="center"
+    android:background="@drawable/circle"
+    android:layout_weight="1"
+    android:elevation="4dp"
+    android:padding="4dp"
+    android:src="@drawable/yoga_model" />

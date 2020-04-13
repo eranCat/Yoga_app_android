@@ -41,6 +41,7 @@
         <item name="android:layout_marginStart">6dp</item>
         <item name="android:layout_marginEnd">6dp</item>
     </style>
+
     <style name="MyDialog.NegativeButton" parent="@style/Widget.AppCompat.Button.Colored">
         <item name="android:fontFamily">@font/alice</item>
         <item name="android:background">@android:color/transparent</item>

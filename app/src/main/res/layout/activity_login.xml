@@ -90,9 +90,10 @@
         app:layout_constraintTop_toBottomOf="@+id/signInBtn"
         app:layout_constraintVertical_bias="0.0" />
 
-    <include android:id="@+id/llProgressBar"
+    <include
+        android:id="@+id/llProgressBar"
         layout="@layout/progress_layout"
         android:visibility="gone"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

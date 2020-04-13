@@ -21,8 +21,8 @@ import java.text.DateFormat.SHORT
 import java.text.SimpleDateFormat
 
 
-class EventsAdapter(list: MutableList<Event>, isEditable: Boolean) :
-    DataListAdapter<Event, EventsAdapter.EventVH>(list, isEditable) {
+class EventsAdapter(isEditable: Boolean) :
+    DataListAdapter<Event, EventsAdapter.EventVH>(isEditable) {
 
     override val dataType = DataType.EVENTS
 
@@ -48,13 +48,13 @@ class EventsAdapter(list: MutableList<Event>, isEditable: Boolean) :
             signBtn.visibility = if (isEditable) GONE else VISIBLE
         }
 
-        override fun bind(event: Event) {
-            if (event.imageUrl != null) {
+        override fun bind(item: Event) {
+            if (item.imageUrl != null) {
 
                 eventImage.visibility = VISIBLE
 
                 Glide.with(eventImage)
-                    .load(event.imageUrl)
+                    .load(item.imageUrl)
                     .placeholder(R.drawable.img_placeholder)
                     .fitCenter()
                     .into(eventImage)
@@ -63,19 +63,22 @@ class EventsAdapter(list: MutableList<Event>, isEditable: Boolean) :
 
 
             if (!isEditable) {
-                DataSource.currentUser?.let {
-                    signBtn.isEnabled = !it.createdEventsIDs.contains(event.id)
-
-                } ?: signBtn.setEnabled(true)
+                val currentUser = DataSource.currentUser
+                if (currentUser == null)
+                    signBtn.isEnabled = true
+                else {
+                    signBtn.isEnabled = !currentUser
+                        .createdEventsIDs.contains(item.id)
+                }
             }
 
-            eventName.text = event.title
+            eventName.text = item.title
 
             val ctx = eventDate.context
 
             val dateFormatter = SimpleDateFormat.getDateInstance(MEDIUM)
-            val start = event.startDate
-            val end = event.endDate
+            val start = item.startDate
+            val end = item.endDate
 
             if (start.equalDate(end)) {
                 eventDate.text = dateFormatter.format(start)
@@ -93,15 +96,14 @@ class EventsAdapter(list: MutableList<Event>, isEditable: Boolean) :
                 val endTime = timeFormatter.format(end)
                 eventTime.text = ctx.getString(R.string.range, startTime, endTime)
             }
-            setOnClickListeners(event)
+            setOnClickListeners(item)
         }
 
         override fun setOnClickListeners(event: Event) {
             val id = event.id
-            val i = originalPositions.getOrDefault(id, adapterPosition)
 
             itemView.setOnClickListener {
-                callback?.onItemSelected(event, i)
+                callback?.onItemSelected(event)
             }
 
             dropDownBtn.setOnClickListener {
@@ -113,14 +115,14 @@ class EventsAdapter(list: MutableList<Event>, isEditable: Boolean) :
             }
 
             if (isEditable) {
-                editBtn.setOnClickListener { callback?.onEditAction(event, i) }
-                deleteBtn.setOnClickListener { callback?.onDeleteAction(event, i) }
+                editBtn.setOnClickListener { callback?.onEditAction(event) }
+                deleteBtn.setOnClickListener { callback?.onDeleteAction(event) }
             } else {
                 val isSigned = DataSource.isUserSignedToEvent(event)
                 val action = if (isSigned) "out" else "in"
                 signBtn.text = "Sign $action"
                 signBtn.setOnClickListener {
-                    callback?.onSignAction(event, i)
+                    callback?.onSignAction(event)
                 }
             }
         }

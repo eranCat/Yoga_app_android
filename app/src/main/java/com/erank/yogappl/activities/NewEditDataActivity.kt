@@ -67,7 +67,8 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_edit_data)
 
-        viewModel = ViewModelProvider(this).get(NewEditDataActivityVM::class.java);
+        viewModel = ViewModelProvider(this)
+            .get(NewEditDataActivityVM::class.java)
 
         if (intent.hasExtra("dataInfo"))
             viewModel.dataInfo = intent!!.getParcelableExtra("dataInfo")
@@ -77,25 +78,27 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
 
         /*TODO check data info , from main?*/
         val dataInfo = viewModel.dataInfo
-        if (dataInfo.dataType == DataType.EVENTS) {
+        if (dataInfo.type == DataType.EVENTS) {
             eventImageView.let {
                 it.setOnClickListener { pickImage() }
                 it.visibility = View.VISIBLE
             }
         }
 
-        val currentPos = dataInfo.position
-        if (currentPos == null) {
+        val id = dataInfo.id
+        if (id == null) {
             initValidator()
-            title = "New ${dataInfo.dataType.singular}"
+            title = "New ${dataInfo.type.singular}"
             return
         }
 
-        DataSource.getUserUploadedData(dataInfo.dataType, currentPos)?.let {
-            fillData(it)
-            initValidator(VALID)
-            viewModel.data = it
-            title = it.title
+        DataSource.getData(dataInfo.type, id) {
+            it?.let {
+                fillData(it)
+                initValidator(VALID)
+                viewModel.data = it
+                title = it.title
+            }
         }
     }
 
@@ -252,7 +255,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
             }
 
         } ?: DataSource.uploadData(
-            viewModel.dataInfo.dataType,
+            viewModel.dataInfo.type,
             createData(),
             viewModel.selectedLocalEventImg,
             viewModel.selectedEventImgBitmap,
@@ -295,7 +298,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
             return it
         }
 
-        return when (viewModel.dataInfo.dataType) {
+        return when (viewModel.dataInfo.type) {
             DataType.LESSONS -> Lesson(
                 title, cost, coordinate, locationName, countryCode,
                 startDate, endDate, level, equip, extra, maxPpl, uid
@@ -338,7 +341,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
                     endDateTV.text = viewModel.selectedEndDate!!.formatted(MEDIUM, SHORT)
                 }
             }, "date needs to be same as start date or after.\n" +
-                    "and min time of ${viewModel.dataInfo.dataType.singular} is 30 min",
+                    "and min time of ${viewModel.dataInfo.type.singular} is 30 min",
             "please select an end date"
         )
     }
@@ -409,8 +412,9 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
     override fun onSuccess(result: Void?) {
         toast("success!")
 
-        if (viewModel.dataInfo.position == null)
-            viewModel.dataInfo.position = 0
+//        ToDo check why this is needed
+//        if (viewModel.dataInfo.id == null)
+//            viewModel.dataInfo.id = ""
 
         val data = Intent().putExtra("dataInfo", viewModel.dataInfo)
 

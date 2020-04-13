@@ -1,4 +1,4 @@
-package com.erank.yogappl.utils.extensions;
+package com.erank.yogappl.utils.extensions
 
 import android.content.Context
 import android.text.format.DateUtils
@@ -101,5 +101,5 @@ fun Date.compareTime(other: Date, secondsIncluded: Boolean = false): Int {
 
 fun Date.equalDate(other: Date) = compareDate(other) == 0
 
-fun Date.equalTime(other: Date, secondsIncluded: Boolean = false)
-        = compareTime(other,secondsIncluded) == 0
+fun Date.equalTime(other: Date, secondsIncluded: Boolean = false) =
+    compareTime(other, secondsIncluded) == 0

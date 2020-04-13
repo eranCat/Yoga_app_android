@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.erank.yogappl.R
 import com.erank.yogappl.adapters.diffs.LocationDiffCallback
 import com.erank.yogappl.models.LocationResult
+import com.erank.yogappl.utils.extensions.formattedDistance
 import com.erank.yogappl.utils.interfaces.OnLocationSelectedCallback
 import kotlinx.android.synthetic.main.location_item.view.*
 
@@ -42,20 +43,21 @@ class LocationsAdapter :
         private val locStreetTv = itemView.location_item_street
         private val locationDistanceTV = itemView.location_item_distance_tv
 
-        fun fill(location: LocationResult) {
+        fun fill(loc: LocationResult) = with(loc) {
 
-            localNameTV.text = location.POI?.name ?: location.address.localName
-            with(location.address) {
-                var name = streetName?.let { streetName } ?: freeformAddress
+            with(address) {
+                localNameTV.text = POI?.name ?: localName
+
+                var name = streetName ?: freeformAddress
+
                 if (streetNumber > 0) {
                     name += " $streetNumber"
                 }
+
                 locStreetTv.text = name
             }
 
-            locationDistanceTV.text = location.distance.formattedDistance()
-
-
+            locationDistanceTV.text = distance.formattedDistance()
         }
 
         fun setOnClickListener(
@@ -66,12 +68,4 @@ class LocationsAdapter :
         }
     }
 
-}
-
-private fun Double.formattedDistance(): String {
-    if (this < 1000) {
-        return String.format("%.0f meters", this)
-    }
-
-    return String.format("%.1f km", this / 1000)
 }

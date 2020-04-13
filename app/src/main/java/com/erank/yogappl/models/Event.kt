@@ -1,11 +1,15 @@
 package com.erank.yogappl.models
 
+import androidx.room.Entity
+import androidx.room.Ignore
 import com.erank.yogappl.utils.enums.DataType
 import com.google.android.gms.maps.model.LatLng
 import java.util.*
 
+@Entity(tableName = "events")
 class Event : BaseData {
 
+    @Ignore
     override val dataType = DataType.EVENTS
 
     var imageUrl: String?

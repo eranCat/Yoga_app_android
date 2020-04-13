@@ -21,8 +21,8 @@ class NewEditDataActivityVM : ViewModel() {
 
     val canRemoveImage: Boolean
         get() = (selectedEventImgUrl != null
-                    || selectedLocalEventImg != null
-                    || selectedEventImgBitmap != null)
+                || selectedLocalEventImg != null
+                || selectedEventImgBitmap != null)
 
 //TODO move db related stuff here
 

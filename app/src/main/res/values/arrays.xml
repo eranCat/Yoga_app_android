@@ -1,12 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="tab_titles">
-        <item>Lesson</item>
-        <item>Event</item>
+        <item>Lessons</item>
+        <item>Events</item>
     </string-array>
 
-    <string-array name="reminders_items" >
+    <string-array name="reminders_items">
         <item>Notify me when it\'s time</item>
         <item>Add to calendar</item>
+    </string-array>
+
+    <string-array name="photoOptions">
+        <item>select from gallery</item>
+        <item>select from the internet</item>
+        <item>take a photo</item>
+    </string-array>
+
+    <!--    todo reuse array @photoOptions -->
+
+    <string-array name="photoOptionsRemovable">
+        <item>select from gallery</item>
+        <item>select from the internet</item>
+        <item>take a photo</item>
+        <item>Remove image</item>
     </string-array>
 </resources>

@@ -1,14 +1,17 @@
 package com.erank.yogappl.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SSet
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.database.PropertyName
 import java.util.*
 
-@IgnoreExtraProperties
+@Entity(tableName = "users")
 open class User//or string of path on DB
 {
+    @PrimaryKey
     lateinit var id: String
     lateinit var name: String
     lateinit var email: String

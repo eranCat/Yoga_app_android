@@ -8,12 +8,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Resources
+import android.location.Geocoder
 import android.location.Location
 import android.net.Uri
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.utils.OnLocationsFetchedCallback
-import com.erank.yogappl.utils.async_tasks.LocationsTask
+import com.erank.yogappl.utils.coroutines.LocationsTask
 import com.erank.yogappl.utils.extensions.toast
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -41,9 +42,9 @@ object LocationHelper {
         return mapIntent.resolveActivity(packageManager)?.let { mapIntent }
     }
 
-    private const val version = 2
-    private const val resLimit = 5
-    private const val searchRadius = 50_000//in meters : 50 KM
+    private const val VERSION = 2
+    private const val RESULT_LIMIT = 50
+    private const val SEARCH_RADIUS = 500 * 1_000//in meters : 500 KM
 
     private const val BASE_API = "api.tomtom.com"
     private const val KEY = "hEhWkGvw4i8xlpLfIfY6P3AA1cOBGutJ"
@@ -51,60 +52,68 @@ object LocationHelper {
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
 
-    val currentLocale: Locale
+    private val currentLocale: Locale
         get() = Resources.getSystem().configuration.locales[0]
 
+    fun getCountryCode(context: Context, callback: (String, LatLng?) -> Unit) {
+        getLastKnownLocation()
+            .addOnFailureListener { callback(currentLocale.country, null) }
+            .addOnSuccessListener {
+
+                val geocoder = Geocoder(context, currentLocale)
+                val locations = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+
+                val latLng = LatLng(it.latitude, it.longitude)
+
+                if (locations.isNotEmpty()) {
+                    callback(locations[0].countryCode, latLng)
+                } else {
+                    callback(currentLocale.country, latLng)
+                }
+
+            }
+    }
 
     fun initLocationService(context: Context) {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     }
 
-    private fun locationsUrl(query: String, callback: (Uri?) -> Unit) {
-        getLastKnownLocation()
-            .addOnSuccessListener {
-                it ?: run {
-                    callback.invoke(null)
-                    return@addOnSuccessListener
-                }
+    //https://api.tomtom.com/search/2/search/tel.json?typeahead=true&countrySet=IL&idxSet=POI&key=*****
+    private fun buildUrl(
+        query: String,
+        countryCode: String,
+        latLon: LatLng?
+    ) = Uri.Builder()
+        .scheme("https")
+        .authority(BASE_API)
+        .appendPath("search")
+        .appendPath("$VERSION")
+        .appendPath("search")
+        .appendEncodedPath("$query.json")
+        .appendQueryParameter("typeahead", "true")
+        .appendQueryParameter("language", currentLocale.toLanguageTag())
+        .appendQueryParameter("limit", "$RESULT_LIMIT")
+        .appendQueryParameter("countrySet", countryCode)
+        .apply {
+            latLon?.let {
+                appendQueryParameter("lat", "${it.latitude}")
+                appendQueryParameter("lon", "${it.longitude}")
+                appendQueryParameter("radius", "$SEARCH_RADIUS")
+            }
+        }
+        .appendQueryParameter("key", KEY)
+        .toString()
 
-                val lat = it.latitude.toString()
-                val lon = it.longitude.toString()
-
-
-                val uri = Uri.Builder()
-                    .scheme("https")
-                    .authority(BASE_API)
-                    .appendPath("search")
-                    .appendPath("$version")
-                    .appendPath("search")
-                    .appendEncodedPath("$query.json")
-                    .appendQueryParameter("key", KEY)
-                    .appendQueryParameter("limit", "$resLimit")
-                    .appendQueryParameter("countrySet", currentLocale.country)
-                    .appendQueryParameter("lat", lat)
-                    .appendQueryParameter("lon", lon)
-                    .appendQueryParameter("radius", "$searchRadius")
-                    .build()
-
-                callback.invoke(uri)
-            }.addOnFailureListener { callback.invoke(null) }
-    }
 
     private fun getLastKnownLocation() =
         fusedLocationClient!!.lastLocation
-            .addOnSuccessListener {
+            .addOnSuccessListener { lastKnownLocation = it }
 
-                lastKnownLocation = it
-            }
-
-    fun getLocationResults(query: String, callback: OnLocationsFetchedCallback) {
-        locationsUrl(query) {
-
-            it?.let {
-                LocationsTask(callback).execute(it.toString())
-            } ?: callback.invoke(mutableListOf())
-
-        }
+    fun getLocationResults(
+        context: Context, query: String,
+        callback: OnLocationsFetchedCallback
+    ) = getCountryCode(context) { code, latLon ->
+        LocationsTask(buildUrl(query, code, latLon)).start(callback)
     }
 
     fun getFineLocationPermissionIfNeeded(activity: Activity) =
@@ -115,13 +124,8 @@ object LocationHelper {
 
 
     private fun askPermissionIfNeeded(activity: Activity, permission: String): Boolean {
-        if (ContextCompat.checkSelfPermission(
-                activity,
-                permission
-            ) == PERMISSION_GRANTED
-        )
+        if (ContextCompat.checkSelfPermission(activity, permission) == PERMISSION_GRANTED)
             return true
-
 
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
 
@@ -146,15 +150,19 @@ object LocationHelper {
         context: Context,
         permissions: Array<out String>,
         results: IntArray
-    ) = checkPermissionResults(context, permissions,
-            results, ACCESS_COARSE_LOCATION)
+    ) = checkPermissionResults(
+        context, permissions,
+        results, ACCESS_COARSE_LOCATION
+    )
 
     fun checkPermissionResultsFineLocation(
         context: Context,
         permissions: Array<out String>,
         results: IntArray
-    ) = checkPermissionResults(context, permissions,
-            results, ACCESS_FINE_LOCATION)
+    ) = checkPermissionResults(
+        context, permissions,
+        results, ACCESS_FINE_LOCATION
+    )
 
 
     private fun checkPermissionResults(

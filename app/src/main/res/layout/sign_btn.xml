@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:drawableEnd="@drawable/signin"
-    android:drawableTint="#fff"
     android:drawablePadding="8dp"
+    android:drawableTint="#fff"
     android:text="Sign in"
     android:textAllCaps="false" />

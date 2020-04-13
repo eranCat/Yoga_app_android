@@ -1,150 +1,141 @@
 package com.erank.yogappl.utils.data_source
 
-import androidx.lifecycle.MutableLiveData
+import android.content.Context
 import com.erank.yogappl.models.BaseData
 import com.erank.yogappl.models.Event
 import com.erank.yogappl.models.Lesson
 import com.erank.yogappl.models.User
+import com.erank.yogappl.room.AppDatabase
+import com.erank.yogappl.room.dao.EventDao
+import com.erank.yogappl.room.dao.LessonDao
+import com.erank.yogappl.room.dao.UserDao
 import com.erank.yogappl.utils.enums.DataType
-import com.erank.yogappl.utils.enums.DataType.EVENTS
-import com.erank.yogappl.utils.enums.DataType.LESSONS
-import com.erank.yogappl.utils.enums.SortType
 import com.erank.yogappl.utils.enums.SourceType
 import com.erank.yogappl.utils.enums.SourceType.*
-import com.erank.yogappl.utils.extensions.replace
-import com.erank.yogappl.utils.helpers.SortingHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class DataModelsHolder {
+class DataModelsHolder(context: Context) {
+    private val lessonsDao: LessonDao
+    private val eventsDao: EventDao
+    private val userDao: UserDao
 
-    var lessons = values().associate {
-        it to MutableLiveData<MutableList<Lesson>>()
-    }.toMutableMap()
-
-    var events = values().associate {
-        it to MutableLiveData<MutableList<Event>>()
-    }.toMutableMap()
-
-    private var usersList = mutableMapOf<String, User>()
-
-    fun getLessons(type: SourceType) = lessons[type]!!
-
-    fun getEvents(type: SourceType) = events[type]!!
-
-    fun sort(sortType: SortType, sourceType: SourceType, dataType: DataType) {
-        when (dataType) {
-            LESSONS -> getLessons(sourceType)
-            EVENTS -> getEvents(sourceType)
-
-        }.value?.sortWith(SortingHelper.getSorter(sortType))
-    }
-
-    fun getUser(uid: String) = usersList[uid]
-
-    fun addNewData(data: BaseData) {
-
-        when (data) {
-            is Lesson ->
-                getLessons(UPLOADS).value?.add(0, data)
-
-            is Event ->
-                getEvents(UPLOADS).value?.add(0, data)
+    init {
+        with(AppDatabase.getDatabase(context)) {
+            CoroutineScope(Default).launch { clearAllTables() }
+            lessonsDao = lessonsDao()
+            eventsDao = eventsDao()
+            userDao = usersDao()
         }
     }
 
-    fun removeData(data: BaseData) {
 
-        when (data) {
-            is Lesson ->
-                getLessons(UPLOADS).value?.remove(data)
+    fun getLessons(type: SourceType, uid: String) = when (type) {
+        ALL -> lessonsDao.getAllLessons(uid)
+        UPLOADS -> lessonsDao.getUploadedLessons(uid)
+        SIGNED -> lessonsDao.getSignedLessons(uid)
+    }
 
-            is Event ->
-                getEvents(UPLOADS).value?.remove(data)
+    fun getEvents(type: SourceType, uid: String) = when (type) {
+        ALL -> eventsDao.getAllEvents(uid)
+        UPLOADS -> eventsDao.getUploadedEvents(uid)
+        SIGNED -> eventsDao.getSignedEvents(uid)
+    }
 
+    fun getUser(uid: String, callback: (User?) -> Unit) {
+        CoroutineScope(Default).launch {
+            val user = userDao.getById(uid)
+            withContext(Main) { callback(user) }
         }
     }
 
-    fun addUser(user: User) {
-        usersList[user.id] = user
-    }
-
-    fun getLesson(pos: Int) = getLessons(ALL).value?.getOrNull(pos)
-    fun getUserLesson(pos: Int) = getLessons(UPLOADS).value?.getOrNull(pos)
-    fun getSignedLesson(pos: Int) = getLessons(SIGNED).value?.getOrNull(pos)
-
-    fun getEvent(pos: Int) = getEvents(ALL).value?.getOrNull(pos)
-    fun getUserEvent(pos: Int) = getEvents(UPLOADS).value?.getOrNull(pos)
-    fun getSignedEvent(pos: Int) = getEvents(SIGNED).value?.getOrNull(pos)
-
-    fun getUploadedData(dType: DataType, pos: Int) =
-        when (dType) {
-            LESSONS -> getUserLesson(pos)
-            EVENTS -> getUserEvent(pos)
-        }
-
-    fun getData(dataType: DataType, sourceType: SourceType, pos: Int): BaseData? {
-        return when (dataType) {
-            LESSONS ->
-                getLessons(sourceType).value?.getOrNull(pos)
-
-            EVENTS ->
-                getEvents(sourceType).value?.getOrNull(pos)
+    fun addNewData(data: BaseData, callback: () -> Unit) {
+        CoroutineScope(Default).launch {
+            when (data) {
+                is Lesson -> lessonsDao.insert(data)
+                is Event -> eventsDao.insert(data)
+            }
+            withContext(Main) { callback() }
         }
     }
 
-    private fun <T> updateData(
-        liveData: MutableLiveData<MutableList<T>>,
-        old: T, new: T
-    ) {
-        liveData.value?.let {
-            it.replace(old, new)
-            liveData.postValue(it)
+
+    fun removeData(data: BaseData, callback: () -> Unit) {
+        CoroutineScope(Default).launch {
+            when (data) {
+                is Lesson -> lessonsDao.delete(data)
+                is Event -> eventsDao.delete(data)
+            }
+            withContext(Main) { callback() }
         }
     }
 
-    fun <T : BaseData> updateData(old: T, new: T) {
-        when (old) {
-            is Lesson -> updateData(getLessons(UPLOADS), old, new as Lesson)
-            is Event -> updateData(getEvents(UPLOADS), old, new as Event)
+    fun addUser(user: User, callback: () -> Unit) {
+        CoroutineScope(Default).launch {
+            userDao.insert(user)
+
+            withContext(Main) { callback() }
         }
     }
 
-    fun updateLesson(old: Lesson, new: Lesson) = updateData(getLessons(UPLOADS), old, new)
-    fun updateEvent(old: Event, new: Event) = updateData(getEvents(UPLOADS), old, new)
+    fun updateData(data: BaseData, callback: () -> Unit) {
+        CoroutineScope(Default).launch {
+            when (data) {
+                is Lesson -> lessonsDao.update(data)
+                is Event -> eventsDao.update(data)
+            }
+            withContext(Main) { callback() }
+        }
 
-    fun <T : BaseData> addToSigned(dbData: T) {
-        when (dbData) {
-            is Lesson -> addToSigned(dbData)
-            is Event -> addToSigned(dbData)
+    }
+
+    fun getData(type: DataType, id: String, callback: (BaseData?) -> Unit) {
+        CoroutineScope(Default).launch {
+            val data = when (type) {
+                DataType.LESSONS -> lessonsDao
+                DataType.EVENTS -> eventsDao
+            }.getById(id)
+
+            withContext(Main) { callback(data) }
         }
     }
 
-    private fun addToSigned(lesson: Lesson) = addToSigned(getLessons(SIGNED), lesson)
+    fun addLessons(lessons: List<Lesson>, callback: () -> Unit) {
+        CoroutineScope(Default).launch {
+            lessonsDao.insert(lessons)
 
-    private fun addToSigned(event: Event) = addToSigned(getEvents(SIGNED), event)
-
-    fun <T : BaseData> removeFromSigned(data: T) {
-        when (data) {
-            is Lesson -> removeFromSigned(data)
-            is Event -> removeFromSigned(data)
+            withContext(Main) { callback() }
         }
     }
 
-    private fun removeFromSigned(lesson: Lesson) = removeFromSigned(getLessons(SIGNED), lesson)
+    fun addEvents(events: List<Event>, callback: () -> Unit) {
+        CoroutineScope(Default).launch {
+            eventsDao.insert(events)
 
-    private fun removeFromSigned(event: Event) = removeFromSigned(getEvents(SIGNED), event)
-
-    private fun <T> addToSigned(liveData: MutableLiveData<MutableList<T>>, item: T) {
-        liveData.value?.let {
-            it.add(item)
-            liveData.postValue(it)
+            withContext(Main) { callback() }
         }
     }
 
-    private fun <T> removeFromSigned(liveData: MutableLiveData<MutableList<T>>, item: T) {
-        liveData.value?.let {
-            it.remove(item)
-            liveData.postValue(it)
-        }
+    fun filterEvents(
+        type: SourceType,
+        uid: String,
+        query: String
+    ) = when (type) {
+        ALL -> eventsDao.allEventsFiltered(uid, query)
+        SIGNED -> eventsDao.signedEventsFiltered(uid, query)
+        UPLOADS -> eventsDao.uploadedEventsFiltered(uid, query)
     }
 
+    fun filterLessons(
+        type: SourceType,
+        uid: String,
+        query: String
+    ) = when (type) {
+        ALL -> lessonsDao.allLessonsFiltered(uid, query)
+        SIGNED -> lessonsDao.signedLessonsFiltered(uid, query)
+        UPLOADS -> lessonsDao.uploadedLessonsFiltered(uid, query)
+    }
 }

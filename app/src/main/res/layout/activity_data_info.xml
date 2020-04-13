@@ -25,7 +25,7 @@
                 android:scaleType="centerCrop"
 
                 android:visibility="gone"
-                app:srcCompat="@drawable/close_up_of_leaf"
+                tools:srcCompat="@drawable/close_up_of_leaf"
                 tools:visibility="visible" />
 
             <androidx.cardview.widget.CardView
@@ -58,9 +58,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/archivo_narrow"
-                            android:text="Teacher name"
                             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                            android:textColor="@android:color/black" />
+                            android:textColor="@android:color/black"
+                            tools:text="Teacher name" />
 
                         <TextView
                             android:id="@+id/teacher_about"
@@ -68,8 +68,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:fontFamily="@font/archivo_narrow"
-                            android:text="about..."
-                            android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                            tools:text="about..." />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -83,10 +83,10 @@
                 android:background="#01579B"
                 android:elevation="2dp"
                 android:padding="8dp"
-                android:text="Yoga type"
                 android:textAlignment="center"
                 android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                tools:text="Yoga type" />
 
             <Button
                 android:id="@+id/location_btn"
@@ -98,9 +98,9 @@
                 android:drawableStart="@drawable/ic_map"
                 android:drawableTint="@android:color/white"
                 android:fontFamily="@font/archivo_narrow"
-                android:text="Location"
                 android:textAllCaps="false"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                tools:text="Location" />
 
             <LinearLayout
                 android:id="@+id/cost_section"
@@ -149,10 +149,10 @@
                 android:fontFamily="@font/archivo_narrow"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:text="today"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
-                android:textSize="20sp" />
+                android:textSize="20sp"
+                tools:text="today" />
 
             <LinearLayout
                 android:id="@+id/signed_section"
@@ -182,10 +182,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/archivo_narrow"
-                    android:text="1"
                     android:textAlignment="center"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textColor="@android:color/white" />
+                    android:textColor="@android:color/white"
+                    tools:text="1" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -203,10 +203,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/archivo_narrow"
-                    android:text="4"
                     android:textAlignment="center"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textColor="@android:color/white" />
+                    android:textColor="@android:color/white"
+                    tools:text="4" />
 
 
             </LinearLayout>
@@ -238,10 +238,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/archivo_narrow"
-                    android:text="9"
                     android:textAlignment="center"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textColor="@android:color/white" />
+                    android:textColor="@android:color/white"
+                    tools:text="9" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -259,10 +259,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/archivo_narrow"
-                    android:text="99"
                     android:textAlignment="center"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textColor="@android:color/white" />
+                    android:textColor="@android:color/white"
+                    tools:text="99" />
 
 
             </LinearLayout>
@@ -287,7 +287,7 @@
                 android:background="#F8BBD0"
                 android:fontFamily="@font/archivo_narrow"
                 android:padding="8dp"
-                android:text="come as you are" />
+                tools:text="come as you are" />
 
             <TextView
                 android:id="@+id/extra_notes_title"
@@ -309,7 +309,7 @@
                 android:background="#F8BBD0"
                 android:fontFamily="@font/archivo_narrow"
                 android:padding="8dp"
-                android:text="no notes" />
+                tools:text="no notes" />
         </LinearLayout>
 
         <include

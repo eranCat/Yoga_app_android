@@ -13,9 +13,11 @@ data class Address(
     val localName: String
 ) : Parcelable {
     constructor(freeformAddress: String, countryCode: String) :
-            this(0,"",
-                countryCode,"",
-                freeformAddress,"")
+            this(
+                0, "",
+                countryCode, "",
+                freeformAddress, ""
+            )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

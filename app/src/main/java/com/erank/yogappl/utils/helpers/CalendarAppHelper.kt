@@ -32,7 +32,7 @@ object CalendarAppHelper {
 
         val calID: Long = 3
 
-        val description ="${data.dataType.singular} ${data.level.lowercaseName}"
+        val description = "${data.dataType.singular} ${data.level.lowercaseName}"
 
         val values = ContentValues().apply {
             put(Events.EVENT_TIMEZONE, TimeZone.getDefault().id)

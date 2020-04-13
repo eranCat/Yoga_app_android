@@ -4,5 +4,5 @@ import com.erank.yogappl.models.User
 
 interface UserTaskCallback {
     fun onSuccessFetchingUser(user: User?)
-    fun onFailedFetchingUser(e:Exception)
+    fun onFailedFetchingUser(e: Exception)
 }

@@ -12,6 +12,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.erank.yogappl.R
 import com.erank.yogappl.activities.RegisterActivity
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.toast
@@ -35,17 +36,10 @@ class MyImagePicker(val callback: ImagePickerCallback) {
 
     fun show(activity: Activity, canRemove: Boolean) {
 
-//        TODO make string -array resource
-        val items = mutableListOf(
-            "select from gallery",
-            "select from the internet",
-            "take a photo"
-        )
+        val arr = if (!canRemove) R.array.photoOptions
+        else R.array.photoOptionsRemovable
 
-        if (canRemove)
-            items.add("remove image")
-
-        val itemsArr = items.toTypedArray()
+        val items = activity.resources.getStringArray(arr)
 
         val actions = arrayOf(
             Runnable { pickFromGallery(activity) },
@@ -55,7 +49,7 @@ class MyImagePicker(val callback: ImagePickerCallback) {
         )
 
         activity.alert("Select image")
-            .setItems(itemsArr) { _, i ->
+            .setItems(items) { _, i ->
                 actions[i].run()
             }.setNegativeButton("Cancel", null)
             .show()

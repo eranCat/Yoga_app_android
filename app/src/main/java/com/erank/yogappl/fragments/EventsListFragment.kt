@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import com.erank.yogappl.R
 import com.erank.yogappl.adapters.EventsAdapter
 import com.erank.yogappl.models.Event
@@ -14,9 +15,9 @@ import com.erank.yogappl.utils.interfaces.TaskCallback
 
 class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.EventVH>() {
     companion object {
-        fun newInstance(sourceType: SourceType) =
+        fun newInstance(type: SourceType) =
             EventsListFragment().apply {
-                arguments = argsBundle(sourceType)
+                arguments = bundleOf(SOURCE_TYPE to type)
             }
     }
 
@@ -30,16 +31,17 @@ class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.
         container, false
     )
 
-    override fun createAdapter(list: MutableList<Event>) =
-        initAdapter(EventsAdapter(list, isEditable))
+    override fun createAdapter() =
+        initAdapter(EventsAdapter(isEditable))
 
-    override fun getLiveData(sourceType: SourceType) =
-        DataSource.getEvents(sourceType)
 
-    override fun onDeleteConfirmed(item: Event, pos: Int) =
-        DataSource.deleteEvent(item, pos, this)
+    override fun getLiveData() = DataSource.getEvents(currentSourceType)
+
+    override fun onDeleteConfirmed(item: Event) =
+        DataSource.deleteEvent(item, this)
 
     override fun toggleSign(item: Event, callback: TaskCallback<Boolean, Exception>) =
         DataSource.toggleSignToEvent(item, callback)
+
 
 }

@@ -8,7 +8,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.activities.MainActivity.Companion.RC_EDIT
 import com.erank.yogappl.models.BaseData
 import com.erank.yogappl.models.DataInfo
 import com.erank.yogappl.models.Event
@@ -30,7 +29,8 @@ import java.text.DateFormat.SHORT
 
 class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
-    private lateinit var currentData: BaseData
+    private val RC_EDIT: Int = 2
+    private var currentData: BaseData? = null
     private lateinit var dataInfo: DataInfo
 
     private val progressLayout by lazy { progress_layout }
@@ -40,17 +40,17 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
         setContentView(R.layout.activity_data_info)
 
         dataInfo = intent!!.getParcelableExtra("dataInfo")
-        val dataType = dataInfo.dataType
-        val sourceType = dataInfo.sourceType
-        val pos = dataInfo.position!!
+        val dataType = dataInfo.type
 
-        DataSource.getData(dataType, sourceType, pos)?.let {
-            currentData = it
-            fillData(it)
-            if (it is Event) {
-                loadEventImage(it)
-            }
-        } ?: finish()
+        DataSource.getData(dataType, dataInfo.id!!) {
+            it?.let {
+                currentData = it
+                fillData(it)
+                if (it is Event) {
+                    loadEventImage(it)
+                }
+            } ?: finish()
+        }
     }
 
     private fun loadEventImage(event: Event) {
@@ -72,16 +72,18 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
         data.apply {
 
-            DataSource.getUser(uid)?.let {
+            DataSource.getUser(uid) {
+                it?.let {
 
-                Glide.with(this@DataInfoActivity)
-                    .load(it.profileImageUrl)
-                    .placeholder(R.drawable.yoga_model)
-                    .circleCrop()
-                    .into(profile_Img)
+                    Glide.with(this@DataInfoActivity)
+                        .load(it.profileImageUrl)
+                        .placeholder(R.drawable.yoga_model)
+                        .circleCrop()
+                        .into(profile_Img)
 
-                teacher_name.text = it.name
-                teacher_about.text = it.about
+                    teacher_name.text = it.name
+                    teacher_about.text = it.about
+                }
             }
 
             title_tv.text = title
@@ -116,18 +118,21 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
     private lateinit var toggleSignNav: MenuItem
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.data_menu, menu)
-
-        val uid = DataSource.currentUser!!.id
-        toggleSignNav = menu.findItem(R.id.nav_toggle_sign)
-        if (currentData.signed.contains(uid)){
-            toggleSignNav.title = "Sign out"
-        }
-
         menu.findItem(R.id.nav_share).setIconTintCompat()
 
-        if (currentData.uid == uid) {
-            toggleSignNav.isVisible = false
-            menu.findItem(R.id.nav_edit).isVisible = true
+        toggleSignNav = menu.findItem(R.id.nav_toggle_sign)
+
+
+        val uid = DataSource.currentUser!!.id
+        currentData?.let {
+            if (it.signed.contains(uid)) {
+                toggleSignNav.title = "Sign out"
+            }
+
+            if (it.uid == uid) {
+                toggleSignNav.isVisible = false
+                menu.findItem(R.id.nav_edit).isVisible = true
+            }
         }
 
         return super.onCreateOptionsMenu(menu)
@@ -158,7 +163,7 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             RC_EDIT -> if (resultCode == RESULT_OK)
-                fillData(currentData)
+                currentData?.let { fillData(it) }
         }
     }
 
@@ -177,30 +182,31 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
     }
 
 
-    private fun openLocation(location: LatLng) {
-        val locationIntent = LocationHelper.getLocationIntent(packageManager, location)
+    private fun openLocation(location: LatLng) =
+        LocationHelper.getLocationIntent(packageManager, location)
+            ?.let {
+                startActivity(it)
+            }
 
-        locationIntent?.let {
-            startActivity(it)
-        }
-    }
-
-    private val remindersAdapter by lazy { RemindersAdapter(currentData) }
+    private var remindersAdapter: RemindersAdapter<BaseData>? = null
 
     override fun onSuccess(result: Boolean?) {
         progressLayout.visibility = View.GONE
         toggleSignNav.isEnabled = true
 
-        result!!
-        val inout = if (result) "out" else "in"
-        toggleSignNav.title = "Sign $inout"
+        val res = result ?: false
 
-        with(remindersAdapter) {
-            this@DataInfoActivity.run {
-                if (result)
-                    showDialog(this)
-                else
-                    removeReminder(this, currentData)
+        toggleSignNav.title = "Sign ${if (res) "out" else "in"}"
+
+        val data = currentData ?: return
+
+        if (remindersAdapter == null)
+            remindersAdapter = RemindersAdapter(data)
+
+        remindersAdapter!!.let {
+            if (res) it.showDialog(this)
+            else currentData?.let { data ->
+                it.removeReminder(this, data)
             }
         }
     }
@@ -221,6 +227,6 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         remindersAdapter
-            .tryAgainIfAvailable(this, permissions, grantResults)
+            ?.tryAgainIfAvailable(this, permissions, grantResults)
     }
 }

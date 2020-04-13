@@ -1,7 +1,9 @@
 package com.erank.yogappl.utils.data_source
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import com.erank.yogappl.models.*
 import com.erank.yogappl.models.User.Type
 import com.erank.yogappl.utils.DataTypeError
@@ -10,10 +12,12 @@ import com.erank.yogappl.utils.UserErrors
 import com.erank.yogappl.utils.enums.DataType
 import com.erank.yogappl.utils.enums.SourceType
 import com.erank.yogappl.utils.enums.Status
+import com.erank.yogappl.utils.enums.TableNames
 import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.helpers.StorageManager
+import com.erank.yogappl.utils.helpers.StorageManager.saveUserImage
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
@@ -28,13 +32,11 @@ object DataSource {
 
     var currentUser: User? = null
 
-    private val dataModelHolder = DataModelsHolder()
+    private lateinit var dataModelHolder: DataModelsHolder
 
-    private const val MaxRangeKm = 100
     private const val MaxPerBatch = 100
 
-
-    private enum class DBRefs(name: String) {
+    enum class DBRefs(name: String) {
         LESSONS(TableNames.name(DataType.LESSONS)),
         EVENTS(TableNames.name(DataType.EVENTS)),
         USERS(TableNames.USERS.lowercaseName);
@@ -46,62 +48,50 @@ object DataSource {
         }
     }
 
-
-    fun getLessons(type: SourceType) = dataModelHolder.getLessons(type)
-
-    fun getEvents(type: SourceType) = dataModelHolder.getEvents(type)
-
-    fun getUserUploadedData(dType: DataType, pos: Int) =
-        dataModelHolder.getUploadedData(dType, pos)
-
-    enum class TableNames {
-        USERS,
-        CLASSES,
-        EVENTS;
-
-        companion object {
-            fun name(dType: DataType) =
-                when (dType) {
-                    DataType.LESSONS -> CLASSES.lowercaseName
-                    DataType.EVENTS -> EVENTS.lowercaseName
-                }
-        }
+    fun initRoom(context: Context) {
+        dataModelHolder = DataModelsHolder(context)
     }
 
-    fun loadData(onLoadedCallback: TaskCallback<Void, Exception>) {
+    fun getLessons(type: SourceType) =
+        dataModelHolder.getLessons(type, currentUser!!.id)
 
-        loadAll(DataType.LESSONS, object : TaskCallback<Void, Exception> {
+    fun getEvents(type: SourceType) =
+        dataModelHolder.getEvents(type, currentUser!!.id)
 
-            override fun onSuccess(result: Void?) = loadAll(DataType.EVENTS, onLoadedCallback)
+    fun loadData(
+        context: Context,
+        onLoadedCallback: TaskCallback<Void, Exception>
+    ) {
 
-            override fun onFailure(error: Exception) = onLoadedCallback.onFailure(error)
+        loadAll(context, DataType.LESSONS, object : TaskCallback<Void, Exception> {
+
+            override fun onSuccess(result: Void?) =
+                loadAll(context, DataType.EVENTS, onLoadedCallback)
+
+            override fun onFailure(error: Exception) =
+                onLoadedCallback.onFailure(error)
 
         })
     }
 
-    private fun loadAll(dType: DataType, loaded: TaskCallback<Void, Exception>) {
-        val code = LocationHelper.currentLocale.country
-        //        MARK: Important! don't use 2 ordered or limited queries
-        DBRefs.refForType(dType)
-            .orderByChild("countryCode").equalTo(code)
-            .limitToLast(MaxPerBatch)
-            .addListenerForSingleValueEvent(LoadDataValueEventHandler(loaded, dType))
+    private fun loadAll(
+        context: Context,
+        dType: DataType,
+        loaded: TaskCallback<Void, Exception>
+    ) {
+//        TODO use real location locale, not setting one
+        LocationHelper.getCountryCode(context) { code, _ ->
+            //        MARK: Important! don't use 2 ordered or limited queries
+            val handler = LoadDataValueEventHandler(loaded, dType)
+            DBRefs.refForType(dType)
+                .orderByChild("countryCode").equalTo(code)
+                .limitToLast(MaxPerBatch)
+                .addListenerForSingleValueEvent(handler)
+        }
     }
 
-    fun getUser(uid: String) = dataModelHolder.getUser(uid)
-
-    val lessonsMap = dataModelHolder.lessons
-
-    fun getLesson(pos: Int) = dataModelHolder.getLesson(pos)
-    fun getUserLesson(pos: Int) = dataModelHolder.getUserLesson(pos)
-    fun getSignedLesson(pos: Int) = dataModelHolder.getSignedLesson(pos)
-
-    val eventsMap = dataModelHolder.events
-
-    fun getEvent(pos: Int) = dataModelHolder.getEvent(pos)
-    fun getUserEvent(pos: Int) = dataModelHolder.getUserEvent(pos)
-    fun getSignedEvent(pos: Int) = dataModelHolder.getSignedEvent(pos)
-
+    fun getUser(uid: String, callback: (User?) -> Unit) =
+        dataModelHolder.getUser(uid, callback)
 
     fun fetchLoggedUser(callback: UserTaskCallback) {
 
@@ -128,11 +118,6 @@ object DataSource {
     }
 
     internal fun fetchUserIfNeeded(uid: String, callback: UserTaskCallback) {
-        //        if exists in memory
-        getUser(uid)?.let {
-            callback.onSuccessFetchingUser(it)
-            return
-        }
 
         userRef(uid)
             .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -142,8 +127,9 @@ object DataSource {
                         callback.onFailedFetchingUser(JsonParseException("user casting failed"))
                         return
                     }
-                    addUser(user)
-                    callback.onSuccessFetchingUser(user)
+                    addUser(user) {
+                        callback.onSuccessFetchingUser(user)
+                    }
                 }
 
                 override fun onCancelled(err: DatabaseError) =
@@ -163,31 +149,27 @@ object DataSource {
         return snapshot.getValue(type)
     }
 
-    private fun addUser(user: User) = dataModelHolder.addUser(user)
+    private fun addUser(user: User, callback: () -> Unit) {
+        dataModelHolder.addUser(user, callback)
+    }
 
     fun createUser(
         user: User, pass: String,
         selectedImage: Uri?, bitmap: Bitmap?,
-        listener: UserTaskCallback
+        callback: UserTaskCallback
     ) {
 
         //        stage 1 - add new simple user to the firebase Auth
         AuthHelper.createUser(user.email, pass)
+            .addOnFailureListener(callback::onFailedFetchingUser)
             .addOnSuccessListener { authResult ->
                 //       set id to user
                 user.id = authResult.user!!.uid
 
-                when {
-                    selectedImage != null ->
-                        StorageManager.saveUserImage(user, selectedImage, listener)
-
-                    bitmap != null ->
-                        StorageManager.saveUserImage(user, bitmap, listener)
-
-                    else -> uploadUserToDB(user, listener)
-                }
+                selectedImage?.let { saveUserImage(user, it, callback) }
+                    ?: bitmap?.let { saveUserImage(user, it, callback) }
+                    ?: uploadUserToDB(user, callback)
             }
-            .addOnFailureListener(listener::onFailedFetchingUser)
     }
 
     fun updateCurrentUser(
@@ -203,11 +185,11 @@ object DataSource {
 
         when {
             selectedImage != null ->
-                StorageManager.saveUserImage(user, selectedImage, callback)
+                saveUserImage(user, selectedImage, callback)
                     .addOnSuccessListener { updateUser(user, callback) }
 
             selectedImageBitmap != null ->
-                StorageManager.saveUserImage(user, selectedImageBitmap, callback)
+                saveUserImage(user, selectedImageBitmap, callback)
                     .addOnSuccessListener { updateUser(user, callback) }
 
             else -> updateUser(user, callback)
@@ -251,7 +233,10 @@ object DataSource {
         ref.setValue(data)
             .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
-                dataModelHolder.addNewData(data)
+
+                dataModelHolder.addNewData(data) {
+                    Log.d(TAG, "added in room")
+                }
 
                 if (dType == DataType.LESSONS) {
                     saveUserLesson(data.id, callback)
@@ -352,7 +337,10 @@ object DataSource {
 
     private fun saveInDB(event: Event) = eventRef(event).setValue(event)
 
-    fun deleteLesson(lesson: Lesson, pos: Int, callback: TaskCallback<Int, Exception>) {
+    fun deleteLesson(
+        lesson: Lesson,
+        callback: TaskCallback<Int, Exception>
+    ) {
 //        TODO check if signed users
 //        TODO if so, cancel ;else delete
         callback.onLoading()
@@ -375,17 +363,15 @@ object DataSource {
                     .addOnFailureListener { callback.onFailure(it) }
                     .addOnSuccessListener {
                         teacher.removeLesson(lesson.id)
-
-                        dataModelHolder.removeData(lesson)
-
-                        callback.onSuccess(pos)
+                        dataModelHolder.removeData(lesson) {
+                            callback.onSuccess()
+                        }
                     }
-
             }
     }
 
     fun deleteEvent(
-        event: Event, pos: Int,
+        event: Event,
         callback: TaskCallback<Int, Exception>
     ) {
 //        TODO check if signed users
@@ -411,19 +397,24 @@ object DataSource {
                     .addOnSuccessListener {
                         user.removeEvent(event.id)
 
-                        dataModelHolder.removeData(event)
+                        dataModelHolder.removeData(event) {
+                            Log.d(TAG, "removed in Room")
+                            callback.onSuccess()
+                        }
 
                         StorageManager.removeEventImage(event)
 
-                        callback.onSuccess(pos)
                     }
 
             }
     }
 
-    fun getData(dataType: DataType, sourceType: SourceType, pos: Int): BaseData? {
-        return dataModelHolder.getData(dataType, sourceType, pos)
-    }
+    fun getData(
+        dataType: DataType,
+        id: String,
+        callback: (BaseData?) -> Unit
+    ) =
+        dataModelHolder.getData(dataType, id, callback)
 
     fun isUserSignedToLesson(lesson: Lesson) =
         currentUser!!.signedLessonsIDS.contains(lesson.id)
@@ -485,10 +476,7 @@ object DataSource {
                     ref.child("status").setValue(Status.OPEN.ordinal)
                         .addOnFailureListener(callback::onFailure)
                         .addOnSuccessListener {
-                            removeDataFromUser(
-                                data, userID,
-                                userSigned, callback
-                            )
+                            removeDataFromUser(data, userID, userSigned, callback)
                         }
                 }
             return
@@ -503,7 +491,9 @@ object DataSource {
                         return
                     }
 
-                dataModelHolder.updateData(data, dbData)
+                dataModelHolder.updateData(dbData) {
+                    Log.d(TAG, "updated in room")
+                }
 
                 if (dbData.status == Status.FULL) {
                     callback.onFailure(SigningErrors.NoPlaceLeft())
@@ -551,8 +541,10 @@ object DataSource {
             .addOnFailureListener(callback::onFailure)
             .addOnCompleteListener {
                 userSigned.remove(data.id)
-                dataModelHolder.removeFromSigned(data)
-                callback.onSuccess(false)
+
+                dataModelHolder.updateData(data) {
+                    callback.onSuccess(false)
+                }
             }
     }
 
@@ -562,10 +554,9 @@ object DataSource {
         userSignedMap: MutableMap<String, Boolean>,
         callback: TaskCallback<Boolean, Exception>
     ) {
-        val dId = data.id
-        userSigned.add(dId)
+        userSigned.add(data.id)
 
-        userSignedMap[dId] = true
+        userSignedMap[data.id] = true
         val updateKey = when (data) {
             is Lesson -> "signedClasses"
             is Event -> "signedEvents"
@@ -575,9 +566,23 @@ object DataSource {
         userRef(uid).updateChildren(map)
             .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
-                userSigned.add(dId)
-                dataModelHolder.addToSigned(data)
-                callback.onSuccess(true)
+                userSigned.add(data.id)
+                dataModelHolder.addNewData(data) {
+                    callback.onSuccess(true)
+                }
             }
     }
+
+    fun addAllLessons(lessons: List<Lesson>, callback: () -> Unit) =
+        dataModelHolder.addLessons(lessons, callback)
+
+    fun addAllEvents(events: List<Event>, callback: () -> Unit) =
+        dataModelHolder.addEvents(events, callback)
+
+    fun filterEvents(type: SourceType, query: String) =
+        dataModelHolder.filterEvents(type, currentUser!!.id, query)
+
+    fun filterLessons(type: SourceType, query: String) =
+        dataModelHolder.filterLessons(type, currentUser!!.id, query)
+
 }

@@ -2,7 +2,7 @@ package com.erank.yogappl.utils.helpers
 
 import android.content.Context
 import android.net.Uri
-import com.erank.yogappl.utils.async_tasks.CurrencyTask
+import com.erank.yogappl.utils.coroutines.CurrencyTask
 import com.erank.yogappl.utils.extensions.add
 import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import java.util.*
@@ -40,7 +40,7 @@ object MoneyConverter {
         //            get current currency code from location
         val code = Currency.getInstance(Locale.getDefault()).currencyCode
 
-        CurrencyTask {
+        CurrencyTask(converterUrl(code)) {
 
             if (!it.success) {
                 callback.onFailedConnectingMoney(it.error)
@@ -51,7 +51,7 @@ object MoneyConverter {
             saveMoneyOnSharedPrefs(context)
             callback.onSuccessConnectingMoney()
 
-        }.execute(converterUrl(code))
+        }.start()
     }
 
     private fun saveMoneyOnSharedPrefs(context: Context) {

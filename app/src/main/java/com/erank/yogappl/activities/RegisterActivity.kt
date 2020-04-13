@@ -209,9 +209,11 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
 
         progressLayout.isVisible = true
         val pass = etPassword.txt
-        DataSource.createUser(user, pass,
+        DataSource.createUser(
+            user, pass,
             selectedLocalImage, selectedImageBitmap,
-            this)
+            this
+        )
     }
 
     private fun backToLoginWithSuccess() {

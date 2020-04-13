@@ -3,19 +3,14 @@ package com.erank.yogappl.activities
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.SearchView.SearchAutoComplete
 import com.erank.yogappl.R
-import com.erank.yogappl.activities.NewEditDataActivity.Companion.RC_LOCATION
 import com.erank.yogappl.adapters.LocationsAdapter
 import com.erank.yogappl.models.LocationResult
 import com.erank.yogappl.utils.extensions.setIconTintCompat
-import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.interfaces.OnLocationSelectedCallback
 import kotlinx.android.synthetic.main.activity_location_picker.*
@@ -53,15 +48,20 @@ class LocationPickerActivity : AppCompatActivity(),
         return true
     }
 
-    override fun onQueryTextSubmit(query: String) = false
+    override fun onQueryTextSubmit(query: String) = true
 
     override fun onQueryTextChange(query: String): Boolean {
+        if (query.isEmpty()) {
+            locationsAdapter.submitList(emptyList())
+            return false
+        }
 
-        LocationHelper.getLocationResults(query) {
+        LocationHelper.getLocationResults(this, query) {
             locationsAdapter.submitList(it)
-            locationsAdapter.notifyDataSetChanged()
 
-            locationsEmptyTv.visibility = if (it.isEmpty()) VISIBLE else GONE
+            locationsEmptyTv.visibility =
+                if (it.isEmpty()) VISIBLE
+                else GONE
         }
 
         return false
@@ -69,7 +69,6 @@ class LocationPickerActivity : AppCompatActivity(),
 
     override fun onSelected(location: LocationResult) {
         setResult(RESULT_OK, Intent().putExtra("location", location))
-//        finishActivity(RC_LOCATION)
         finish()
     }
 }

@@ -1,6 +1,7 @@
 package com.erank.yogappl.utils.helpers
 
 import android.graphics.Bitmap
+import android.graphics.Bitmap.CompressFormat.JPEG
 import android.net.Uri
 import android.util.Log
 import com.erank.yogappl.models.Event
@@ -29,9 +30,9 @@ object StorageManager {
 
     private val TAG = StorageManager::class.java.name
 
-    fun removeCurrentUserProfileImage(completion: TaskCallback<Void,Exception>) {
+    fun removeCurrentUserProfileImage(completion: TaskCallback<Void, Exception>) {
         val user = DataSource.currentUser
-            ?: run {
+            ?: let {
                 completion.onFailure(UserErrors.NoUserFound())
                 return
             }
@@ -43,7 +44,7 @@ object StorageManager {
             .addOnSuccessListener { removeUserProfileImageFromDB(completion) }
     }
 
-    private fun removeUserProfileImageFromDB(completion: TaskCallback<Void,Exception>) {
+    private fun removeUserProfileImageFromDB(completion: TaskCallback<Void, Exception>) {
         DataSource.currentUser?.let {
             //save the image url in current users obj
             it.profileImageUrl = null
@@ -58,42 +59,38 @@ object StorageManager {
         }
     }
 
-    fun saveUserImage(
-        user: User, imageUri: Uri,
-        listener: UserTaskCallback
-    ): Task<Uri> {
-        val userRef = userImageRef(user)
-        val task = userRef.putFile(imageUri)
-        return continueSaveUserImageTask(task, userRef, user, listener)
-    }
+    fun saveUserImage(user: User, imageUri: Uri, callback: UserTaskCallback) =
+        with(userImageRef(user)) {
+            val task = putFile(imageUri)
+            continueSaveUserImageTask(task, this, user, callback)
+        }
 
-    fun saveUserImage(user: User, bitmap: Bitmap, listener: UserTaskCallback): Task<Uri> {
+    fun saveUserImage(user: User, bitmap: Bitmap, callback: UserTaskCallback) =
+        with(userImageRef(user)) {
+            val uploadTask = putBytes(bitmapToJPEGBytes(bitmap))
+            continueSaveUserImageTask(uploadTask, this, user, callback)
+        }
 
-        val userRef = userImageRef(user)
-
-        val bytes = ByteArrayOutputStream().apply {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, this)
-        }.toByteArray()
-
-        val task = userRef.putBytes(bytes)
-        return continueSaveUserImageTask(task, userRef, user, listener)
-    }
+    private fun bitmapToJPEGBytes(bitmap: Bitmap) = ByteArrayOutputStream()
+        .also { bitmap.compress(JPEG, 100, it) }
+        .toByteArray()
 
     private fun continueSaveUserImageTask(
-        uploadTask: UploadTask, userRef: StorageReference,
+        uploadTask: UploadTask,
+        userRef: StorageReference,
         user: User, listener: UserTaskCallback
     ): Task<Uri> {
         return uploadTask.continueWithTask { task ->
-            if (!task.isSuccessful) {
-                task.exception?.let { throw it }
+            val exception = task.exception
+            if (!task.isSuccessful && exception != null) {
+                throw exception
             }
             userRef.downloadUrl
-
-        }.addOnSuccessListener {
-            user.profileImageUrl = it.toString()
-            DataSource.uploadUserToDB(user, listener)
-
         }.addOnFailureListener(listener::onFailedFetchingUser)
+            .addOnSuccessListener {
+                user.profileImageUrl = it.toString()
+                DataSource.uploadUserToDB(user, listener)
+            }
     }
 
     private fun userImageRef(user: User) = StorageRefs.USERS_IMAGES.ref.child(user.id)
@@ -104,7 +101,7 @@ object StorageManager {
     fun saveEventImage(event: Event, bitmap: Bitmap): Task<Uri> {
 
         val bytes = ByteArrayOutputStream().apply {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, this)
+            bitmap.compress(JPEG, 100, this)
         }.toByteArray()
 
         val eventRef = eventRef(event)

@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.view.ViewPropertyAnimator
 
 fun View.toggleRotation(isVisible: Boolean) {
     val rotationAngle = if (isVisible) 0f else 180f //toggle

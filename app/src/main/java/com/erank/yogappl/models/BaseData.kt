@@ -1,7 +1,8 @@
 package com.erank.yogappl.models
 
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SMap
-import com.erank.yogappl.utils.data_source.DataSource
 import com.erank.yogappl.utils.enums.DataType
 import com.erank.yogappl.utils.enums.Status
 import com.erank.yogappl.utils.extensions.mapped
@@ -15,6 +16,7 @@ import com.google.firebase.database.PropertyName
 import java.util.*
 
 abstract class BaseData internal constructor() : Searchable {
+    @PrimaryKey
     lateinit var id: String
 
     //    TODO check how to have type in lesson
@@ -38,6 +40,7 @@ abstract class BaseData internal constructor() : Searchable {
 
     @PropertyName("age_min")
     var minAge = 0
+
     @PropertyName("age_max")
     var maxAge = 0
 
@@ -75,7 +78,7 @@ abstract class BaseData internal constructor() : Searchable {
     lateinit var status: Status
 
     @get:Exclude
-    abstract val dataType:DataType
+    abstract val dataType: DataType
 
     constructor(
         title: String,
@@ -110,6 +113,8 @@ abstract class BaseData internal constructor() : Searchable {
         this.signed = mutableMapOf()
     }
 
+    @get:Ignore
+    @set:Ignore
     @get:PropertyName("level")
     @set:PropertyName("level")
     var levelFB: Int
@@ -118,6 +123,8 @@ abstract class BaseData internal constructor() : Searchable {
             level = Level.values()[i]
         }
 
+    @get:Ignore
+    @set:Ignore
     @get:PropertyName("status")
     @set:PropertyName("status")
     var statusFB: Int
@@ -126,6 +133,8 @@ abstract class BaseData internal constructor() : Searchable {
             status = Status.values()[i]
         }
 
+    @get:Ignore
+    @set:Ignore
     @get:PropertyName("postedDate")
     @set:PropertyName("postedDate")
     var postedDateFB: Double
@@ -134,6 +143,8 @@ abstract class BaseData internal constructor() : Searchable {
             postedDate = newDate(time)
         }
 
+    @get:Ignore
+    @set:Ignore
     @get:PropertyName("startDate")
     @set:PropertyName("startDate")
     var startTimestamp: Double
@@ -142,6 +153,8 @@ abstract class BaseData internal constructor() : Searchable {
             startDate = newDate(time)
         }
 
+    @get:Ignore
+    @set:Ignore
     @get:PropertyName("endDate")
     @set:PropertyName("endDate")
     var endDateFB: Double
@@ -150,6 +163,8 @@ abstract class BaseData internal constructor() : Searchable {
             endDate = newDate(time)
         }
 
+    @get:Ignore
+    @set:Ignore
     @get:PropertyName("cost")
     @set:PropertyName("cost")
     var costFB
@@ -158,6 +173,8 @@ abstract class BaseData internal constructor() : Searchable {
             cost = Money(value)
         }
 
+    @get:Ignore
+    @set:Ignore
     @get:PropertyName("location")
     @set:PropertyName("location")
     var locationFB: SMap<Double>
@@ -166,9 +183,12 @@ abstract class BaseData internal constructor() : Searchable {
             location = newLatLng(value)
         }
 
+    @get:Ignore
     @get:Exclude
-    val isCanceled get() = status == Status.CANCELED
+    val isCanceled
+        get() = status == Status.CANCELED
 
+    @Ignore
     fun getNumOfParticipants() = signed.size
 
     override fun toString(): String {
@@ -227,9 +247,10 @@ abstract class BaseData internal constructor() : Searchable {
     }
 
     override fun searchApplies(query: String): Boolean {
-        return (title.contains(query, true)
+        return title.contains(query, true)
                 || locationName.contains(query, true)
-                || DataSource.getUser(uid)?.name
-            ?.contains(query, true) ?: false)
+//                || DataSource.getUser(uid)?.name
+//            ?.contains(query, true) ?: false
+//        TODO add search by user name
     }
 }

@@ -15,8 +15,6 @@ import com.erank.yogappl.utils.helpers.UserValidator.Fields.EMAIL
 import com.erank.yogappl.utils.helpers.UserValidator.Fields.PASS
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
-import kotlinx.android.synthetic.main.activity_login.llProgressBar
-import kotlinx.android.synthetic.main.activity_register.*
 
 class LoginActivity : AppCompatActivity() {
 
@@ -79,7 +77,7 @@ class LoginActivity : AppCompatActivity() {
             }
             .addOnFailureListener {
                 Log.w(TAG, "createUserWithEmail:failure", it)
-                toast("Authentication failed: ${it.localizedMessage}",Toast.LENGTH_LONG)
+                toast("Authentication failed: ${it.localizedMessage}", Toast.LENGTH_LONG)
             }
 
     }

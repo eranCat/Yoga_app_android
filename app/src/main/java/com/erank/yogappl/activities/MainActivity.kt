@@ -1,51 +1,47 @@
 package com.erank.yogappl.activities
 
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.WindowManager
 import android.widget.ImageView
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.GravityCompat
+import androidx.core.view.GravityCompat.START
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.fragments.EventsListFragment
 import com.erank.yogappl.fragments.TabsFragment
 import com.erank.yogappl.models.DataInfo
 import com.erank.yogappl.models.User.Type.STUDENT
+import com.erank.yogappl.utils.SearchWatcher
 import com.erank.yogappl.utils.data_source.DataSource
 import com.erank.yogappl.utils.enums.DataType
 import com.erank.yogappl.utils.enums.DataType.EVENTS
 import com.erank.yogappl.utils.enums.SearchState
 import com.erank.yogappl.utils.enums.SourceType
 import com.erank.yogappl.utils.enums.SourceType.*
-import com.erank.yogappl.utils.extensions.alert
-import com.erank.yogappl.utils.extensions.cName
-import com.erank.yogappl.utils.extensions.setIconTintCompat
+import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.AuthHelper
-import com.erank.yogappl.utils.interfaces.SearchViewCallbackAdapter
+import com.erank.yogappl.utils.interfaces.SearchUpdateable
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.nav_header.view.*
 
+
 class MainActivity : AppCompatActivity(),
     NavigationView.OnNavigationItemSelectedListener,
-    SearchViewCallbackAdapter {
+    BottomNavigationView.OnNavigationItemSelectedListener {
 
     companion object {
-        private const val PACKAGE = "com.erank.yogappl.activities.mainActivity"
-
-        const val SEARCH_ACTION = "$PACKAGE.search"
-        const val ACTION_ADDED = "$PACKAGE.added"
-        const val ACTION_UPDATE = "$PACKAGE.update"
-        const val RC_NEW = 123
-        const val RC_EDIT = 111
+        private const val TABS_FRAGMENT_TAG = "tabs"
+        private const val RC_NEW = 123
     }
 
     private lateinit var sourceType: SourceType
@@ -55,14 +51,13 @@ class MainActivity : AppCompatActivity(),
     private val bottomTabs by lazy { bottom_nav_view }
     private val addFab by lazy { add_fab }
 
-    private var tabsFragment: TabsFragment? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        bottomTabs.setOnNavigationItemSelectedListener(this::onNavigationItemSelected)
+        bottomTabs.setOnNavigationItemSelectedListener(this)
         bottomTabs.selectedItemId = R.id.action_all
+        bottomTabs.setOnNavigationItemReselectedListener {}
 
         initDrawer()
 
@@ -101,90 +96,89 @@ class MainActivity : AppCompatActivity(),
     override fun onActivityResult(rc: Int, result: Int, data: Intent?) {
         super.onActivityResult(rc, result, data)
 
-        if (result != RESULT_OK)
-            return
-
-        val action = when (rc) {
-            RC_NEW -> ACTION_ADDED
-            RC_EDIT -> ACTION_UPDATE//starts from fragment
-            else -> return
-        }
-
-        data?.let {
-            LocalBroadcastManager.getInstance(this)
-                .sendBroadcast(Intent(action).putExtras(it))
+        when (rc) {
+            RC_NEW -> if (result == RESULT_OK) {
+                toast("Added!")
+            }
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
 
-        val searchItem = menu.findItem(R.id.action_search)
+        menu.findItem(R.id.action_search)?.also {
 
-        searchItem.setIconTintCompat()
+            val watcher = object : SearchWatcher() {
+                override fun updateSearch(state: SearchState, query: String) {
+                    val manager = supportFragmentManager
+                    val fragment = manager.findFragmentByTag(TABS_FRAGMENT_TAG)
+                        ?: manager.findFragmentByTag("events")
+                        ?: return
 
-        searchItem.setOnActionExpandListener(this)
+                    if (fragment.isVisible.not()) return
 
-        val searchView = searchItem!!.actionView as SearchView
-        searchView.setOnQueryTextListener(this)
+                    (fragment as? SearchUpdateable)?.updateSearch(state, query)
+                }
+            }
+
+            it.setIconTintCompat()
+            it.setOnActionExpandListener(watcher)
+
+            (it.actionView as? SearchView)?.setOnQueryTextListener(watcher)
+        }
 
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.menu_add -> {
-                openNewDataActivity()
-                true
-            }
-            R.id.action_search -> true
-            else -> super.onOptionsItemSelected(item)
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.menu_add -> {
+            openNewDataActivity()
+            true
         }
+        else -> super.onOptionsItemSelected(item)
     }
 
     private fun loadFragment(type: SourceType): Boolean {
         sourceType = type
         title = type.cName
 
-        val color = resources.getIntArray(R.array.tabs_colors)[type.ordinal]
-        supportActionBar?.setBackgroundDrawable(ColorDrawable(color))
-        val headerView = navigationView.getHeaderView(0)
-        headerView.setBackgroundColor(color)
+        val colors = resources.getIntArray(R.array.tabs_colors)
+        val color = colors[type.ordinal]
+
+        toolbar.animateColor(color)
+
+        navigationView.getHeaderView(0).setBackgroundColor(color)
+
+        changeWindowBarColor(color)
 
         when (type) {
-            ALL, SIGNED -> updateTabFragment(type)
+            ALL, SIGNED -> replaceTabs(type)
             //student can only have events
             UPLOADS ->
                 if (DataSource.currentUser?.type != STUDENT)
-                    updateTabFragment(type)
+                    replaceTabs(type)
                 else
-                    replaceFragment(EventsListFragment.newInstance(type))
+                    replaceFragment(EventsListFragment.newInstance(type), "events")
         }
 
         return true
     }
 
-    private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.section_frame, fragment)
-            .setTransition(TRANSIT_FRAGMENT_FADE)
-            .disallowAddToBackStack()
-            .commit()
+    private fun changeWindowBarColor(@ColorInt color: Int) = window?.let {
+
+        it.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        it.statusBarColor = color.withAlpha(180)
     }
 
-    private fun updateTabFragment(sourceType: SourceType): TabsFragment {
-        if (tabsFragment == null) {
 
-            tabsFragment = TabsFragment.newInstance(sourceType)
+    private fun replaceTabs(type: SourceType) =
+        replaceFragment(TabsFragment.newInstance(type), TABS_FRAGMENT_TAG)
 
-            val fragments = supportFragmentManager.fragments
-            if (tabsFragment != fragments.firstOrNull())
-                replaceFragment(tabsFragment!!)
-        }
-
-        tabsFragment!!.setSourceType(sourceType)
-
-        return tabsFragment!!
+    private fun replaceFragment(fragment: Fragment, tag: String) {
+        supportFragmentManager.beginTransaction()
+            .setTransition(TRANSIT_FRAGMENT_OPEN)
+            .replace(R.id.section_frame, fragment, tag)
+            .commit()
     }
 
     private fun initDrawer() {
@@ -227,16 +221,6 @@ class MainActivity : AppCompatActivity(),
         fillDrawer()
     }
 
-    private fun showSignOutDialog() {
-        alert(null, "Are you sure you want to sign out?")
-            .setPositiveButton("Yep") { _, _ ->
-                AuthHelper.signOut(this)
-                finish()
-            }
-            .setNegativeButton("Nope", null)
-            .show()
-    }
-
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
 
         return when (item.itemId) {
@@ -247,14 +231,12 @@ class MainActivity : AppCompatActivity(),
 
             R.id.nav_edit_profile -> {
                 openUserData()
-                drawerLayout.closeDrawer(GravityCompat.START)
-                drawerLayout.isSelected = false
+                closeDrawer()
                 true
             }
             R.id.nav_signOut -> {
                 showSignOutDialog()
-                drawerLayout.closeDrawer(GravityCompat.START)
-                drawerLayout.isSelected = false
+                closeDrawer()
                 true
             }
 
@@ -262,41 +244,31 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
+    private fun showSignOutDialog() {
+        alert(null, "Are you sure you want to sign out?")
+            .setPositiveButton("Yep") { _, _ ->
+                AuthHelper.signOut(this)
+                finish()
+            }
+            .setNegativeButton("Nope", null)
+            .show()
+    }
+
+    private fun closeDrawer() {
+        drawerLayout.closeDrawer(START)
+        drawerLayout.isSelected = false
+    }
+
     private fun openUserData() = startActivity(
         Intent(this, RegisterActivity::class.java)
     )
 
     override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
+        if (drawerLayout.isDrawerOpen(START)) {
+            drawerLayout.closeDrawer(START)
         } else {
             super.onBackPressed()
         }
     }
 
-    override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
-        sendSearchBroadcast(SearchState.OPENED)
-        return true
-    }
-
-    override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
-        sendSearchBroadcast(SearchState.CLOSED)
-        return true
-    }
-
-    override fun onQueryTextChange(q: String?): Boolean {
-        sendSearchBroadcast(SearchState.CHANGED, q ?: "")
-        return true
-    }
-
-    private fun sendSearchBroadcast(state: SearchState, query: String = "") {
-
-        val intent = Intent(SEARCH_ACTION)
-            .putExtra("query", query)
-            .putExtra("state", state)
-
-        LocalBroadcastManager
-            .getInstance(this)
-            .sendBroadcast(intent)
-    }
 }

@@ -4,36 +4,32 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import com.erank.yogappl.R
 import com.erank.yogappl.adapters.DataPagerAdapter
+import com.erank.yogappl.utils.enums.SearchState
 import com.erank.yogappl.utils.enums.SourceType
-import com.erank.yogappl.utils.interfaces.SourceTypeDynamic
-import com.google.android.material.tabs.TabLayout
+import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import kotlinx.android.synthetic.main.fragment_tabs.*
 
 
-class TabsFragment : Fragment(), SourceTypeDynamic {
+class TabsFragment : Fragment(), SearchUpdateable {
 
     companion object {
 
-        fun newInstance(sourceType: SourceType): TabsFragment {
-            val fragment = TabsFragment()
-            fragment.arguments = Bundle().apply {
-                putSerializable("type", sourceType)
+        fun newInstance(sourceType: SourceType) =
+            TabsFragment().apply {
+                arguments = bundleOf("type" to sourceType)
             }
-            return fragment
-        }
 
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_tabs, container, false)
 
     private var dataPagerAdapter: DataPagerAdapter? = null
-    private var tabLayout: TabLayout? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -41,31 +37,30 @@ class TabsFragment : Fragment(), SourceTypeDynamic {
         val sourceType = arguments!!.getSerializable("type") as SourceType
         val tabTitles = resources.getStringArray(R.array.tab_titles)
 
-        dataPagerAdapter = DataPagerAdapter(childFragmentManager, tabTitles, SourceType.ALL)
+        dataPagerAdapter = DataPagerAdapter(childFragmentManager, tabTitles, sourceType)
 
-        val viewPager = data_view_pager
-        viewPager.adapter = dataPagerAdapter
-
-        tabLayout = tab_layout
-        tabLayout!!.setupWithViewPager(viewPager)
+        with(data_view_pager) {
+            adapter = dataPagerAdapter
+            tab_layout.setupWithViewPager(this)
+        }
 
         setColors(sourceType)
     }
 
-    private fun setColors(type: SourceType) {
+    private fun setColors(type: SourceType) = tab_layout.apply {
 
-        tabLayout?.apply {
-            val i = type.ordinal
-            val color = resources.getIntArray(R.array.tabs_colors)[i]
-            setBackgroundColor(color)
-            val indicator = resources.getIntArray(R.array.tabs_indicators)[i]
-            setSelectedTabIndicatorColor(indicator)
-        }
+        val bgColors = resources.getIntArray(R.array.tabs_colors)
 
+        val i = type.ordinal
+
+        val bgColor = bgColors[i]
+
+        setBackgroundColor(bgColor)
     }
 
-    override fun setSourceType(type: SourceType) {
-        dataPagerAdapter?.setSourceType(type)
-        setColors(type)
+    override fun updateSearch(state: SearchState, query: String) {
+        val item = dataPagerAdapter?.getItem(data_view_pager.currentItem)
+        (item as? SearchUpdateable)?.updateSearch(state, query)
     }
+
 }

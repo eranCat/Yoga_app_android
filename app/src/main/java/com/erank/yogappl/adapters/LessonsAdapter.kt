@@ -17,15 +17,13 @@ import kotlinx.android.synthetic.main.lesson_item.view.*
 import kotlinx.android.synthetic.main.profile_image.view.*
 
 
-class LessonsAdapter(
-    list: MutableList<Lesson>,
-    isEditable: Boolean
-) :
-    DataListAdapter<Lesson, LessonsAdapter.LessonVH>(list, isEditable) {
+class LessonsAdapter(isEditable: Boolean) :
+    DataListAdapter<Lesson, LessonsAdapter.LessonVH>(isEditable) {
 
     override val dataType = DataType.LESSONS
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = LessonVH(parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        LessonVH(parent)
 
     inner class LessonVH(parent: ViewGroup) :
         DataVH<Lesson>(parent, R.layout.lesson_item) {
@@ -48,51 +46,57 @@ class LessonsAdapter(
             editBtn.visibility = visibility
             deleteBtn.visibility = visibility
 
-            signBtn.visibility = if (!isEditable) View.VISIBLE else View.GONE
+            signBtn.visibility = if (isEditable) View.GONE else View.VISIBLE
         }
 
-        override fun bind(lesson: Lesson) {
+        override fun bind(item: Lesson) {
 
-            DataSource.getUser(lesson.uid)?.let {
+            DataSource.getUser(item.uid) {
+                it?.let {
 
-                Glide.with(teacherImgView)
-                    .load(it.profileImageUrl)
-                    .placeholder(R.drawable.yoga_model)
-                    .fallback(R.drawable.yoga_model)
-                    .circleCrop()
-                    .into(teacherImgView)
+                    Glide.with(teacherImgView)
+                        .load(it.profileImageUrl)
+                        .placeholder(R.drawable.yoga_model)
+                        .fallback(R.drawable.yoga_model)
+                        .circleCrop()
+                        .into(teacherImgView)
 
-                teacherNameTv.text = it.name
+                    teacherNameTv.text = it.name
+                }
             }
 
             if (!isEditable) {
-                (DataSource.currentUser as? Teacher)?.let {
-                    signBtn.isEnabled = !it.teachingLessonsIDs.contains(lesson.id)
 
-                } ?: signBtn.setEnabled(true)
+                val teacher =
+                    DataSource.currentUser
+                if (teacher is Teacher) {
+                    signBtn.isEnabled = !teacher
+                        .teachingLessonsIDs
+                        .contains(item.id)
+                } else
+                    signBtn.isEnabled = true
             }
 
-            lesson.apply {
+            item.run {
                 kindTv.text = title
                 placeTv.text = locationName
                 timeTv.text = startDate.relativeTimeString(itemView.context)
             }
 
-            setOnClickListeners(lesson)
+            setOnClickListeners(item)
         }
 
-        override fun setOnClickListeners(lesson: Lesson) {
+        override fun setOnClickListeners(item: Lesson) {
 
-            val id = lesson.id
-            val i = originalPositions.getOrDefault(id, adapterPosition)
+            val id = item.id
 
             itemView.setOnClickListener {
-                callback?.onItemSelected(lesson, i)
+                callback?.onItemSelected(item)
             }
 
             dropDownBtn.setOnClickListener {
 
-                val isVisible = toggles[id]!!
+                val isVisible = toggles[id] ?: false
                 it.toggleRotation(isVisible)
                 dropDownSection.toggleSlide(isVisible)
 
@@ -100,16 +104,26 @@ class LessonsAdapter(
             }
 
             if (isEditable) {
-                editBtn.setOnClickListener { callback?.onEditAction(lesson, i) }
-                deleteBtn.setOnClickListener { callback?.onDeleteAction(lesson, i) }
-            } else {
-                val isSigned = DataSource.isUserSignedToLesson(lesson)
-                signBtn.text = "Sign ${if (isSigned) "out" else "in"}"
-                signBtn.setOnClickListener {
-                    callback?.onSignAction(lesson, i)
+                editBtn.setOnClickListener {
+                    callback?.onEditAction(item)
                 }
+                deleteBtn.setOnClickListener {
+                    callback?.onDeleteAction(item)
+                }
+                return
+            }
+
+            val state =
+                if (DataSource.isUserSignedToLesson(item)) "out"
+                else "in"
+
+            signBtn.text = itemView.resources.getString(R.string.signMsg, state)
+
+            signBtn.setOnClickListener {
+                callback?.onSignAction(item)
             }
 
         }
     }
+
 }

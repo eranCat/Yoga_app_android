@@ -52,14 +52,19 @@ data class LocationResult(
     enum class Type {
         @SerializedName("POI")
         POI,
+
         @SerializedName("Street")
         STREET,
+
         @SerializedName("Geography")
         GEOGRAPHY,
+
         @SerializedName("Point Address")
         POINT_ADDRESS,
+
         @SerializedName("Address Range")
         ADDRESS_RANGE,
+
         @SerializedName("Cross Street")
         CROSS_STREET,
     }

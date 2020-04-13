@@ -25,4 +25,7 @@
     <string name="tomtom_base_api">api.tomtom.com</string>
 
     <string name="range">%s - %s</string>
+
+    <string name="signMsg">Sign %s</string>
+    <string name="empty">"Empty %s"</string>
 </resources>

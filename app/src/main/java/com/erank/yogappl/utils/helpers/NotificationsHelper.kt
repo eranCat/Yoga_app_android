@@ -9,7 +9,6 @@ import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.R
-import com.erank.yogappl.activities.MainActivity
 import com.erank.yogappl.activities.SplashActivity
 import com.erank.yogappl.models.BaseData
 import com.erank.yogappl.utils.extensions.addMinuets
@@ -65,8 +64,10 @@ object NotificationsHelper {
         val intent = Intent(context, NotificationReceiver::class.java)
         intent.putExtra("title", data.title)
         val pending =
-            PendingIntent.getBroadcast(context, 42,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getBroadcast(
+                context, 42,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT
+            )
         // Cancel notification
         val manager =
             context.getSystemService(Context.ALARM_SERVICE) as AlarmManager

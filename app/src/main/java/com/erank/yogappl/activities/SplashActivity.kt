@@ -91,8 +91,10 @@ class SplashActivity : AppCompatActivity(),
         LocationHelper.initLocationService(this)
 
         if (FirebaseAuth.getInstance().currentUser == null) {
+
             val intent = Intent(this, LoginActivity::class.java)
             startActivityForResult(intent, RC_LOGIN)
+
             return
         }
 
@@ -101,18 +103,21 @@ class SplashActivity : AppCompatActivity(),
         DataSource.fetchLoggedUser(this)
     }
 
-    override fun onSuccessFetchingUser(user: User?) = connectMoney()
+    override fun onSuccessFetchingUser(user: User?) {
+        MoneyConverter.connect(this, this)
+    }
 
     override fun onFailedFetchingUser(e: Exception) =
         notifyError("user fetch problem", e)
 
-    private fun connectMoney() = MoneyConverter.connect(this, this)
 
     override fun onSuccessConnectingMoney() {
-        DataSource.loadData(this)
+        DataSource.loadData(this, this)
     }
 
-    override fun onSuccess(result: Void?) = logoImg.startZoomAnimation(this::openMain)
+    override fun onSuccess(result: Void?) {
+        logoImg.startZoomAnimation(this::openMain)
+    }
 
     private fun openMain() {
         val intent = Intent(this, MainActivity::class.java)
@@ -122,8 +127,8 @@ class SplashActivity : AppCompatActivity(),
 
     override fun onFailure(e: Exception) = notifyError(e.localizedMessage, e)
 
-    override fun onFailedConnectingMoney(error: CurrencyLayerResponse.Error)
-            = notifyError(error.info)
+    override fun onFailedConnectingMoney(error: CurrencyLayerResponse.Error) =
+        notifyError(error.info)
 
     private fun notifyError(msg: String, e: Exception? = null) {
         logoImg.clearAnimation()
@@ -143,30 +148,32 @@ class SplashActivity : AppCompatActivity(),
 
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         when (requestCode) {
             RPC_COARSE_LOCATION -> {
-                val isGranted =
-                    checkPermissionResultsCoarseLocation(this, permissions, grantResults)
+                val isGranted = checkPermissionResultsCoarseLocation(
+                    this, permissions, grantResults
+                )
 
-                if (isGranted)
-                    startSetup()
-                else
-                    toast("can't continue without location permission")
+                val toastMsg = "can't continue without location permission"
+
+                checkGranted(isGranted, toastMsg)
             }
 
             RPC_FINE_LOCATION -> {
-                val isGranted =
-                    checkPermissionResultsFineLocation(this, permissions, grantResults)
+                val isGranted = checkPermissionResultsFineLocation(
+                    this, permissions, grantResults
+                )
 
-                if (isGranted)
-                    startSetup()
-                else
-                    toast("Can't continue without fine location permission")
+                val toastMsg = "Can't continue without fine location permission"
+
+                checkGranted(isGranted, toastMsg)
             }
         }
     }
+
+    private fun checkGranted(isGranted: Boolean, msg: String) =
+        if (isGranted) startSetup()
+        else toast(msg)
 }

@@ -10,7 +10,7 @@ import androidx.core.view.setPadding
 import com.erank.yogappl.R
 
 
-abstract class EnumSpinner<E : Enum<E>> : AppCompatSpinner,
+abstract class EnumSpinner<E : Enum<*>> : AppCompatSpinner,
     AdapterView.OnItemSelectedListener {
 
     protected open var enumValue: E? = null

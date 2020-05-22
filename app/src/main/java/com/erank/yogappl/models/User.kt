@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SSet
 import com.erank.yogappl.utils.extensions.epochTime
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
@@ -65,11 +66,12 @@ open class User {
 
     @get:PropertyName("bDate")
     @set:PropertyName("bDate")
-    var bDateFB: Long
-        get() = bDate.epochTime
+    var bDateFB: Timestamp
+        get() = Timestamp(bDate)
         set(value) {
-            bDate = Date(value)
+            bDate = value.toDate()
         }
+
     @get:PropertyName("createdEventsIds")
     @set:PropertyName("createdEventsIds")
     var createdEventsIDsMap: Map<String, Int>

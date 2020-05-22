@@ -3,6 +3,7 @@ package com.erank.yogappl.models
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SSet
+import com.erank.yogappl.utils.extensions.epochTime
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
@@ -16,8 +17,8 @@ open class User {
     lateinit var name: String
     lateinit var email: String
 
-    @get:PropertyName("bDate")
-    @set:PropertyName("bDate")
+    @get:Exclude
+    @set:Exclude
     lateinit var bDate: Date
     lateinit var level: Level
     lateinit var type: Type
@@ -62,6 +63,13 @@ open class User {
         profileImageUrl = null
     }
 
+    @get:PropertyName("bDate")
+    @set:PropertyName("bDate")
+    var bDateFB: Long
+        get() = bDate.epochTime
+        set(value) {
+            bDate = Date(value)
+        }
     @get:PropertyName("createdEventsIds")
     @set:PropertyName("createdEventsIds")
     var createdEventsIDsMap: Map<String, Int>

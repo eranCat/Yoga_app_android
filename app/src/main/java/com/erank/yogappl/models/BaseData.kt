@@ -5,12 +5,10 @@ import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.enums.DataType
 import com.erank.yogappl.utils.enums.Status
-import com.erank.yogappl.utils.extensions.mapped
-import com.erank.yogappl.utils.extensions.newDate
-import com.erank.yogappl.utils.extensions.newLatLng
-import com.erank.yogappl.utils.extensions.timeStamp
+import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.interfaces.Searchable
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import java.util.*
@@ -137,30 +135,30 @@ abstract class BaseData internal constructor() : Searchable {
     @set:Ignore
     @get:PropertyName("postedDate")
     @set:PropertyName("postedDate")
-    var postedDateFB: Double
-        get() = postedDate.timeStamp
+    var postedDateFB: Timestamp
+        get() = Timestamp(postedDate)
         set(time) {
-            postedDate = newDate(time)
+            postedDate = time.toDate()
         }
 
     @get:Ignore
     @set:Ignore
     @get:PropertyName("startDate")
     @set:PropertyName("startDate")
-    var startTimestamp: Double
-        get() = startDate.timeStamp
+    var startTimestamp: Timestamp
+        get() = Timestamp(startDate)
         set(time) {
-            startDate = newDate(time)
+            startDate = time.toDate()
         }
 
     @get:Ignore
     @set:Ignore
     @get:PropertyName("endDate")
     @set:PropertyName("endDate")
-    var endDateFB: Double
-        get() = endDate.timeStamp
+    var endDateFB: Timestamp
+        get() = Timestamp(endDate)
         set(time) {
-            endDate = newDate(time)
+            endDate = time.toDate()
         }
 
     @get:Ignore

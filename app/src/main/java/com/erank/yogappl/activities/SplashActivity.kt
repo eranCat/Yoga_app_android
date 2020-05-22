@@ -14,10 +14,6 @@ import com.erank.yogappl.utils.extensions.startZoomAnimation
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.Connectivity
 import com.erank.yogappl.utils.helpers.LocationHelper
-import com.erank.yogappl.utils.helpers.LocationHelper.RPC_COARSE_LOCATION
-import com.erank.yogappl.utils.helpers.LocationHelper.RPC_FINE_LOCATION
-import com.erank.yogappl.utils.helpers.LocationHelper.checkPermissionResultsCoarseLocation
-import com.erank.yogappl.utils.helpers.LocationHelper.checkPermissionResultsFineLocation
 import com.erank.yogappl.utils.helpers.MoneyConverter
 import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import com.erank.yogappl.utils.interfaces.TaskCallback
@@ -77,14 +73,8 @@ class SplashActivity : AppCompatActivity(),
             return
         }
 
-
-        if (!LocationHelper.getCoarseLocationPermissionIfNeeded(this)) {
-            toast("needs coarse location permission")
-            return
-        }
-
-        if (!LocationHelper.getFineLocationPermissionIfNeeded(this)) {
-            toast("needs fine location permission")
+        if (!LocationHelper.getLocationPermissionIfNeeded(this)) {
+            toast("needs location permission")
             return
         }
 
@@ -148,32 +138,20 @@ class SplashActivity : AppCompatActivity(),
 
 
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
-        when (requestCode) {
-            RPC_COARSE_LOCATION -> {
-                val isGranted = checkPermissionResultsCoarseLocation(
-                    this, permissions, grantResults
-                )
-
-                val toastMsg = "can't continue without location permission"
-
-                checkGranted(isGranted, toastMsg)
-            }
-
-            RPC_FINE_LOCATION -> {
-                val isGranted = checkPermissionResultsFineLocation(
-                    this, permissions, grantResults
-                )
-
-                val toastMsg = "Can't continue without fine location permission"
-
-                checkGranted(isGranted, toastMsg)
-            }
+        if (LocationHelper.checkAllPermissionResults(
+                this,
+                requestCode,
+                permissions,
+                grantResults
+            )
+        ) {
+            startSetup()
+        } else {
+            toast("Can't continue without location permission")
+            startSetup()
         }
-    }
 
-    private fun checkGranted(isGranted: Boolean, msg: String) =
-        if (isGranted) startSetup()
-        else toast(msg)
+    }
 }

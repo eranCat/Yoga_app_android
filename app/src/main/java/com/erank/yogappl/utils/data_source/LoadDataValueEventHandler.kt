@@ -9,29 +9,40 @@ import com.erank.yogappl.utils.enums.DataType.EVENTS
 import com.erank.yogappl.utils.enums.DataType.LESSONS
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.EventListener
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.ktx.toObject
 import java.util.*
 
 class LoadDataValueEventHandler(
     private val loaded: TaskCallback<Void, Exception>,
     private val dType: DataType,
     private var usersToFetch: MutableSet<String> = HashSet()
-) : ValueEventListener {
+) : EventListener<QuerySnapshot> {
 
-    val TAG = LoadDataValueEventHandler::class.java.name
+    val TAG = javaClass.name
 
     private val isFilteringByDate = false
 
-    override fun onDataChange(snapshot: DataSnapshot) {
+    override fun onEvent(snapshot: QuerySnapshot?, firebaseException: FirebaseFirestoreException?) {
 
-        if (!snapshot.exists()) {
+        firebaseException?.let {
+            loaded.onFailure(it)
+            return
+        }
+        snapshot?.let {
+            if (it.isEmpty) {
+                loaded.onSuccess()
+                return
+            }
+        } ?: run {
             loaded.onSuccess()
             return
         }
 
-        val children = snapshot.children
+        val children = snapshot.documents
 
         val user = DataSource.currentUser
         if (user == null) {
@@ -66,10 +77,8 @@ class LoadDataValueEventHandler(
         }
     }
 
-    override fun onCancelled(err: DatabaseError) = loaded.onFailure(err.toException())
-
     private fun convertValuesToLessons(
-        children: MutableIterable<DataSnapshot>,
+        children: MutableList<DocumentSnapshot>,
         user: User,
         callback: () -> Unit
     ) {
@@ -84,7 +93,7 @@ class LoadDataValueEventHandler(
     }
 
     private fun convertValuesToEvents(
-        children: MutableIterable<DataSnapshot>,
+        children: MutableList<DocumentSnapshot>,
         user: User,
         callback: () -> Unit
     ) {
@@ -97,21 +106,18 @@ class LoadDataValueEventHandler(
     }
 
     private inline fun <reified T : BaseData> convertValues(
-        values: MutableIterable<DataSnapshot>,
-        signedIDS: SSet,
-        uploadsIDs: Set<String>?
-    ):
-            MutableList<T> {
+        values: MutableList<DocumentSnapshot>, signedIDS: SSet, uploadsIDs: Set<String>?
+    ): MutableList<T> {
 
         val list = mutableListOf<T>()
 
-        val today = Calendar.getInstance().time
+        val today = Date()
 
         for (child in values) {
-            val data = child.getValue(T::class.java)
+            val data = child.toObject<T>()
                 ?: continue
 
-            if (uploadsIDs?.contains(data.id) == true
+            if (uploadsIDs != null && uploadsIDs.contains(data.id)
                 || !isFilteringByDate || data.endDate >= today
                 || signedIDS.contains(data.id)
             ) list.add(data)

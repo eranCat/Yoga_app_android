@@ -3,37 +3,26 @@ package com.erank.yogappl.models
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SSet
-import com.google.firebase.database.Exclude
-import com.google.firebase.database.IgnoreExtraProperties
-import com.google.firebase.database.PropertyName
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.IgnoreExtraProperties
+import com.google.firebase.firestore.PropertyName
 import java.util.*
 
 @Entity(tableName = "users")
-open class User//or string of path on DB
-{
+open class User {
+
     @PrimaryKey
     lateinit var id: String
     lateinit var name: String
     lateinit var email: String
 
-    @get:Exclude
-    @set:Exclude
+    @get:PropertyName("bDate")
+    @set:PropertyName("bDate")
     lateinit var bDate: Date
-
-    @get:Exclude
-    @set:Exclude
     lateinit var level: Level
-
-    @get:Exclude
-    @set:Exclude
     lateinit var type: Type
-
     var about: String?
-
-    @get:PropertyName("profileImage")
-    @set:PropertyName("profileImage")
     var profileImageUrl: String?
-
 
     @get:Exclude
     @set:Exclude
@@ -46,7 +35,6 @@ open class User//or string of path on DB
     @get:Exclude
     @set:Exclude
     var createdEventsIDs: SSet
-
 
     constructor(
         name: String, email: String,
@@ -74,36 +62,10 @@ open class User//or string of path on DB
         profileImageUrl = null
     }
 
-    //    for firebase
-    @get:PropertyName("bDate")
-    @set:PropertyName("bDate")
-    var bDateFB: Long
-        get() = bDate.time
-        set(time) {
-            bDate = Date(time)
-        }
-
-    @get:PropertyName("level")
-    @set:PropertyName("level")
-    var levelFB: Int
-        get() = level.ordinal + 1
-        set(i) {
-            level = Level.values()[i - 1]
-        }
-
-    @get:PropertyName("type")
-    @set:PropertyName("type")
-    var typeFB: Int
-        get() = type.ordinal
-        set(i) {
-            type = Type.values()[i]
-        }
-
-
     @get:PropertyName("createdEventsIds")
     @set:PropertyName("createdEventsIds")
-    var createdEventsIDsMap: MutableMap<String, Int>
-        get() = createdEventsIDs.associateWith { 0 }.toMutableMap()
+    var createdEventsIDsMap: Map<String, Int>
+        get() = createdEventsIDs.associateWith { 0 }
         set(value) {
             createdEventsIDs = value.keys.toMutableSet()
         }
@@ -128,8 +90,8 @@ open class User//or string of path on DB
     val infoMap
         get() = mapOf(
             "name" to name,
-            "bDate" to bDateFB,
-            "level" to levelFB,
+            "bDate" to bDate.toString(),
+            "level" to level.name,
             "about" to about,
             "profileImage" to profileImageUrl
         )

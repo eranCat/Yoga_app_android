@@ -28,8 +28,8 @@ class Teacher : User {
 
     @get:PropertyName("teachingClassesIDs")
     @set:PropertyName("teachingClassesIDs")
-    var teachingClassesMap: MutableMap<String, Int>
-        get() = teachingLessonsIDs.associateWith { 0 }.toMutableMap()
+    var teachingClassesMap: Map<String, Any>
+        get() = teachingLessonsIDs.associateWith { 0 }
         set(value) {
             teachingLessonsIDs = value.keys.toMutableSet()
         }

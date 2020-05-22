@@ -1,7 +1,6 @@
 package com.erank.yogappl.utils.helpers
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -15,7 +14,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.utils.OnLocationsFetchedCallback
 import com.erank.yogappl.utils.coroutines.LocationsTask
-import com.erank.yogappl.utils.extensions.toast
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
@@ -24,8 +22,7 @@ import java.util.*
 object LocationHelper {
 
     var lastKnownLocation: Location? = null
-    const val RPC_FINE_LOCATION = 2
-    const val RPC_COARSE_LOCATION = 3
+    private const val RPC_COARSE_LOCATION = 3
 
     fun getLocationIntent(
         packageManager: PackageManager,
@@ -59,6 +56,10 @@ object LocationHelper {
         getLastKnownLocation()
             .addOnFailureListener { callback(currentLocale.country, null) }
             .addOnSuccessListener {
+                if (it == null) {
+                    callback(currentLocale.country, null)
+                    return@addOnSuccessListener
+                }
 
                 val geocoder = Geocoder(context, currentLocale)
                 val locations = geocoder.getFromLocation(it.latitude, it.longitude, 1)
@@ -116,72 +117,47 @@ object LocationHelper {
         LocationsTask(buildUrl(query, code, latLon)).start(callback)
     }
 
-    fun getFineLocationPermissionIfNeeded(activity: Activity) =
-        askPermissionIfNeeded(activity, ACCESS_FINE_LOCATION)
+    fun getLocationPermissionIfNeeded(activity: Activity): Boolean {
+        val per = ACCESS_COARSE_LOCATION
 
-    fun getCoarseLocationPermissionIfNeeded(activity: Activity) =
-        askPermissionIfNeeded(activity, ACCESS_COARSE_LOCATION)
-
-
-    private fun askPermissionIfNeeded(activity: Activity, permission: String): Boolean {
-        if (ContextCompat.checkSelfPermission(activity, permission) == PERMISSION_GRANTED)
+        if (ContextCompat.checkSelfPermission(activity, per) == PERMISSION_GRANTED)
             return true
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
-
-            ActivityCompat.requestPermissions(
-                activity,
-                arrayOf(permission),
-                RPC_FINE_LOCATION
-            )
-
-        } else {
-            ActivityCompat.requestPermissions(
-                activity,
-                arrayOf(permission),
-                RPC_FINE_LOCATION
-            )
-        }
-
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(per),
+            RPC_COARSE_LOCATION
+        )
         return false
     }
 
-    fun checkPermissionResultsCoarseLocation(
-        context: Context,
-        permissions: Array<out String>,
-        results: IntArray
-    ) = checkPermissionResults(
-        context, permissions,
-        results, ACCESS_COARSE_LOCATION
-    )
-
-    fun checkPermissionResultsFineLocation(
-        context: Context,
-        permissions: Array<out String>,
-        results: IntArray
-    ) = checkPermissionResults(
-        context, permissions,
-        results, ACCESS_FINE_LOCATION
-    )
-
 
     private fun checkPermissionResults(
-        context: Context, permissions: Array<out String>,
+        context: Context, permissions: Array<String>,
         results: IntArray, permission: String
     ): Boolean {
 
-        val indexOf = permissions.indexOf(permission)
-        if (indexOf == -1) return false
+        val index = permissions.indexOf(permission)
 
-        if (results.getOrNull(indexOf) != PERMISSION_GRANTED) {
-            context.toast("Permission Denied")
-            return false
+        return when {
+            index == -1 -> false
+            results[index] != PERMISSION_GRANTED -> false
+            ContextCompat.checkSelfPermission(context, permission)
+                    != PERMISSION_GRANTED ->
+                false
+            else -> true
         }
 
-        if (ContextCompat.checkSelfPermission(context, permission) != PERMISSION_GRANTED)
-            return false
-
-        context.toast("Permission Granted")
-        return true
     }
+
+    fun checkAllPermissionResults(
+        context: Context, requestCode: Int,
+        permissions: Array<String>, results: IntArray
+    ) = when (requestCode) {
+        RPC_COARSE_LOCATION -> checkPermissionResults(
+            context, permissions, results, ACCESS_COARSE_LOCATION
+        )
+        else -> false
+    }
+
 }

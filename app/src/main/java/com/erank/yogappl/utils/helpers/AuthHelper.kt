@@ -26,5 +26,4 @@ object AuthHelper {
     fun createUser(email: String, pass: String) =
         mAuth.createUserWithEmailAndPassword(email, pass)
 
-
 }

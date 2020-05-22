@@ -14,6 +14,7 @@ import com.erank.yogappl.utils.enums.SourceType
 import com.erank.yogappl.utils.enums.SourceType.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,7 +26,7 @@ class DataModelsHolder(context: Context) {
 
     init {
         with(AppDatabase.getDatabase(context)) {
-            CoroutineScope(Default).launch { clearAllTables() }
+            CoroutineScope(IO).launch { clearAllTables() }
             lessonsDao = lessonsDao()
             eventsDao = eventsDao()
             userDao = usersDao()

@@ -30,29 +30,7 @@ abstract class EnumSpinner<E : Enum<E>> : AppCompatSpinner,
     }
 
     constructor(context: Context) : super(context)
-
-    constructor(context: Context, mode: Int) : super(context, mode)
     constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)
-    constructor(context: Context, attributeSet: AttributeSet?, defStyle: Int) : super(
-        context,
-        attributeSet,
-        defStyle
-    )
-
-    constructor(
-        context: Context,
-        attributeSet: AttributeSet?,
-        defStyle: Int,
-        mode: Int
-    ) : super(context, attributeSet, defStyle, mode)
-
-    constructor(
-        context: Context,
-        attributeSet: AttributeSet?,
-        defStyle: Int,
-        mode: Int,
-        theme: Resources.Theme
-    ) : super(context, attributeSet, defStyle, mode, theme)
 
     fun setOnItemSelectedListener(listener: (position: Int) -> Unit) {
         super.setOnItemSelectedListener(this)

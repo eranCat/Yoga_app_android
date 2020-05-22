@@ -11,8 +11,8 @@ import com.erank.yogappl.utils.extensions.newLatLng
 import com.erank.yogappl.utils.extensions.timeStamp
 import com.erank.yogappl.utils.interfaces.Searchable
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.database.Exclude
-import com.google.firebase.database.PropertyName
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.PropertyName
 import java.util.*
 
 abstract class BaseData internal constructor() : Searchable {

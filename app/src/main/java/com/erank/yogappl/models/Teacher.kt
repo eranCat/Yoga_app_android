@@ -1,7 +1,7 @@
 package com.erank.yogappl.models
 
-import com.google.firebase.database.Exclude
-import com.google.firebase.database.PropertyName
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.PropertyName
 import java.util.*
 
 class Teacher : User {

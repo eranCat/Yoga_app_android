@@ -1,9 +1,10 @@
 apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
-
+apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
+
 
 android {
     compileSdkVersion 28
@@ -51,8 +52,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.google.android.material:material:1.1.0'
 
-    apply plugin: 'kotlin-kapt'
-
 //    maps
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
 
@@ -74,15 +73,14 @@ dependencies {
 //    firebase
 
 //    Authentication
-    implementation 'com.google.firebase:firebase-auth:19.3.0'
+    implementation 'com.google.firebase:firebase-auth:19.3.1'
     implementation 'com.google.android.gms:play-services-auth:18.0.0'
 
 //    Storage
     implementation 'com.google.firebase:firebase-storage:19.1.1'
 
 //    Database
-    implementation 'com.google.firebase:firebase-database:19.2.1'
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.3.71"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:1.3.72"
     implementation 'com.google.android.gms:play-services-location:17.0.0'
     implementation 'com.google.firebase:firebase-firestore-ktx:21.4.3'
 

@@ -3,7 +3,7 @@ package com.erank.yogappl.models
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.database.Exclude
+import com.google.firebase.firestore.Exclude
 
 class Position(
     val lat: Double,

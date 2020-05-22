@@ -96,16 +96,6 @@ open class User {
             signedLessonsIDS = value.keys.toMutableSet()
         }
 
-    @get:Exclude
-    val infoMap
-        get() = mapOf(
-            "name" to name,
-            "bDate" to bDate.toString(),
-            "level" to level.name,
-            "about" to about,
-            "profileImage" to profileImageUrl
-        )
-
     fun addEvent(id: String) = createdEventsIDs.add(id)
     fun removeEvent(id: String) = createdEventsIDs.remove(id)
 

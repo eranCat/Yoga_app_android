@@ -197,8 +197,7 @@ object DataSource {
     }
 
     private fun updateUser(user: User, callback: UserTaskCallback) {
-        userRef(user)
-            .update(user.infoMap)
+        userRef(user).set(user)
             .addOnSuccessListener { callback.onSuccessFetchingUser(user) }
             .addOnFailureListener { callback.onFailedFetchingUser(it) }
     }

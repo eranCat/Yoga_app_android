@@ -9,7 +9,8 @@ import com.google.firebase.auth.FirebaseAuth
 object AuthHelper {
 
     private val mAuth = FirebaseAuth.getInstance()
-    val currentUser = mAuth.currentUser
+    val currentUser
+        get() = mAuth.currentUser
 
     private fun openLogin(context: Context) {
         val intent = Intent(context, LoginActivity::class.java)

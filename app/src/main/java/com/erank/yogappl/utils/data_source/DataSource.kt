@@ -238,30 +238,33 @@ object DataSource {
                     Log.d(TAG, "added in room")
                 }
 
-                if (dType == LESSONS) {
+                if (data is Lesson) {
                     saveUserLesson(data.id, callback)
                     return@addOnSuccessListener
                 }
 
-                val event = data as Event
+                data as Event
 
                 when {
                     selectedImage != null -> {
-                        StorageManager.saveEventImage(event, selectedImage)
-                            .addOnFailureListener(callback::onFailure)
-                            .addOnSuccessListener {
-                                saveUserEvent(data.id, callback)
-                            }
+                        StorageManager.saveEventImage(data, selectedImage)
                     }
                     selectedBitmap != null -> {
-                        StorageManager.saveEventImage(event, selectedBitmap)
-                            .addOnFailureListener(callback::onFailure)
-                            .addOnSuccessListener {
-                                saveUserEvent(data.id, callback)
-                            }
+                        StorageManager.saveEventImage(data, selectedBitmap)
                     }
-                    else -> saveUserEvent(data.id, callback)
+                    else -> {
+                        saveUserEvent(data.id, callback)
+                        return@addOnSuccessListener
+                    }
                 }
+                    .addOnFailureListener(callback::onFailure)
+                    .addOnSuccessListener { uri ->
+                        data.imageUrl = uri.toString()
+                        dataModelHolder.updateData(data){}//update in Local DB
+                        ref.set(data).addOnCompleteListener {
+                            saveUserEvent(data.id, callback)
+                        }
+                    }
 
             }
     }
@@ -318,12 +321,12 @@ object DataSource {
         callback.onLoading()
 
         when {
-            eventImg != null -> {
-                StorageManager.saveEventImage(event, eventImg)
-            }
-            selectedEventImgBitmap != null -> {
-                StorageManager.saveEventImage(event, selectedEventImgBitmap)
-            }
+            eventImg != null -> StorageManager
+                .saveEventImage(event, eventImg)
+
+            selectedEventImgBitmap != null -> StorageManager
+                .saveEventImage(event, selectedEventImgBitmap)
+//            TODO add image From url - upload to server
             else -> {
                 saveInDB(event)
                     .addOnFailureListener(callback::onFailure)
@@ -384,9 +387,8 @@ object DataSource {
                 user.createdEventsIDs.remove(event.id)
                 val map = user.createdEventsIDsMap
 
-                userRef(user)
-                    .update(map as Map<String, Any>)
-                    .addOnFailureListener { callback.onFailure(it) }
+                userRef(user).update(map)
+                    .addOnFailureListener(callback::onFailure)
                     .addOnSuccessListener {
                         user.removeEvent(event.id)
 

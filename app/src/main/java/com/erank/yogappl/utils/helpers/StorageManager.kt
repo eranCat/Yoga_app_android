@@ -31,17 +31,13 @@ object StorageManager {
     private val TAG = StorageManager::class.java.name
 
     fun removeCurrentUserProfileImage(completion: TaskCallback<Void, Exception>) {
-        val user = DataSource.currentUser
-            ?: let {
-                completion.onFailure(UserErrors.NoUserFound())
-                return
-            }
+        DataSource.currentUser?.let {
+            // remove the file from storage
+            userImageRef(it).delete()
+                .addOnSuccessListener { removeUserProfileImageFromDB(completion) }
+                .addOnFailureListener(completion::onFailure)
 
-
-        // remove the file from storage
-        userImageRef(user).delete()
-            .addOnFailureListener(completion::onFailure)
-            .addOnSuccessListener { removeUserProfileImageFromDB(completion) }
+        } ?: completion.onFailure(UserErrors.NoUserFound())
     }
 
     private fun removeUserProfileImageFromDB(completion: TaskCallback<Void, Exception>) {
@@ -53,16 +49,15 @@ object StorageManager {
             userImageRef(it).delete()
                 .addOnFailureListener(completion::onFailure)
 
-        } ?: run {
-            completion.onFailure(UserErrors.NoUserFound())
-            return
-        }
+        } ?: completion.onFailure(UserErrors.NoUserFound())
     }
 
-    fun saveUserImage(user: User, imageUri: Uri, callback: UserTaskCallback) =
-        with(userImageRef(user)) {
-            val task = putFile(imageUri)
-            continueSaveUserImageTask(task, this, user, callback)
+    fun saveUserImage(user: User, imageUri: Uri, callback: UserTaskCallback): Task<Uri> =
+        userImageRef(user).let {
+            continueSaveUserImageTask(
+                it.putFile(imageUri), it,
+                user, callback
+            )
         }
 
     fun saveUserImage(user: User, bitmap: Bitmap, callback: UserTaskCallback) =
@@ -105,38 +100,33 @@ object StorageManager {
         }.toByteArray()
 
         val eventRef = eventRef(event)
-        return continueWithEventTask(eventRef.putBytes(bytes), event, eventRef)
+        return continueWithEventTask(eventRef.putBytes(bytes), eventRef)
     }
 
     fun saveEventImage(event: Event, uri: Uri): Task<Uri> {
-        val eventRef = eventRef(event)
-        return continueWithEventTask(eventRef.putFile(uri), event, eventRef)
-    }
-
-    private fun continueWithEventTask(
-        task: UploadTask, event: Event,
-        eventRef: StorageReference
-    ): Task<Uri> {
-        return task.continueWithTask {
-            if (it.isSuccessful.not()) {
-                it.exception?.let { e -> throw e }
-            }
-            eventRef.downloadUrl
-        }.addOnSuccessListener {
-            event.imageUrl = it.toString()
+        return eventRef(event).let{
+            continueWithEventTask(it.putFile(uri), it)
         }
     }
 
+    private fun continueWithEventTask(
+        task: UploadTask, eventRef: StorageReference
+    ): Task<Uri> = task.continueWithTask {
+        if (it.isSuccessful.not()) {
+            it.exception?.let { e -> throw e }
+        }
+        eventRef.downloadUrl
+    }
+
     fun removeEventImage(event: Event): Task<Void>? {
-
-        event.imageUrl ?: return null
-
-        return eventRef(event).delete()
-            .addOnSuccessListener {
-                Log.d(TAG, "event ${event.id} image removed")
-            }
-            .addOnFailureListener {
-                Log.d(TAG, "event ${event.id} failed to remove", it)
-            }
+        return event.imageUrl?.let {
+            eventRef(event).delete()
+                .addOnSuccessListener {
+                    Log.d(TAG, "event ${event.id} image removed")
+                }
+                .addOnFailureListener {
+                    Log.d(TAG, "event ${event.id} failed to remove", it)
+                }
+        }
     }
 }

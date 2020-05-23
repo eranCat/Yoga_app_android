@@ -108,7 +108,6 @@ abstract class BaseData : Searchable {
         this.status = Status.OPEN
         this.minAge = -1
         this.maxAge = 0
-        this.signed = mutableMapOf()
     }
 
     constructor()

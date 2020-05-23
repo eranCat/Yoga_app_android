@@ -102,41 +102,39 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
         }
     }
 
-    private fun fillData(data: BaseData) {
-        with(data) {
-            titleET.setText(title)
-            costEt.setText(cost.amount.toString())
+    private fun fillData(data: BaseData) = with(data) {
+        titleET.setText(title)
+        costEt.setText(cost.amount.toString())
 
-            val address = Address(locationName, countryCode)
-            val loc = Position(location)
-            viewModel.selectedLocation = LocationResult(address, loc)
-            locationTV.text = locationName
+        val address = Address(locationName, countryCode)
+        val loc = Position(location)
+        viewModel.selectedLocation = LocationResult(address, loc)
+        locationTV.text = locationName
 
-            levelSpinner.enumValue = level
-            equipEt.setText(equip)
-            maxPplPicker.value = maxParticipants
+        levelSpinner.enumValue = level
+        equipEt.setText(equip)
+        maxPplPicker.value = maxParticipants
 
-            viewModel.selectedStartDate = startDate
-            viewModel.selectedEndDate = endDate
+        viewModel.selectedStartDate = startDate
+        viewModel.selectedEndDate = endDate
 
-            extraEt.setText(extraNotes)
+        extraEt.setText(extraNotes)
 
-            if (this is Event) {
+        if (this is Event) {
 
-                startDateTV.text = startDate.formatted()
-                endDateTV.text = endDate.formatted()
+            startDateTV.text = startDate.formatted()
+            endDateTV.text = endDate.formatted()
 
-                if (imageUrl != null) {
-                    viewModel.selectedEventImgUrl = imageUrl
-                    Glide.with(eventImageView)
-                        .load(imageUrl)
-                        .placeholder(R.drawable.img_placeholder)
-                        .into(eventImageView)
-                }
-            } else {
-                startDateTV.text = startDate.formatted(MEDIUM, SHORT)
-                endDateTV.text = endDate.formatted(MEDIUM, SHORT)
+            if (imageUrl != null) {
+                viewModel.selectedEventImgUrl = imageUrl
+                Glide.with(eventImageView)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.img_placeholder)
+                    .into(eventImageView)
             }
+        } else {
+            startDateTV.text = startDate.formatted(MEDIUM, SHORT)
+            endDateTV.text = endDate.formatted(MEDIUM, SHORT)
         }
     }
 
@@ -225,7 +223,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
                 true
             }
             R.id.nav_close_new -> {
-                setResult(Activity.RESULT_OK)
+                setResult(Activity.RESULT_CANCELED)
                 finish()
                 true
             }

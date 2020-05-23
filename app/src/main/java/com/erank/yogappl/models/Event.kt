@@ -12,11 +12,9 @@ class Event : BaseData {
     @Ignore
     override val dataType = DataType.EVENTS
 
-    var imageUrl: String?
+    var imageUrl: String? = null
 
-    constructor() : super() {
-        imageUrl = null
-    }
+    constructor() : super()
 
     constructor(
         title: String,

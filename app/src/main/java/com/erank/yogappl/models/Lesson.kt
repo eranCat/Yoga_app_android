@@ -17,7 +17,7 @@ class Lesson : BaseData {
     constructor(
         title: String,
         cost: Money,
-        locationCoordinate: LatLng,
+        location: LatLng,
         locationName: String,
         countryCode: String,
         startDate: Date,
@@ -28,15 +28,17 @@ class Lesson : BaseData {
         maxParticipants: Int,
         uid: String
     ) : super(
-        title, cost, locationCoordinate, locationName, countryCode, startDate,
-        endDate, level, equipment, xtraNotes, maxParticipants, uid
+        title,
+        cost,
+        location,
+        locationName,
+        countryCode,
+        startDate,
+        endDate,
+        level,
+        equipment,
+        xtraNotes,
+        maxParticipants,
+        uid
     )
-
-    @get:Ignore
-    @set:Ignore
-    var type
-        get() = title
-        set(value) {
-            title = value
-        }
 }

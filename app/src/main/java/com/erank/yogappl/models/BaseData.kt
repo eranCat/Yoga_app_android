@@ -17,7 +17,6 @@ abstract class BaseData internal constructor() : Searchable {
     @PrimaryKey
     lateinit var id: String
 
-    //    TODO check how to have type in lesson
     lateinit var title: String
 
     @PropertyName("place")

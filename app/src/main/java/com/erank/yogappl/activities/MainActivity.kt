@@ -97,8 +97,11 @@ class MainActivity : AppCompatActivity(),
         super.onActivityResult(rc, result, data)
 
         when (rc) {
-            RC_NEW -> if (result == RESULT_OK) {
-                toast("Added!")
+            RC_NEW -> {
+                when (result) {
+                    RESULT_OK -> toast("Added!")
+                    RESULT_CANCELED -> toast("Discarded")
+                }
             }
         }
     }

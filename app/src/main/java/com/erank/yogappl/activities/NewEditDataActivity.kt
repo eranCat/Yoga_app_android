@@ -125,10 +125,9 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
             startDateTV.text = startDate.formatted()
             endDateTV.text = endDate.formatted()
 
-            if (imageUrl != null) {
-                viewModel.selectedEventImgUrl = imageUrl
-                Glide.with(eventImageView)
-                    .load(imageUrl)
+            imageUrl?.let {
+//                viewModel.selectedEventImgUrl = imageUrl
+                Glide.with(eventImageView).load(it)
                     .placeholder(R.drawable.img_placeholder)
                     .into(eventImageView)
             }
@@ -240,24 +239,19 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
         item.isEnabled = false
         progressLayout.visibility = View.VISIBLE
 
+        val localImg = viewModel.result?.uri
+        val bitmap = viewModel.result?.bitmap
+
         viewModel.data?.let {
             createData(it)
             when (it) {
                 is Lesson -> DataSource.updateLesson(it, this)
-                is Event -> DataSource.updateEvent(
-                    it,
-                    viewModel.selectedLocalEventImg,
-                    viewModel.selectedEventImgBitmap,
-                    this
-                )
+                is Event -> DataSource.updateEvent(it, localImg, bitmap, this)
             }
 
         } ?: DataSource.uploadData(
             viewModel.dataInfo.type,
-            createData(),
-            viewModel.selectedLocalEventImg,
-            viewModel.selectedEventImgBitmap,
-            this
+            createData(), localImg, bitmap, this
         )
     }
 
@@ -277,6 +271,8 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
         val startDate = viewModel.selectedStartDate!!
         val endDate = viewModel.selectedEndDate!!
 
+        val imageUrl = viewModel.result?.urls?.small
+
         data?.let {
 
             it.title = title
@@ -291,7 +287,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
             it.startDate = startDate
             it.endDate = endDate
 
-            (it as? Event)?.imageUrl = viewModel.selectedEventImgUrl
+            (it as? Event)?.imageUrl = imageUrl
 
             return it
         }
@@ -304,7 +300,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
             DataType.EVENTS -> Event(
                 title, cost, coordinate, locationName, countryCode,
                 startDate, endDate, level, equip, extra,
-                maxPpl, uid, viewModel.selectedEventImgUrl
+                maxPpl, uid, imageUrl
             )
         }
     }
@@ -443,31 +439,18 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
 
     override fun onImageRemove() {
         eventImageView.setImageResource(R.drawable.img_placeholder)
-        viewModel.selectedLocalEventImg = null
-        viewModel.selectedEventImgUrl = null
-        viewModel.selectedEventImgBitmap = null
+        viewModel.result = null
     }
 
     override fun onSelectedImage(result: MyImagePicker.Result) {
-
+        viewModel.result = result
         with(result) {
-            viewModel.selectedEventImgBitmap = bitmap
-            viewModel.selectedLocalEventImg = uri
-            viewModel.selectedEventImgUrl = urls?.small
+            (urls?.small ?: uri ?: bitmap)?.let {
+                Glide.with(this@NewEditDataActivity).load(it)
+                    .placeholder(R.drawable.img_placeholder)
+                    .fitCenter()
+                    .into(eventImageView)
+            }
         }
-
-        val glide = Glide.with(this)
-        when {
-            viewModel.selectedEventImgUrl != null -> //url
-                glide.load(viewModel.selectedEventImgUrl)
-            viewModel.selectedLocalEventImg != null -> //uri
-                glide.load(viewModel.selectedLocalEventImg)
-            viewModel.selectedEventImgBitmap != null -> //bitmap
-                glide.load(viewModel.selectedEventImgBitmap)
-            else -> return
-        }
-            .placeholder(R.drawable.img_placeholder)
-            .fitCenter()
-            .into(eventImageView)
     }
 }

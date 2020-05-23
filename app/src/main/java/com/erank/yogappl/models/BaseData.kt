@@ -13,7 +13,8 @@ import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import java.util.*
 
-abstract class BaseData internal constructor() : Searchable {
+abstract class BaseData : Searchable {
+
     @PrimaryKey
     lateinit var id: String
 
@@ -44,7 +45,7 @@ abstract class BaseData internal constructor() : Searchable {
     //user id : age
     @get:PropertyName("signedUID")
     @set:PropertyName("signedUID")
-    var signed: SMap<Int> = hashMapOf()
+    var signed: SMap<Int> = mutableMapOf()
 
     @get:Exclude
     @set:Exclude
@@ -90,7 +91,7 @@ abstract class BaseData internal constructor() : Searchable {
         xtraNotes: String?,
         maxParticipants: Int,
         uid: String
-    ) : this() {
+    ) {
         this.title = title
         this.cost = cost
         this.location = location
@@ -109,6 +110,8 @@ abstract class BaseData internal constructor() : Searchable {
         this.maxAge = 0
         this.signed = mutableMapOf()
     }
+
+    constructor()
 
     @get:Ignore
     @set:Ignore
@@ -174,10 +177,10 @@ abstract class BaseData internal constructor() : Searchable {
     @set:Ignore
     @get:PropertyName("location")
     @set:PropertyName("location")
-    var locationFB: SMap<Double>
+    var locationFB: Map<String,Any>
         get() = location.mapped
         set(value) {
-            location = newLatLng(value)
+            location = LatLng(value)
         }
 
     @get:Ignore

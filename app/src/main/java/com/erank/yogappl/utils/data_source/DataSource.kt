@@ -443,7 +443,7 @@ object DataSource {
     private inline fun <reified T : BaseData> signToggleToData(
         userID: String,
         userSigned: MutableSet<String>,
-        userSignedMap: MutableMap<String, Boolean>,
+        userSignedMap: Map<String, Any>,
         ref: DocumentReference,
         data: T,
         callback: TaskCallback<Boolean, Exception>
@@ -535,12 +535,10 @@ object DataSource {
     private fun <T : BaseData> addDataToUser(
         data: T, uid: String,
         userSigned: MutableSet<String>,
-        userSignedMap: MutableMap<String, Boolean>,
+        userSignedMap: Map<String, Any>,
         callback: TaskCallback<Boolean, Exception>
     ) {
         userSigned.add(data.id)
-
-        userSignedMap[data.id] = true
         val updateKey = when (data) {
             is Lesson -> "signedClasses"
             is Event -> "signedEvents"

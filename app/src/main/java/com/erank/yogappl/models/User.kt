@@ -3,7 +3,6 @@ package com.erank.yogappl.models
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SSet
-import com.erank.yogappl.utils.extensions.epochTime
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
@@ -23,20 +22,20 @@ open class User {
     lateinit var bDate: Date
     lateinit var level: Level
     lateinit var type: Type
-    var about: String?
-    var profileImageUrl: String?
+    var about: String? = null
+    var profileImageUrl: String? = null
 
     @get:Exclude
     @set:Exclude
-    var signedLessonsIDS: SSet
+    var signedLessonsIDS: SSet = mutableSetOf()
 
     @get:Exclude
     @set:Exclude
-    var signedEventsIDS: SSet
+    var signedEventsIDS: SSet = mutableSetOf()
 
     @get:Exclude
     @set:Exclude
-    var createdEventsIDs: SSet
+    var createdEventsIDs: SSet = mutableSetOf()
 
     constructor(
         name: String, email: String,
@@ -55,15 +54,6 @@ open class User {
 
     constructor()
 
-    init {
-        this.signedLessonsIDS = mutableSetOf()
-        this.signedEventsIDS = mutableSetOf()
-        this.createdEventsIDs = mutableSetOf()
-
-        about = null
-        profileImageUrl = null
-    }
-
     @get:PropertyName("bDate")
     @set:PropertyName("bDate")
     var bDateFB: Timestamp
@@ -74,24 +64,24 @@ open class User {
 
     @get:PropertyName("createdEventsIds")
     @set:PropertyName("createdEventsIds")
-    var createdEventsIDsMap: Map<String, Int>
+    var createdEventsIDsMap: Map<String, Any>
         get() = createdEventsIDs.associateWith { 0 }
         set(value) {
-            createdEventsIDs = value.keys.toMutableSet()
-        }
+        createdEventsIDs = value.keys.toMutableSet()
+    }
 
     @get:PropertyName("signedEvents")
     @set:PropertyName("signedEvents")
-    var signedEventsMap: MutableMap<String, Boolean>
-        get() = signedEventsIDS.associateWith { true }.toMutableMap()
+    var signedEventsMap: Map<String, Any>
+        get() = signedEventsIDS.associateWith { true }
         set(value) {
             signedEventsIDS = value.keys.toMutableSet()
         }
 
     @get:PropertyName("signedClasses")
     @set:PropertyName("signedClasses")
-    var signedClassesMap: MutableMap<String, Boolean>
-        get() = signedLessonsIDS.associateWith { true }.toMutableMap()
+    var signedClassesMap: Map<String, Any>
+        get() = signedLessonsIDS.associateWith { true }
         set(value) {
             signedLessonsIDS = value.keys.toMutableSet()
         }

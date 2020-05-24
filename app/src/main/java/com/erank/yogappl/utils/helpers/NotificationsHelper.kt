@@ -9,8 +9,8 @@ import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.R
-import com.erank.yogappl.activities.SplashActivity
-import com.erank.yogappl.models.BaseData
+import com.erank.yogappl.ui.activities.SplashActivity
+import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.utils.extensions.addMinuets
 
 

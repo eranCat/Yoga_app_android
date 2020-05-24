@@ -10,7 +10,7 @@ import android.provider.CalendarContract.Events
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.erank.yogappl.models.BaseData
+import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.extensions.toast

@@ -1,6 +1,6 @@
 package com.erank.yogappl.utils.coroutines
 
-import com.erank.yogappl.models.CurrencyLayerResponse
+import com.erank.yogappl.data.models.CurrencyLayerResponse
 import com.erank.yogappl.utils.OnResponseRetrievedCallback
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope

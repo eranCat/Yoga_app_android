@@ -1,6 +1,6 @@
 package com.erank.yogappl.utils
 
-import com.erank.yogappl.utils.enums.DataType
+import com.erank.yogappl.data.enums.DataType
 
 abstract class TypeNotSupported : Exception() {
     override fun getLocalizedMessage() = "type not supported"

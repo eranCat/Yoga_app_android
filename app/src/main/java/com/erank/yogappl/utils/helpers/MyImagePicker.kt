@@ -13,7 +13,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.R
-import com.erank.yogappl.activities.RegisterActivity
+import com.erank.yogappl.ui.activities.RegisterActivity
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback

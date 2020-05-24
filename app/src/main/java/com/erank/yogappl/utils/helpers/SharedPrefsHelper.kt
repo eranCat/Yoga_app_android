@@ -1,7 +1,7 @@
 package com.erank.yogappl.utils.helpers
 
 import android.content.Context
-import com.erank.yogappl.models.User
+import com.erank.yogappl.data.models.User
 
 class SharedPrefsHelper private constructor() {
 

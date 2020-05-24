@@ -4,10 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
 import android.net.Uri
 import android.util.Log
-import com.erank.yogappl.models.Event
-import com.erank.yogappl.models.User
+import com.erank.yogappl.data.models.Event
+import com.erank.yogappl.data.models.User
 import com.erank.yogappl.utils.UserErrors
-import com.erank.yogappl.utils.data_source.DataSource
+import com.erank.yogappl.data.data_source.DataSource
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import com.google.android.gms.tasks.Task

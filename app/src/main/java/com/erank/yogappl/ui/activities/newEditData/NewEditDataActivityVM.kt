@@ -1,9 +1,9 @@
 package com.erank.yogappl.ui.activities.newEditData
 
 import androidx.lifecycle.ViewModel
-import com.erank.yogappl.models.BaseData
-import com.erank.yogappl.models.DataInfo
-import com.erank.yogappl.models.LocationResult
+import com.erank.yogappl.data.models.BaseData
+import com.erank.yogappl.data.models.DataInfo
+import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import java.util.*
 

@@ -4,7 +4,7 @@ import android.util.Log
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.utils.SSet
 import com.erank.yogappl.utils.UserErrors
-import com.erank.yogappl.utils.enums.DataType
+import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import com.google.firebase.firestore.DocumentSnapshot

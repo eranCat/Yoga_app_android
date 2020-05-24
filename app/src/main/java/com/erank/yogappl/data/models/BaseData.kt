@@ -3,8 +3,8 @@ package com.erank.yogappl.data.models
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.erank.yogappl.utils.SMap
-import com.erank.yogappl.utils.enums.DataType
-import com.erank.yogappl.utils.enums.Status
+import com.erank.yogappl.data.enums.DataType
+import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.interfaces.Searchable
 import com.google.android.gms.maps.model.LatLng

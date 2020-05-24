@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -47,14 +48,14 @@ class DataModelsHolder(context: Context) {
     }
 
     fun getUser(uid: String, callback: (User?) -> Unit) {
-        CoroutineScope(Default).launch {
+        GlobalScope.launch(IO) {
             val user = userDao.getById(uid)
             withContext(Main) { callback(user) }
         }
     }
 
     fun addNewData(data: BaseData, callback: () -> Unit) {
-        CoroutineScope(Default).launch {
+        GlobalScope.launch(IO) {
             when (data) {
                 is Lesson -> lessonsDao.insert(data)
                 is Event -> eventsDao.insert(data)
@@ -105,7 +106,7 @@ class DataModelsHolder(context: Context) {
     }
 
     fun addLessons(lessons: List<Lesson>, callback: () -> Unit) {
-        CoroutineScope(Default).launch {
+        GlobalScope.launch(IO) {
             lessonsDao.insert(lessons)
 
             withContext(Main) { callback() }
@@ -113,9 +114,8 @@ class DataModelsHolder(context: Context) {
     }
 
     fun addEvents(events: List<Event>, callback: () -> Unit) {
-        CoroutineScope(Default).launch {
+        GlobalScope.launch(IO) {
             eventsDao.insert(events)
-
             withContext(Main) { callback() }
         }
     }
@@ -138,5 +138,12 @@ class DataModelsHolder(context: Context) {
         ALL -> lessonsDao.allLessonsFiltered(uid, query)
         SIGNED -> lessonsDao.signedLessonsFiltered(uid, query)
         UPLOADS -> lessonsDao.uploadedLessonsFiltered(uid, query)
+    }
+
+    fun insertUser(user: User, callback: () -> Unit) {
+        CoroutineScope(IO).launch {
+            userDao.insert(user)
+            withContext(Main) { callback()}
+        }
     }
 }

@@ -24,7 +24,6 @@ import com.erank.yogappl.utils.helpers.StorageManager.saveUserImage
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
@@ -49,7 +48,7 @@ object DataSource {
         EVENTS_REF(TableNames.EVENTS.lowercaseName),
         USERS_REF(USERS.lowercaseName);
 
-        val ref: CollectionReference = ds.collection(name)
+        val ref = ds.collection(name)
 
         companion object {
             fun refForType(dType: DataType) = values()[dType.ordinal].ref
@@ -83,14 +82,13 @@ object DataSource {
     }
 
     private fun loadAll(
-        context: Context,
-        dType: DataType,
+        context: Context, dType: DataType,
         loaded: TaskCallback<Void, Exception>
     ) {
 //        TODO use real location locale, not setting one
         LocationHelper.getCountryCode(context) { code, _ ->
             //        MARK: Important! don't use 2 ordered or limited queries
-            val handler = LoadDataValueEventHandler(loaded, dType)
+            val handler = LoadDataValueEventHandler(dType, loaded)
             DBRefs.refForType(dType)
                 .whereEqualTo("countryCode", code)
                 .orderBy("postedDate")
@@ -127,14 +125,22 @@ object DataSource {
     }
 
     internal fun fetchUserIfNeeded(uid: String, callback: UserTaskCallback) {
-
-        userRef(uid).get()
-            .addOnFailureListener(callback::onFailedFetchingUser)
-            .addOnSuccessListener { snapshot ->
-                convertUser(snapshot)?.let {
-                    callback.onSuccessFetchingUser(it)
-                } ?: callback.onFailedFetchingUser(JsonParseException("user casting failed"))
-            }
+        dataModelHolder.getUser(uid) {
+            it?.let {
+                callback.onSuccessFetchingUser(it)
+            } ?: userRef(uid).get()
+                .addOnFailureListener(callback::onFailedFetchingUser)
+                .addOnSuccessListener { snapshot ->
+                    convertUser(snapshot)?.let { user ->
+                        dataModelHolder.insertUser(user) {
+                            callback.onSuccessFetchingUser(user)
+                        }
+                    } ?: run {
+                        val e = JsonParseException("user casting failed")
+                        callback.onFailedFetchingUser(e)
+                    }
+                }
+        }
     }
 
     private fun convertUser(snapshot: DocumentSnapshot): User? {
@@ -216,7 +222,6 @@ object DataSource {
 
     private fun userRef(uid: String) = DBRefs.USERS_REF.ref.document(uid)
 
-
     private fun userRef(user: User) = userRef(user.id)
 
     fun uploadData(
@@ -260,7 +265,7 @@ object DataSource {
                     .addOnFailureListener(callback::onFailure)
                     .addOnSuccessListener { uri ->
                         data.imageUrl = uri.toString()
-                        dataModelHolder.updateData(data){}//update in Local DB
+                        dataModelHolder.updateData(data) {}//update in Local DB
                         ref.set(data).addOnCompleteListener {
                             saveUserEvent(data.id, callback)
                         }

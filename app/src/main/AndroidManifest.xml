@@ -26,7 +26,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name="com.erank.yogappl.ui.activities.SplashActivity"
+            android:name="com.erank.yogappl.ui.activities.splash.SplashActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,31 +35,31 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.erank.yogappl.ui.activities.MainActivity"
+            android:name="com.erank.yogappl.ui.activities.main.MainActivity"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden|adjustResize|adjustPan" />
         <activity
             android:name="com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity"
             android:launchMode="singleTask"
-            android:parentActivityName="com.erank.yogappl.ui.activities.MainActivity"
+            android:parentActivityName="com.erank.yogappl.ui.activities.main.MainActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name="com.erank.yogappl.ui.activities.LocationPickerActivity"
+            android:name="com.erank.yogappl.ui.activities.location.LocationPickerActivity"
             android:parentActivityName="com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity" />
         <activity
-            android:name="com.erank.yogappl.ui.activities.RegisterActivity"
-            android:parentActivityName="com.erank.yogappl.ui.activities.LoginActivity"
+            android:name="com.erank.yogappl.ui.activities.register.RegisterActivity"
+            android:parentActivityName="com.erank.yogappl.ui.activities.login.LoginActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name="com.erank.yogappl.ui.activities.LoginActivity"
+            android:name="com.erank.yogappl.ui.activities.login.LoginActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
         <activity
-            android:name="com.erank.yogappl.ui.activities.DataInfoActivity"
-            android:parentActivityName="com.erank.yogappl.ui.activities.MainActivity" />
+            android:name="com.erank.yogappl.ui.activities.dataInfo.DataInfoActivity"
+            android:parentActivityName="com.erank.yogappl.ui.activities.main.MainActivity" />
 
         <meta-data
             android:name="preloaded_fonts"

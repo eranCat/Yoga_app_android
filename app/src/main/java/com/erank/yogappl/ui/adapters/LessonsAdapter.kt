@@ -6,8 +6,8 @@ import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.data.models.Teacher
-import com.erank.yogappl.data.data_source.DataSource
 import com.erank.yogappl.data.enums.DataType
+import com.erank.yogappl.data.models.PreviewUser
 import com.erank.yogappl.utils.extensions.relativeTimeString
 import com.erank.yogappl.utils.extensions.toggleRotation
 import com.erank.yogappl.utils.extensions.toggleSlide
@@ -17,16 +17,23 @@ import kotlinx.android.synthetic.main.lesson_item.view.*
 import kotlinx.android.synthetic.main.profile_image.view.*
 
 
-class LessonsAdapter(isEditable: Boolean) :
+class LessonsAdapter(isEditable: Boolean,
+                     private val userUploads: Set<String>,
+                     private val signed: Set<String>) :
     DataListAdapter<Lesson, LessonsAdapter.LessonVH>(isEditable) {
 
+    private var users: Map<String, PreviewUser> = emptyMap()
     override val dataType = DataType.LESSONS
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         LessonVH(parent)
 
+    fun setUsers(users: Map<String, PreviewUser>) {
+        this.users = users
+    }
+
     inner class LessonVH(parent: ViewGroup) :
-        DataVH<Lesson>(parent, R.layout.lesson_item) {
+        DataVH<Lesson>( parent,R.layout.lesson_item) {
 
         private val teacherImgView by lazy { itemView.profile_Img }
         private val teacherNameTv by lazy { itemView.teacherNameTV }
@@ -51,33 +58,22 @@ class LessonsAdapter(isEditable: Boolean) :
 
         override fun bind(item: Lesson) {
 
-            DataSource.getUser(item.uid) { user ->
-                user?.let {
+            users[item.uid]?.let {
+                Glide.with(teacherImgView)
+                    .load(it.imgUrl)
+                    .placeholder(R.drawable.yoga_model)
+                    .fallback(R.drawable.yoga_model)
+                    .circleCrop()
+                    .into(teacherImgView)
 
-                    Glide.with(teacherImgView)
-                        .load(it.profileImageUrl)
-                        .placeholder(R.drawable.yoga_model)
-                        .fallback(R.drawable.yoga_model)
-                        .circleCrop()
-                        .into(teacherImgView)
-
-                    teacherNameTv.text = it.name
-                }
+                teacherNameTv.text = it.name
             }
 
             if (!isEditable) {
-
-                val teacher =
-                    DataSource.currentUser
-                if (teacher is Teacher) {
-                    signBtn.isEnabled = !teacher
-                        .teachingLessonsIDs
-                        .contains(item.id)
-                } else
-                    signBtn.isEnabled = true
+                signBtn.isEnabled = !userUploads.contains(item.id)
             }
 
-            item.run {
+            with(item) {
                 kindTv.text = title
                 placeTv.text = locationName
                 timeTv.text = startDate.relativeTimeString(itemView.context)
@@ -114,7 +110,7 @@ class LessonsAdapter(isEditable: Boolean) :
             }
 
             val state =
-                if (DataSource.isUserSignedToLesson(item)) "out"
+                if (signed.contains(item.id)) "out"
                 else "in"
 
             signBtn.text = itemView.resources.getString(R.string.signMsg, state)

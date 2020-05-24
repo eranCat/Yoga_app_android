@@ -2,8 +2,7 @@ package com.erank.yogappl.utils.helpers
 
 import android.content.Context
 import android.content.Intent
-import com.erank.yogappl.ui.activities.LoginActivity
-import com.erank.yogappl.data.data_source.DataSource
+import com.erank.yogappl.ui.activities.login.LoginActivity
 import com.google.firebase.auth.FirebaseAuth
 
 object AuthHelper {

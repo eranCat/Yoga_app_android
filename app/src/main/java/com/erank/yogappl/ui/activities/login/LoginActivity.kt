@@ -1,4 +1,4 @@
-package com.erank.yogappl.ui.activities
+package com.erank.yogappl.ui.activities.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.TextFieldValidStates
+import com.erank.yogappl.ui.activities.register.RegisterActivity
+import com.erank.yogappl.ui.activities.splash.SplashActivity
 import com.erank.yogappl.utils.extensions.setTextChangedListener
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.UserValidator
@@ -54,7 +56,9 @@ class LoginActivity : AppCompatActivity() {
 
         signUpBtn.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
-            startActivityForResult(intent, RegisterActivity.RC_REGISTER)
+            startActivityForResult(intent,
+                RegisterActivity.RC_REGISTER
+            )
         }
 
     }

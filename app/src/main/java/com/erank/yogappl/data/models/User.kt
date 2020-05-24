@@ -67,8 +67,8 @@ open class User {
     var createdEventsIDsMap: Map<String, Any>
         get() = createdEventsIDs.associateWith { 0 }
         set(value) {
-        createdEventsIDs = value.keys.toMutableSet()
-    }
+            createdEventsIDs = value.keys.toMutableSet()
+        }
 
     @get:PropertyName("signedEvents")
     @set:PropertyName("signedEvents")
@@ -103,3 +103,9 @@ open class User {
     }
 
 }
+
+class PreviewUser(
+    val id: String,
+    val name: String,
+    val imgUrl: String?
+)

@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.erank.yogappl.R
-import com.erank.yogappl.ui.activities.DataInfoActivity
+import com.erank.yogappl.ui.activities.dataInfo.DataInfoActivity
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.adapters.DataListAdapter
 import com.erank.yogappl.ui.adapters.DataVH
@@ -110,10 +110,15 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     private fun observeData(liveData: LiveData<List<T>>) {
 
         liveData.observe(viewLifecycleOwner, Observer {
+
+            onListUpdated(it)
+
             dataAdapter.submitList(it)
             setEmptyView(it.isEmpty())
         })
     }
+
+    protected open fun onListUpdated(list: List<T>){}
 
     override fun onItemSelected(item: T) = openActivity(item.id)
 

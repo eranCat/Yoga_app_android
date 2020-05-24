@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.Event
-import com.erank.yogappl.data.data_source.DataSource
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.utils.extensions.equalDate
 import com.erank.yogappl.utils.extensions.equalTime
@@ -21,7 +20,11 @@ import java.text.DateFormat.SHORT
 import java.text.SimpleDateFormat
 
 
-class EventsAdapter(isEditable: Boolean) :
+class EventsAdapter(
+    isEditable: Boolean,
+    private val userUploads: Set<String>,
+    private val signed: Set<String>
+) :
     DataListAdapter<Event, EventsAdapter.EventVH>(isEditable) {
 
     override val dataType = DataType.EVENTS
@@ -63,13 +66,7 @@ class EventsAdapter(isEditable: Boolean) :
 
 
             if (!isEditable) {
-                val currentUser = DataSource.currentUser
-                if (currentUser == null)
-                    signBtn.isEnabled = true
-                else {
-                    signBtn.isEnabled = !currentUser
-                        .createdEventsIDs.contains(item.id)
-                }
+                signBtn.isEnabled = !userUploads.contains(item.id)
             }
 
             eventName.text = item.title
@@ -118,7 +115,7 @@ class EventsAdapter(isEditable: Boolean) :
                 editBtn.setOnClickListener { callback?.onEditAction(event) }
                 deleteBtn.setOnClickListener { callback?.onDeleteAction(event) }
             } else {
-                val isSigned = DataSource.isUserSignedToEvent(event)
+                val isSigned = signed.contains(event.id)
                 val action = if (isSigned) "out" else "in"
                 signBtn.text = "Sign $action"
                 signBtn.setOnClickListener {

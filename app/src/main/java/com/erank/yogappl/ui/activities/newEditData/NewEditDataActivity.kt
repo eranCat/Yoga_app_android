@@ -11,17 +11,16 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.utils.DateValidationPredicate
 import com.erank.yogappl.utils.OnDateSet
-import com.erank.yogappl.data.data_source.DataSource
-import com.erank.yogappl.ui.activities.LocationPickerActivity
+import com.erank.yogappl.ui.activities.location.LocationPickerActivity
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
+import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.BaseDataValidator
@@ -32,6 +31,7 @@ import kotlinx.android.synthetic.main.activity_new_edit_data.*
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
 import java.util.*
+import javax.inject.Inject
 
 class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePickerCallback {
 
@@ -61,14 +61,14 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
 
     private lateinit var validator: BaseDataValidator
 
-    private lateinit var viewModel: NewEditDataActivityVM
+    @Inject
+    lateinit var viewModel: NewEditDataActivityVM
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_edit_data)
 
-        viewModel = ViewModelProvider(this)
-            .get(NewEditDataActivityVM::class.java)
+        (application as App).getAppComponent().inject(this)
 
         if (intent.hasExtra("dataInfo"))
             viewModel.dataInfo = intent!!.getParcelableExtra("dataInfo")
@@ -92,7 +92,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
             return
         }
 
-        DataSource.getData(dataInfo.type, id) {
+        viewModel.getData(dataInfo.type, id) {
             it?.let {
                 fillData(it)
                 initValidator(VALID)
@@ -241,20 +241,15 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
         item.isEnabled = false
         progressLayout.visibility = View.VISIBLE
 
-        val localImg = viewModel.result?.uri
-        val bitmap = viewModel.result?.bitmap
-
         viewModel.data?.let {
             createData(it)
+
             when (it) {
-                is Lesson -> DataSource.updateLesson(it, this)
-                is Event -> DataSource.updateEvent(it, localImg, bitmap, this)
+                is Lesson -> viewModel.updateLesson(it, this)
+                is Event -> viewModel.updateEvent(it, this)
             }
 
-        } ?: DataSource.uploadData(
-            viewModel.dataInfo.type,
-            createData(), localImg, bitmap, this
-        )
+        } ?: viewModel.uploadData(createData(), this)
     }
 
     fun createData(data: BaseData? = null): BaseData {

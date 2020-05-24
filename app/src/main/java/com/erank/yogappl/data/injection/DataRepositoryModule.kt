@@ -3,6 +3,7 @@ package com.erank.yogappl.data.injection
 import android.content.Context
 import com.erank.yogappl.data.network.ApiServer
 import com.erank.yogappl.data.network.NetworkDataSourceImpl
+import com.erank.yogappl.data.repository.DataModelsHolder
 import com.erank.yogappl.data.repository.Repository
 import com.erank.yogappl.data.repository.RepositoryImpl
 import com.erank.yogappl.data.room.AppDatabase
@@ -17,28 +18,20 @@ class DataRepositoryModule {
     @Singleton
     @Provides
     fun provideDataRepository(
-        appDB: AppDatabase,
-        networkDataSource:NetworkDataSource,
-        sharedProvider: SharedPrefsHelper
+        sharedProvider: SharedPrefsHelper,
+        dataModelHolder: DataModelsHolder
     ): Repository =
-        RepositoryImpl(appDB, networkDataSource, sharedProvider)
+        RepositoryImpl(dataModelHolder, sharedProvider)
 
     @Provides
-    fun provideNetworkDataSource(api: ApiServer): NetworkDataSource =
-        NetworkDataSourceImpl(api)
+    fun provideNetworkDataSource(api: ApiServer) = NetworkDataSourceImpl(api)
 
     @Singleton
     @Provides
-    fun provideDatabase(context: Context): AppDatabase = AppDatabase(context)
+    fun provideDatabase(context: Context) = AppDatabase(context)
 
     @Provides
-    fun provideUserDao(database: AppDatabase) = database.usersDao()
-
-    @Provides
-    fun provideLessonDao(database: AppDatabase) = database.lessonsDao()
-
-    @Provides
-    fun provideEventDao(database: AppDatabase) = database.eventsDao()
+    fun provideDataModelHolder(appDB: AppDatabase) = DataModelsHolder(appDB)
 
     @Provides
     fun provideRetrofitApi(): ApiServer = ApiServer()

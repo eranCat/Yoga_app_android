@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.BaseData
-import com.erank.yogappl.data.data_source.DataSource
 import com.erank.yogappl.utils.extensions.alert
 
 class RemindersAdapter<T : BaseData>(val data: T) {

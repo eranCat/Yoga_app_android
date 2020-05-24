@@ -1,4 +1,4 @@
-package com.erank.yogappl.data.data_source
+package com.erank.yogappl.data.repository
 
 import android.util.Log
 import com.erank.yogappl.data.models.*
@@ -16,6 +16,7 @@ import java.util.*
 
 class LoadDataValueEventHandler(
     private val dType: DataType,
+    private val repository: Repository,
     private val loaded: TaskCallback<Void, Exception>
 ) : EventListener<QuerySnapshot> {
 
@@ -40,12 +41,10 @@ class LoadDataValueEventHandler(
         }
 
         val children = snapshot.documents
-
-        val user = DataSource.currentUser ?: run {
+        val user = repository.currentUser?: run {
             loaded.onFailure(UserErrors.NoUserFound())
             return
         }
-
         when (dType) {
             DataType.LESSONS -> convertValuesToLessons(children, user)
             DataType.EVENTS -> convertValuesToEvents(children, user)
@@ -61,7 +60,7 @@ class LoadDataValueEventHandler(
         }
         for (id in usersToFetch) {
 
-            DataSource.fetchUserIfNeeded(id, object : UserTaskCallback {
+            repository.fetchUserIfNeeded(id, object : UserTaskCallback {
                 override fun onSuccessFetchingUser(user: User?) {
                     usersToFetch.remove(user!!.id)
                     if (usersToFetch.isEmpty())
@@ -84,14 +83,14 @@ class LoadDataValueEventHandler(
             (user as? Teacher)?.teachingLessonsIDs
         )
 
-        DataSource.addAllLessons(convertedValues){fetchUsers()}
+        repository.addAllLessons(convertedValues){fetchUsers()}
     }
 
     private fun convertValuesToEvents(children: MutableList<DocumentSnapshot>, user: User) {
         val convertedValues = convertValues<Event>(
             children, user.signedEventsIDS, user.createdEventsIDs
         )
-        DataSource.addAllEvents(convertedValues){fetchUsers()}
+        repository.addAllEvents(convertedValues){fetchUsers()}
     }
 
     private inline fun <reified T : BaseData> convertValues(

@@ -1,4 +1,4 @@
-package com.erank.yogappl.ui.activities
+package com.erank.yogappl.ui.activities.splash
 
 import android.animation.ValueAnimator
 import android.content.Intent
@@ -8,7 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.CurrencyLayerResponse
 import com.erank.yogappl.data.models.User
-import com.erank.yogappl.data.data_source.DataSource
+import com.erank.yogappl.ui.activities.login.LoginActivity
+import com.erank.yogappl.ui.activities.main.MainActivity
+import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.startZoomAnimation
 import com.erank.yogappl.utils.extensions.toast
@@ -20,6 +22,7 @@ import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_splash.*
+import javax.inject.Inject
 
 
 class SplashActivity : AppCompatActivity(),
@@ -32,6 +35,9 @@ class SplashActivity : AppCompatActivity(),
         private val TAG = SplashActivity::class.java.name
         private const val DEFAULT_ANIMATION_DURATION = 2000
     }
+
+    @Inject
+    lateinit var viewModel: SplashViewModel
 
     private val floatAnimator by lazy {
         ValueAnimator.ofFloat(0f, -80f).apply {
@@ -49,6 +55,8 @@ class SplashActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
+        (application as App).getAppComponent().inject(this)
 
 //        TODO if not already in progress
 //        with view model boolean
@@ -83,14 +91,16 @@ class SplashActivity : AppCompatActivity(),
         if (FirebaseAuth.getInstance().currentUser == null) {
 
             val intent = Intent(this, LoginActivity::class.java)
-            startActivityForResult(intent, RC_LOGIN)
+            startActivityForResult(intent,
+                RC_LOGIN
+            )
 
             return
         }
 
 //        start floating animation
         floatAnimator.start()
-        DataSource.fetchLoggedUser(this)
+        viewModel.fetchLoggedUser(this)
     }
 
     override fun onSuccessFetchingUser(user: User?) {
@@ -102,7 +112,7 @@ class SplashActivity : AppCompatActivity(),
 
 
     override fun onSuccessConnectingMoney() {
-        DataSource.loadData(this, this)
+        viewModel.loadData(this, this)
     }
 
     override fun onSuccess(result: Void?) {

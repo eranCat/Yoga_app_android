@@ -1,17 +1,13 @@
-package com.erank.yogappl.data.data_source
+package com.erank.yogappl.data.repository
 
-import android.content.Context
-import com.erank.yogappl.data.models.BaseData
-import com.erank.yogappl.data.models.Event
-import com.erank.yogappl.data.models.Lesson
-import com.erank.yogappl.data.models.User
+import com.erank.yogappl.data.enums.DataType
+import com.erank.yogappl.data.enums.SourceType
+import com.erank.yogappl.data.enums.SourceType.*
+import com.erank.yogappl.data.models.*
 import com.erank.yogappl.data.room.AppDatabase
 import com.erank.yogappl.data.room.dao.EventDao
 import com.erank.yogappl.data.room.dao.LessonDao
 import com.erank.yogappl.data.room.dao.UserDao
-import com.erank.yogappl.data.enums.DataType
-import com.erank.yogappl.data.enums.SourceType
-import com.erank.yogappl.data.enums.SourceType.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
@@ -20,13 +16,13 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class DataModelsHolder(context: Context) {
+class DataModelsHolder(db: AppDatabase) {
     private val lessonsDao: LessonDao
     private val eventsDao: EventDao
     private val userDao: UserDao
 
     init {
-        with(AppDatabase.getDatabase(context)) {
+        with(db) {
             CoroutineScope(IO).launch { clearAllTables() }
             lessonsDao = lessonsDao()
             eventsDao = eventsDao()
@@ -143,7 +139,11 @@ class DataModelsHolder(context: Context) {
     fun insertUser(user: User, callback: () -> Unit) {
         CoroutineScope(IO).launch {
             userDao.insert(user)
-            withContext(Main) { callback()}
+            withContext(Main) { callback() }
         }
     }
+
+    suspend fun getUsers(ids: Set<String>): Map<String, PreviewUser> =
+        userDao.getPreviewUserById(ids).associateBy { it.id }
+
 }

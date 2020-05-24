@@ -1,4 +1,4 @@
-package com.erank.yogappl.ui.activities
+package com.erank.yogappl.ui.activities.location
 
 import android.content.Intent
 import android.os.Bundle

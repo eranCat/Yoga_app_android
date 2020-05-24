@@ -1,5 +1,6 @@
-package com.erank.yogappl.ui.fragments
+package com.erank.yogappl.ui.fragments.events
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,10 +9,12 @@ import androidx.core.os.bundleOf
 import com.erank.yogappl.R
 import com.erank.yogappl.ui.adapters.EventsAdapter
 import com.erank.yogappl.data.models.Event
-import com.erank.yogappl.data.data_source.DataSource
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.SourceType
+import com.erank.yogappl.ui.fragments.DataListFragment
+import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.interfaces.TaskCallback
+import javax.inject.Inject
 
 class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.EventVH>() {
     companion object {
@@ -23,6 +26,9 @@ class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.
 
     override val dataType = DataType.EVENTS
 
+    @Inject
+    lateinit var viewModel: EventsViewModel
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,17 +37,26 @@ class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.
         container, false
     )
 
-    override fun createAdapter() =
-        initAdapter(EventsAdapter(isEditable))
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (context.applicationContext as App).getAppComponent().inject(this)
+    }
+
+    override fun createAdapter(): EventsAdapter {
+        val createdEventsIDs = viewModel.user!!.createdEventsIDs
+        val signed = viewModel.user!!.signedEventsIDS
+        val adapter = EventsAdapter(isEditable, createdEventsIDs,signed)
+        return initAdapter(adapter)
+    }
 
 
-    override fun getLiveData() = DataSource.getEvents(currentSourceType)
+    override fun getLiveData() = viewModel.getEvents(currentSourceType)
 
     override fun onDeleteConfirmed(item: Event) =
-        DataSource.deleteEvent(item, this)
+        viewModel.deleteEvent(item, this)
 
     override fun toggleSign(item: Event, callback: TaskCallback<Boolean, Exception>) =
-        DataSource.toggleSignToEvent(item, callback)
+        viewModel.toggleSignToEvent(item, callback)
 
 
 }

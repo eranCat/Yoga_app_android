@@ -1,4 +1,4 @@
-package com.erank.yogappl.ui.activities
+package com.erank.yogappl.ui.activities.main
 
 import android.content.Intent
 import android.os.Bundle
@@ -15,18 +15,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.ui.fragments.EventsListFragment
+import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.ui.fragments.TabsFragment
 import com.erank.yogappl.data.models.DataInfo
-import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.utils.SearchWatcher
-import com.erank.yogappl.data.data_source.DataSource
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.DataType.EVENTS
 import com.erank.yogappl.data.enums.SearchState
 import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.data.enums.SourceType.*
+import com.erank.yogappl.ui.activities.register.RegisterActivity
+import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
@@ -34,6 +34,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.nav_header.view.*
+import javax.inject.Inject
 
 
 class MainActivity : AppCompatActivity(),
@@ -52,9 +53,14 @@ class MainActivity : AppCompatActivity(),
     private val bottomTabs by lazy { bottom_nav_view }
     private val addFab by lazy { add_fab }
 
+    @Inject
+    lateinit var viewModel:MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        (application as App).getAppComponent().inject(this)
 
         bottomTabs.setOnNavigationItemSelectedListener(this)
         bottomTabs.selectedItemId = R.id.action_all
@@ -68,9 +74,11 @@ class MainActivity : AppCompatActivity(),
     private fun openNewDataActivity() {
         val intent = Intent(this, NewEditDataActivity::class.java)
 
-        if (DataSource.currentUser?.type == STUDENT) {
+        if (viewModel.isUserStudent) {
             intent.putExtra("dataInfo", DataInfo(EVENTS))
-            startActivityForResult(intent, RC_NEW)
+            startActivityForResult(intent,
+                RC_NEW
+            )
             return
         }
 
@@ -87,7 +95,9 @@ class MainActivity : AppCompatActivity(),
 
                 intent.putExtra("dataInfo", dataInfo)
 
-                startActivityForResult(intent, RC_NEW)
+                startActivityForResult(intent,
+                    RC_NEW
+                )
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -159,7 +169,7 @@ class MainActivity : AppCompatActivity(),
             ALL, SIGNED -> replaceTabs(type)
             //student can only have events
             UPLOADS ->
-                if (DataSource.currentUser?.type != STUDENT)
+                if (viewModel.isUserStudent.not())
                     replaceTabs(type)
                 else
                     replaceFragment(EventsListFragment.newInstance(type), "events")
@@ -176,7 +186,9 @@ class MainActivity : AppCompatActivity(),
 
 
     private fun replaceTabs(type: SourceType) =
-        replaceFragment(TabsFragment.newInstance(type), TABS_FRAGMENT_TAG)
+        replaceFragment(TabsFragment.newInstance(type),
+            TABS_FRAGMENT_TAG
+        )
 
     private fun replaceFragment(fragment: Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
@@ -202,7 +214,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun fillDrawer() {
-        val currentUser = DataSource.currentUser ?: return
+        val currentUser = viewModel.user ?: return
 
         navigationView.setNavigationItemSelectedListener(this)
 

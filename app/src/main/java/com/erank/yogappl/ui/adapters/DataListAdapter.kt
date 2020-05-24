@@ -2,18 +2,14 @@ package com.erank.yogappl.ui.adapters
 
 import android.util.Log
 import androidx.recyclerview.widget.ListAdapter
-import com.erank.yogappl.ui.adapters.diffs.DataDiffCallback
+import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.data.models.DataInfo
-import com.erank.yogappl.data.enums.DataType
+import com.erank.yogappl.data.models.PreviewData
+import com.erank.yogappl.ui.adapters.diffs.DataDiffCallback
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.Default
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-abstract class DataListAdapter<T : BaseData, VH : DataVH<T>>(
+abstract class DataListAdapter<T: BaseData, VH : DataVH<T>>(
     protected val isEditable: Boolean
 ) : ListAdapter<T, VH>(DataDiffCallback.get()) {
 
@@ -47,20 +43,6 @@ abstract class DataListAdapter<T : BaseData, VH : DataVH<T>>(
     }
 
     private var originalList: List<T>? = null
-
-    fun filter(query: String) = CoroutineScope(Default).launch {
-
-        if (originalList == null) {
-            originalList = ArrayList(currentList)
-        }
-
-        val filtered = originalList!!.filter {
-            it.title.contains(query, true)
-        }
-
-        withContext(Main) { submitList(filtered) }
-    }
-
 
     fun reset() {
         submitList(originalList)

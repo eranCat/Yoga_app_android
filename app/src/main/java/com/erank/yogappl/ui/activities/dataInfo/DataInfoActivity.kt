@@ -1,4 +1,4 @@
-package com.erank.yogappl.ui.activities
+package com.erank.yogappl.ui.activities.dataInfo
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,7 +12,6 @@ import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.data.models.DataInfo
 import com.erank.yogappl.data.models.Event
 import com.erank.yogappl.data.models.Lesson
-import com.erank.yogappl.data.data_source.DataSource
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.formatted
@@ -27,6 +26,7 @@ import kotlinx.android.synthetic.main.profile_image.*
 import kotlinx.android.synthetic.main.progress_layout.*
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
+import javax.inject.Inject
 
 class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
@@ -36,14 +36,17 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
     private val progressLayout by lazy { progress_layout }
 
+    @Inject lateinit var viewModel:DataInfoViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_data_info)
 
+
         dataInfo = intent!!.getParcelableExtra("dataInfo")
         val dataType = dataInfo.type
 
-        DataSource.getData(dataType, dataInfo.id!!) {
+        viewModel.getData(dataType, dataInfo.id!!) {
             it?.let {
                 currentData = it
                 fillData(it)
@@ -73,7 +76,7 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
         data.apply {
 
-            DataSource.getUser(uid) {
+            viewModel.getUser(uid) {
                 it?.let {
 
                     Glide.with(this@DataInfoActivity)
@@ -124,7 +127,7 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
         toggleSignNav = menu.findItem(R.id.nav_toggle_sign)
 
 
-        val uid = DataSource.currentUser!!.id
+        val uid = viewModel.currentUser!!.id
         currentData?.let {
             if (it.signed.contains(uid)) {
                 toggleSignNav.title = "Sign out"
@@ -172,8 +175,8 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
         progressLayout.visibility = View.VISIBLE
 
         when (val it = currentData) {
-            is Lesson -> DataSource.toggleSignToLesson(it, this)
-            is Event -> DataSource.toggleSignToEvent(it, this)
+            is Lesson -> viewModel.toggleSignToLesson(it, this)
+            is Event -> viewModel.toggleSignToEvent(it, this)
         }
     }
 

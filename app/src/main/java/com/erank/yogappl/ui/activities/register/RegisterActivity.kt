@@ -1,9 +1,7 @@
-package com.erank.yogappl.ui.activities
+package com.erank.yogappl.ui.activities.register
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
@@ -14,12 +12,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
+import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.models.Teacher
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.data.models.User.Type.TEACHER
-import com.erank.yogappl.data.data_source.DataSource
-import com.erank.yogappl.data.enums.TextFieldValidStates
+import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.setTextChangedListener
 import com.erank.yogappl.utils.extensions.toast
@@ -30,12 +28,9 @@ import com.erank.yogappl.utils.helpers.UserValidator.Fields
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import kotlinx.android.synthetic.main.activity_register.*
+import javax.inject.Inject
 
 class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallback {
-
-    private var selectedImageBitmap: Bitmap? = null
-    private var selectedImageURL: String? = null
-    private var selectedLocalImage: Uri? = null
 
     private lateinit var userValidator: UserValidator
     private val myImagePicker by lazy { MyImagePicker(this) }
@@ -49,13 +44,19 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
 
     private var isEditingUser: Boolean = false
 
+
+    @Inject
+    lateinit var viewModel: RegisterViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
+        (application as App).getAppComponent().inject(this)
+
         cameraBtn.setOnClickListener { handleCameraBtn() }
 
-        val currentUser = DataSource.currentUser
+        val currentUser = viewModel.currentUser
         if (currentUser == null) {
             saveUser.setOnClickListener { saveUser() }
             initUserValidator()
@@ -73,10 +74,7 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
     }
 
     private fun handleCameraBtn() {
-
-        val canRemove = DataSource.currentUser?.profileImageUrl != null
-                || selectedImageURL != null
-
+        val canRemove = viewModel.canRemove
         myImagePicker.show(this, canRemove)
     }
 
@@ -101,19 +99,21 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
             return
         }
 
-        DataSource.currentUser?.apply {
+        viewModel.currentUser?.apply {
             name = etName.txt
             about = etAbout.txt
 
             etDate.date?.let { bDate = it }
             spinnerUserLevel.enumValue?.let { level = it }
 
-            selectedImageURL?.let { profileImageUrl = it }
+            viewModel.profileImage?.urls?.let {
+                profileImageUrl = it.small
+            }
 
         } ?: return
 
         progressLayout.visibility = View.VISIBLE
-        DataSource.updateCurrentUser(selectedLocalImage, selectedImageBitmap, this)
+        viewModel.updateCurrentUser(this)
     }
 
     override fun onSuccessFetchingUser(user: User?) {
@@ -203,6 +203,8 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
         val bDate = etDate.date!!
         val level = spinnerUserLevel.enumValue!!
 
+        val selectedImageURL = viewModel.profileImage?.urls?.small
+
         val user = when (spinnerUserType.enumValue!!) {
 
             STUDENT -> User(name, email, bDate, level, about, selectedImageURL)
@@ -212,11 +214,7 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
 
         progressLayout.isVisible = true
         val pass = etPassword.txt
-        DataSource.createUser(
-            user, pass,
-            selectedLocalImage, selectedImageBitmap,
-            this
-        )
+        viewModel.createUser(user, pass, this)
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -236,29 +234,23 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
 
     override fun onImageRemove() {
         cameraBtn.setImageResource(R.drawable.camera)
-        selectedImageURL = null
-        selectedLocalImage = null
-        selectedImageBitmap = null
+        viewModel.profileImage = null
     }
 
     override fun onSelectedImage(result: MyImagePicker.Result) {
 
+        viewModel.profileImage = result
+
         with(result) {
-            selectedImageURL = urls?.small
-            selectedLocalImage = uri
-            selectedImageBitmap = bitmap
+            (uri ?: urls?.small ?: bitmap)?.let {
+                Glide.with(cameraBtn)
+                    .load(it)
+                    .fallback(R.drawable.yoga_model)
+                    .placeholder(R.drawable.yoga_model)
+                    .circleCrop()
+                    .into(cameraBtn)
+            }
         }
 
-        val glide = Glide.with(this)
-        when {
-            selectedImageURL != null -> glide.load(selectedImageURL)
-            selectedLocalImage != null -> glide.load(selectedLocalImage)
-            selectedImageBitmap != null -> glide.load(selectedImageBitmap)
-            else -> return
-        }
-            .fallback(R.drawable.yoga_model)
-            .placeholder(R.drawable.yoga_model)
-            .circleCrop()
-            .into(cameraBtn)
     }
 }

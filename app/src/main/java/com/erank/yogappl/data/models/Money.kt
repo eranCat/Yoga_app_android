@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.helpers.MoneyConverter
-import com.google.firebase.database.Exclude
+import com.google.firebase.firestore.Exclude
 import java.text.NumberFormat
 
 class Money(var amount: Double) : Parcelable {

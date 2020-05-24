@@ -6,9 +6,11 @@ import com.erank.yogappl.utils.coroutines.CurrencyTask
 import com.erank.yogappl.utils.extensions.add
 import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import java.util.*
+import java.util.Calendar.WEEK_OF_MONTH
 
 object MoneyConverter {
 
+    private val LAST_LOCALE = "last_locale"
     private const val ApiKey = "ceb2a9d4119b6738d3fa4b8340d94adb"
     private const val BaseApi = "apilayer.net"
 
@@ -23,16 +25,21 @@ object MoneyConverter {
     ) {
         val prefs = SharedPrefsHelper.Builder(context)
 
-        prefs.getLong(UPDATED_DATE)?.let { timestamp ->
+        val lastLocale = prefs.getString(LAST_LOCALE, null)
+        if (lastLocale == Locale.getDefault().country) {
 
-            val weekAfter = Date(timestamp).add(Calendar.WEEK_OF_MONTH, 1)
-            val aWeekHasNotPassed = weekAfter <= Date()
+            val updateDate = prefs.getLong(UPDATED_DATE)
+            if (updateDate != null) {
 
-            if (aWeekHasNotPassed) {
-                prefs.getFloat(MONEY)?.let {
-                    localeCurrencyMultiplier = it
-                    callback.onSuccessConnectingMoney()
-                    return
+                val weekAfter = Date(updateDate).add(WEEK_OF_MONTH, 1)
+
+                if (weekAfter <= Date()) {
+                    val money = prefs.getFloat(MONEY)
+                    if (money != null) {
+                        localeCurrencyMultiplier = money
+                        callback.onSuccessConnectingMoney()
+                        return
+                    }
                 }
             }
         }
@@ -47,7 +54,7 @@ object MoneyConverter {
                 return@CurrencyTask
             }
 
-            localeCurrencyMultiplier = it.quotes["USD$code"]?.toFloat()!!
+            localeCurrencyMultiplier = it.getUSD(code)!!
             saveMoneyOnSharedPrefs(context)
             callback.onSuccessConnectingMoney()
 
@@ -58,6 +65,7 @@ object MoneyConverter {
         SharedPrefsHelper.Builder(context)
             .put(MONEY, localeCurrencyMultiplier)
             .put(UPDATED_DATE, Date().time)
+            .put(LAST_LOCALE, Locale.getDefault().country)
     }
 
     private fun converterUrl(code: String): String {

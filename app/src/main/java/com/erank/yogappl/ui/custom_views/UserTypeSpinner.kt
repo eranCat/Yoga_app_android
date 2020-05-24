@@ -8,17 +8,18 @@ import android.widget.ArrayAdapter
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.utils.extensions.cName
 
-class UserTypeSpinner @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : EnumSpinner<User.Type>(context, attrs, defStyleAttr),
-    AdapterView.OnItemSelectedListener {
+class UserTypeSpinner : EnumSpinner<User.Type>, AdapterView.OnItemSelectedListener {
 
     public override var enumValue: User.Type? = null
-    override val values = User.Type.values()
+    override val values: Array<User.Type> = User.Type.values()
 
-    init {
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)
+
+    init{
         val typeNames = values.map { it.cName }
         adapter = ArrayAdapter(context, simple_spinner_item, typeNames)
         onItemSelectedListener = this
     }
+
 }

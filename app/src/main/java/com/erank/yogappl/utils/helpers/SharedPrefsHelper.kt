@@ -25,24 +25,26 @@ class SharedPrefsHelper private constructor() {
             return this
         }
 
+        fun put(key: String, data: String): Builder {
+            prefs.edit().putString(key, data).apply()
+            return this
+        }
+
         fun remove(key: String): Builder {
             prefs.edit().remove(key).apply()
             return this
         }
 
-        fun getLong(key: String): Long? {
-            if (prefs.contains(key))
-                return prefs.getLong(key, 0)
-            return null
-        }
+        fun getLong(key: String) =
+            if (!prefs.contains(key)) null
+            else prefs.getLong(key, 0)
 
         fun getInt(key: String, defaultValue: Int) =
             prefs.getInt(key, defaultValue)
 
-        fun getFloat(key: String): Float? {
-            if (prefs.contains(key).not()) return null
-            return prefs.getFloat(key, 0f)
-        }
+        fun getFloat(key: String) =
+            if (!prefs.contains(key)) null
+            else prefs.getFloat(key, 0f)
 
         fun getString(key: String, defaultValue: String?): String? =
             prefs.getString(key, defaultValue)

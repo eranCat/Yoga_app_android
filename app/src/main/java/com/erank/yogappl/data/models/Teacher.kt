@@ -1,7 +1,7 @@
 package com.erank.yogappl.data.models
 
-import com.google.firebase.database.Exclude
-import com.google.firebase.database.PropertyName
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.PropertyName
 import java.util.*
 
 class Teacher : User {
@@ -28,8 +28,8 @@ class Teacher : User {
 
     @get:PropertyName("teachingClassesIDs")
     @set:PropertyName("teachingClassesIDs")
-    var teachingClassesMap: MutableMap<String, Int>
-        get() = teachingLessonsIDs.associateWith { 0 }.toMutableMap()
+    var teachingClassesMap: Map<String, Any>
+        get() = teachingLessonsIDs.associateWith { 0 }
         set(value) {
             teachingLessonsIDs = value.keys.toMutableSet()
         }

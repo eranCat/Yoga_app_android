@@ -9,10 +9,13 @@ import com.erank.yogappl.data.models.User.Type
 import com.erank.yogappl.utils.DataTypeError
 import com.erank.yogappl.utils.SigningErrors
 import com.erank.yogappl.utils.UserErrors
-import com.erank.yogappl.data.enums.DataType
-import com.erank.yogappl.data.enums.SourceType
-import com.erank.yogappl.data.enums.Status
-import com.erank.yogappl.data.enums.TableNames
+import com.erank.yogappl.utils.enums.DataType
+import com.erank.yogappl.utils.enums.DataType.EVENTS
+import com.erank.yogappl.utils.enums.DataType.LESSONS
+import com.erank.yogappl.utils.enums.SourceType
+import com.erank.yogappl.utils.enums.Status
+import com.erank.yogappl.utils.enums.TableNames
+import com.erank.yogappl.utils.enums.TableNames.USERS
 import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
@@ -21,27 +24,31 @@ import com.erank.yogappl.utils.helpers.StorageManager.saveUserImage
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
-import com.google.firebase.database.*
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.gson.JsonParseException
 
 
 object DataSource {
 
     private val TAG = DataSource::class.java.name
-    private val ds = FirebaseDatabase.getInstance()
+    private val ds = Firebase.firestore
 
     var currentUser: User? = null
 
     private lateinit var dataModelHolder: DataModelsHolder
 
-    private const val MaxPerBatch = 100
+    private const val MaxPerBatch = 100L
 
     enum class DBRefs(name: String) {
-        LESSONS(TableNames.name(DataType.LESSONS)),
-        EVENTS(TableNames.name(DataType.EVENTS)),
-        USERS(TableNames.USERS.lowercaseName);
+        LESSONS_REF(TableNames.LESSONS.lowercaseName),
+        EVENTS_REF(TableNames.EVENTS.lowercaseName),
+        USERS_REF(USERS.lowercaseName);
 
-        val ref: DatabaseReference = ds.reference.child(name)
+        val ref = ds.collection(name)
 
         companion object {
             fun refForType(dType: DataType) = values()[dType.ordinal].ref
@@ -63,10 +70,10 @@ object DataSource {
         onLoadedCallback: TaskCallback<Void, Exception>
     ) {
 
-        loadAll(context, DataType.LESSONS, object : TaskCallback<Void, Exception> {
+        loadAll(context, LESSONS, object : TaskCallback<Void, Exception> {
 
             override fun onSuccess(result: Void?) =
-                loadAll(context, DataType.EVENTS, onLoadedCallback)
+                loadAll(context, EVENTS, onLoadedCallback)
 
             override fun onFailure(error: Exception) =
                 onLoadedCallback.onFailure(error)
@@ -75,18 +82,18 @@ object DataSource {
     }
 
     private fun loadAll(
-        context: Context,
-        dType: DataType,
+        context: Context, dType: DataType,
         loaded: TaskCallback<Void, Exception>
     ) {
 //        TODO use real location locale, not setting one
         LocationHelper.getCountryCode(context) { code, _ ->
             //        MARK: Important! don't use 2 ordered or limited queries
-            val handler = LoadDataValueEventHandler(loaded, dType)
+            val handler = LoadDataValueEventHandler(dType, loaded)
             DBRefs.refForType(dType)
-                .orderByChild("countryCode").equalTo(code)
+                .whereEqualTo("countryCode", code)
+                .orderBy("postedDate")
                 .limitToLast(MaxPerBatch)
-                .addListenerForSingleValueEvent(handler)
+                .addSnapshotListener(handler)
         }
     }
 
@@ -118,35 +125,34 @@ object DataSource {
     }
 
     internal fun fetchUserIfNeeded(uid: String, callback: UserTaskCallback) {
-
-        userRef(uid)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    convertUser(snapshot)?.let {
-                        addUser(it) {
-                            callback.onSuccessFetchingUser(it)
+        dataModelHolder.getUser(uid) {
+            it?.let {
+                callback.onSuccessFetchingUser(it)
+            } ?: userRef(uid).get()
+                .addOnFailureListener(callback::onFailedFetchingUser)
+                .addOnSuccessListener { snapshot ->
+                    convertUser(snapshot)?.let { user ->
+                        dataModelHolder.insertUser(user) {
+                            callback.onSuccessFetchingUser(user)
                         }
-
-                    } ?: callback.onFailedFetchingUser(JsonParseException("user casting failed"))
-
+                    } ?: run {
+                        val e = JsonParseException("user casting failed")
+                        callback.onFailedFetchingUser(e)
+                    }
                 }
-
-                override fun onCancelled(err: DatabaseError) =
-                    callback.onFailedFetchingUser(err.toException())
-            })
+        }
     }
 
-    fun convertUser(snapshot: DataSnapshot): User? {
-        val typeNode = snapshot.child("type")
-            .getValue(String::class.java)
+    private fun convertUser(snapshot: DocumentSnapshot): User? {
+        val userTypeIndex = snapshot.getString("type")
             ?: return null
 
-        val type = when (Type.valueOf(typeNode)) {
+        val type = when (Type.valueOf(userTypeIndex)) {
             Type.STUDENT -> User::class.java
             Type.TEACHER -> Teacher::class.java
         }
 
-        return snapshot.getValue(type)
+        return snapshot.toObject(type)
     }
 
     private fun addUser(user: User, callback: () -> Unit) {
@@ -197,8 +203,7 @@ object DataSource {
     }
 
     private fun updateUser(user: User, callback: UserTaskCallback) {
-        userRef(user)
-            .updateChildren(user.infoMap)
+        userRef(user).set(user)
             .addOnSuccessListener { callback.onSuccessFetchingUser(user) }
             .addOnFailureListener { callback.onFailedFetchingUser(it) }
     }
@@ -207,14 +212,15 @@ object DataSource {
     fun uploadUserToDB(user: User, listener: UserTaskCallback) {
         //    stage  - add all user data to DB - Firebase database
 
-        userRef(user).setValue(user).addOnSuccessListener {
-            currentUser = user
-            listener.onSuccessFetchingUser(user)
-        }.addOnFailureListener(listener::onFailedFetchingUser)
+        userRef(user).set(user)
+            .addOnFailureListener(listener::onFailedFetchingUser)
+            .addOnSuccessListener {
+                currentUser = user
+                listener.onSuccessFetchingUser(user)
+            }
     }
 
-    private fun userRef(uid: String) = DBRefs.USERS.ref.child(uid)
-
+    private fun userRef(uid: String) = DBRefs.USERS_REF.ref.document(uid)
 
     private fun userRef(user: User) = userRef(user.id)
 
@@ -226,60 +232,61 @@ object DataSource {
         callback: UploadDataTaskCallback
     ) {
 
-        val ref = DBRefs.refForType(dType).push()
+        val ref = DBRefs.refForType(dType).document()
 
-        data.id = ref.key!!
+        data.id = ref.id
 
-        ref.setValue(data)
-            .addOnFailureListener(callback::onFailure)
+        ref.set(data).addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
 
                 dataModelHolder.addNewData(data) {
                     Log.d(TAG, "added in room")
                 }
 
-                if (dType == DataType.LESSONS) {
+                if (data is Lesson) {
                     saveUserLesson(data.id, callback)
                     return@addOnSuccessListener
                 }
 
-                val event = data as Event
+                data as Event
 
                 when {
                     selectedImage != null -> {
-                        StorageManager.saveEventImage(event, selectedImage)
-                            .addOnFailureListener(callback::onFailure)
-                            .addOnSuccessListener {
-                                saveUserEvent(data.id, callback)
-                            }
+                        StorageManager.saveEventImage(data, selectedImage)
                     }
                     selectedBitmap != null -> {
-                        StorageManager.saveEventImage(event, selectedBitmap)
-                            .addOnFailureListener(callback::onFailure)
-                            .addOnSuccessListener {
-                                saveUserEvent(data.id, callback)
-                            }
+                        StorageManager.saveEventImage(data, selectedBitmap)
                     }
-                    else -> saveUserEvent(data.id, callback)
+                    else -> {
+                        saveUserEvent(data.id, callback)
+                        return@addOnSuccessListener
+                    }
                 }
+                    .addOnFailureListener(callback::onFailure)
+                    .addOnSuccessListener { uri ->
+                        data.imageUrl = uri.toString()
+                        dataModelHolder.updateData(data) {}//update in Local DB
+                        ref.set(data).addOnCompleteListener {
+                            saveUserEvent(data.id, callback)
+                        }
+                    }
 
             }
     }
 
-    private fun saveUserEvent(id: String, callback: UploadDataTaskCallback) {
-        val user = currentUser
-        if (user == null) {
+    private fun saveUserEvent(eventId: String, callback: UploadDataTaskCallback) {
+        val user = currentUser ?: run {
             callback.onFailure(NullPointerException("no user"))
             return
         }
 
-        userRef(user).child("createdEventsIds")
-            .child(id).setValue(Status.OPEN.ordinal)
+        val event = eventId to Status.OPEN.ordinal
+        userRef(user).update("createdEventsIds", event)
+            .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
-                user.addEvent(id)
+                user.addEvent(eventId)
                 callback.onSuccess()
             }
-            .addOnFailureListener { callback.onFailure(it) }
     }
 
 
@@ -289,78 +296,75 @@ object DataSource {
             callback.onFailure(NullPointerException("no user"))
             return
         }
-
-        userRef(teacher).child("teachingClassesIDs")
-            .child(id).setValue(Status.OPEN.ordinal)
+        val lesson = id to Status.OPEN.ordinal
+        userRef(teacher).update("teachingClassesIDs", lesson)
+            .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
                 teacher.addLesson(id)
                 callback.onSuccess()
             }
-            .addOnFailureListener { callback.onFailure(it) }
     }
 
-    private fun lessonRef(lesson: Lesson) = DBRefs.LESSONS.ref.child(lesson.id)
+    private fun lessonRef(lesson: Lesson) = DBRefs.LESSONS_REF.ref.document(lesson.id)
 
-    private fun eventRef(event: Event) = DBRefs.EVENTS.ref.child(event.id)
+    private fun eventRef(event: Event) = DBRefs.EVENTS_REF.ref.document(event.id)
 
     fun updateLesson(
         lesson: Lesson,
         callback: UploadDataTaskCallback
     ) {
         callback.onLoading()
-        lessonRef(lesson).setValue(lesson)
+        lessonRef(lesson).set(lesson)
             .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener { callback.onSuccess() }
     }
 
     fun updateEvent(
-        event: Event, eventImg: Uri?,
-        selectedEventImgBitmap: Bitmap?,
+        event: Event, eventImg: Uri?, selectedEventImgBitmap: Bitmap?,
         callback: UploadDataTaskCallback
     ) {
         callback.onLoading()
-        val task1 = eventImg?.let {
 
-            StorageManager.saveEventImage(event, it)
-                .continueWithTask { task ->
-                    if (!task.isSuccessful) {
-                        throw task.exception!!
-                    }
-                    saveInDB(event)
-                }
+        when {
+            eventImg != null -> StorageManager
+                .saveEventImage(event, eventImg)
 
-        } ?: saveInDB(event)
-
-        task1.addOnFailureListener(callback::onFailure)
+            selectedEventImgBitmap != null -> StorageManager
+                .saveEventImage(event, selectedEventImgBitmap)
+//            TODO add image From url - upload to server
+            else -> {
+                saveInDB(event)
+                    .addOnFailureListener(callback::onFailure)
+                    .addOnCompleteListener { callback.onSuccess() }
+                return
+            }
+        }.continueWith {
+            if (!it.isSuccessful) throw it.exception!!
+            saveInDB(event)
+        }
+            .addOnFailureListener(callback::onFailure)
             .addOnCompleteListener { callback.onSuccess() }
     }
 
-    private fun saveInDB(event: Event) = eventRef(event).setValue(event)
+    private fun saveInDB(event: Event) = eventRef(event).set(event)
 
-    fun deleteLesson(
-        lesson: Lesson,
-        callback: TaskCallback<Int, Exception>
-    ) {
+    fun deleteLesson(lesson: Lesson, callback: TaskCallback<Int, Exception>) {
 //        TODO check if signed users
 //        TODO if so, cancel ;else delete
         callback.onLoading()
-        lessonRef(lesson).removeValue()
-            .addOnFailureListener { callback.onFailure(it) }
+        lessonRef(lesson).delete()
+            .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
                 val teacher = currentUser as? Teacher
                 teacher ?: run {
                     callback.onFailure(NullPointerException("no user"))
                     return@addOnSuccessListener
                 }
-
+                teacher.teachingLessonsIDs.remove(lesson.id)
                 val map = teacher.teachingClassesMap
-                //must be saved in variable .
-                // get() makes it new map
-                map.remove(lesson.id)
 
-                userRef(teacher)
-                    .updateChildren(map as Map<String, Any>)
-                    .addOnFailureListener { callback.onFailure(it) }
+                userRef(teacher).update(map)
+                    .addOnFailureListener(callback::onFailure)
                     .addOnSuccessListener {
                         teacher.removeLesson(lesson.id)
                         dataModelHolder.removeData(lesson) {
@@ -377,23 +381,19 @@ object DataSource {
 //        TODO check if signed users
 //        TODO if so, cancel ;else delete
         callback.onLoading()
-        eventRef(event).removeValue()
-            .addOnFailureListener { callback.onFailure(it) }
+        eventRef(event).delete()
+            .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
                 val user = currentUser
                 user ?: run {
                     callback.onFailure(NullPointerException("no user"))
                     return@addOnSuccessListener
                 }
-
+                user.createdEventsIDs.remove(event.id)
                 val map = user.createdEventsIDsMap
-                //must be saved in variable .
-                // get() makes it new map
-                map.remove(event.id)
 
-                userRef(user)
-                    .updateChildren(map as Map<String, Any>)
-                    .addOnFailureListener { callback.onFailure(it) }
+                userRef(user).update(map)
+                    .addOnFailureListener(callback::onFailure)
                     .addOnSuccessListener {
                         user.removeEvent(event.id)
 
@@ -428,7 +428,7 @@ object DataSource {
             callback.onFailure(UserErrors.NoUserFound())
             return
         }
-        signToData(
+        signToggleToData(
             user.id,
             user.signedLessonsIDS,
             user.signedClassesMap,
@@ -438,32 +438,27 @@ object DataSource {
     }
 
     fun toggleSignToEvent(event: Event, callback: TaskCallback<Boolean, Exception>) {
-        val user = currentUser
-        user ?: run {
-            callback.onFailure(UserErrors.NoUserFound())
-            return
-        }
-        signToData(
-            user.id,
-            user.signedEventsIDS,
-            user.signedEventsMap,
-            eventRef(event),
-            event, callback
-        )
+        currentUser?.run {
+            signToggleToData(
+                id, signedEventsIDS, signedEventsMap,
+                eventRef(event), event, callback
+            )
+
+        } ?: callback.onFailure(UserErrors.NoUserFound())
     }
 
-    private inline fun <reified T : BaseData> signToData(
+    private inline fun <reified T : BaseData> signToggleToData(
         userID: String,
         userSigned: MutableSet<String>,
-        userSignedMap: MutableMap<String, Boolean>,
-        ref: DatabaseReference,
+        userSignedMap: Map<String, Any>,
+        ref: DocumentReference,
         data: T,
         callback: TaskCallback<Boolean, Exception>
     ) {
         val isSigned = data.signed.contains(userID)
         if (isSigned) {
-            ref.child("signedUID")
-                .child(userID).removeValue()
+            val updates = mapOf(userID to FieldValue.delete())
+            ref.update("signedUID", updates)
                 .addOnFailureListener(callback::onFailure)
                 .addOnSuccessListener {
                     data.signed.remove(userID)
@@ -473,7 +468,8 @@ object DataSource {
                         return@addOnSuccessListener
                     }
 
-                    ref.child("status").setValue(Status.OPEN.ordinal)
+                    val map = mapOf("status" to Status.OPEN.ordinal)
+                    ref.update(map)
                         .addOnFailureListener(callback::onFailure)
                         .addOnSuccessListener {
                             removeDataFromUser(data, userID, userSigned, callback)
@@ -483,12 +479,13 @@ object DataSource {
         }
 
         // not signed
-        ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val dbData = snapshot.getValue(T::class.java)
+        ref.get()
+            .addOnFailureListener(callback::onFailure)
+            .addOnSuccessListener { snapshot ->
+                val dbData = snapshot.toObject(T::class.java)
                     ?: run {
                         callback.onFailure(DataTypeError())
-                        return
+                        return@addOnSuccessListener
                     }
 
                 dataModelHolder.updateData(dbData) {
@@ -497,7 +494,7 @@ object DataSource {
 
                 if (dbData.status == Status.FULL) {
                     callback.onFailure(SigningErrors.NoPlaceLeft())
-                    return
+                    return@addOnSuccessListener
                 }
 
                 dbData.signed[userID] = 0
@@ -509,21 +506,15 @@ object DataSource {
                     map["status"] = dbData.status
                 }
 
-                snapshot.ref.updateChildren(map as Map<String, Any>)
+                snapshot.reference.update(map)
                     .addOnFailureListener(callback::onFailure)
                     .addOnSuccessListener {
-
                         addDataToUser(
                             dbData, userID, userSigned,
                             userSignedMap, callback
                         )
                     }
             }
-
-            override fun onCancelled(dbErr: DatabaseError) =
-                callback.onFailure(dbErr.toException())
-
-        })
     }
 
     private fun <T : BaseData> removeDataFromUser(
@@ -536,8 +527,8 @@ object DataSource {
             else -> throw IllegalArgumentException("Data isn't matching")
         }
 
-        userRef(userID).child(updateKey)
-            .child(data.id).removeValue()
+        val updates = mapOf(data.id to FieldValue.delete())
+        userRef(userID).update(updateKey, updates)
             .addOnFailureListener(callback::onFailure)
             .addOnCompleteListener {
                 userSigned.remove(data.id)
@@ -551,19 +542,17 @@ object DataSource {
     private fun <T : BaseData> addDataToUser(
         data: T, uid: String,
         userSigned: MutableSet<String>,
-        userSignedMap: MutableMap<String, Boolean>,
+        userSignedMap: Map<String, Any>,
         callback: TaskCallback<Boolean, Exception>
     ) {
         userSigned.add(data.id)
-
-        userSignedMap[data.id] = true
         val updateKey = when (data) {
             is Lesson -> "signedClasses"
             is Event -> "signedEvents"
             else -> throw IllegalArgumentException("Data isn't matching")
         }
         val map = mapOf(updateKey to userSignedMap)
-        userRef(uid).updateChildren(map)
+        userRef(uid).update(map)
             .addOnFailureListener(callback::onFailure)
             .addOnSuccessListener {
                 userSigned.add(data.id)

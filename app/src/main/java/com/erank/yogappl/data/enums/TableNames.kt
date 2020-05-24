@@ -5,13 +5,13 @@ import com.erank.yogappl.utils.extensions.lowercaseName
 enum class TableNames {
 
     USERS,
-    CLASSES,
+    LESSONS,
     EVENTS;
 
     companion object {
         fun name(dType: DataType) =
             when (dType) {
-                DataType.LESSONS -> CLASSES.lowercaseName
+                DataType.LESSONS -> LESSONS.lowercaseName
                 DataType.EVENTS -> EVENTS.lowercaseName
             }
     }

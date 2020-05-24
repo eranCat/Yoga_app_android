@@ -184,7 +184,7 @@
                 android:background="@drawable/rounded_edittext"
                 android:fontFamily="@font/archivo_narrow"
                 android:hint="cost"
-                android:inputType="numberDecimal|numberSigned"
+                android:inputType="numberSigned"
                 android:maxLength="5"
                 android:padding="8dp"
                 android:textSize="18sp" />

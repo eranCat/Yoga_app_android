@@ -10,7 +10,7 @@ data class Address(
     val countryCode: String,
     val country: String,
     val freeformAddress: String,
-    val localName: String
+    val localName: String?
 ) : Parcelable {
     constructor(freeformAddress: String, countryCode: String) :
             this(

@@ -119,7 +119,10 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
     override fun onSuccessFetchingUser(user: User?) {
 //        toast("${user.name}'s info was updated")
         if (isEditingUser) finish()
-        else backToLoginWithSuccess()
+        else {
+            setResult(Activity.RESULT_OK)
+            finish()
+        }
     }
 
     override fun onFailedFetchingUser(e: Exception) {
@@ -214,12 +217,6 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
             selectedLocalImage, selectedImageBitmap,
             this
         )
-    }
-
-    private fun backToLoginWithSuccess() {
-        progressLayout.visibility = GONE
-        setResult(Activity.RESULT_OK)
-        finish()
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

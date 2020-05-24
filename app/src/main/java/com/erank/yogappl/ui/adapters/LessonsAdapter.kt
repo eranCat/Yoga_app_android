@@ -51,8 +51,8 @@ class LessonsAdapter(isEditable: Boolean) :
 
         override fun bind(item: Lesson) {
 
-            DataSource.getUser(item.uid) {
-                it?.let {
+            DataSource.getUser(item.uid) { user ->
+                user?.let {
 
                     Glide.with(teacherImgView)
                         .load(it.profileImageUrl)

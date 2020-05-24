@@ -19,7 +19,7 @@ object Patterns {
     )
 
     private val USERNAME_PATTERN =
-        Pattern.compile("^(?=.{6,20}\$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])\$")
+        Pattern.compile("^(?=.{3,20}\$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])\$")
 
     fun isEmailValid(email: String) = when {
         email.isBlank() -> EMPTY

@@ -151,13 +151,17 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == RC_EDIT && resultCode == Activity.RESULT_OK) {
-            toast("Edited!")
+        if (requestCode == RC_EDIT) {
+            if (resultCode == Activity.RESULT_OK) {
+                toast("Edited!")
+            }
         }
     }
 
     override fun onSuccess(position: Int?) {
-        dataAdapter.notifyItemRemoved(position!!)
+//        TODO use liveData
+        dataAdapter.notifyDataSetChanged()
+//        dataAdapter.notifyItemRemoved(position)
     }
 
     override fun onFailure(error: Exception) {

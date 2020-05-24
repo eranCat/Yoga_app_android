@@ -1,6 +1,6 @@
 package com.erank.yogappl.utils.interfaces
 
-import com.erank.yogappl.models.CurrencyLayerResponse
+import com.erank.yogappl.data.models.CurrencyLayerResponse
 
 interface MoneyConnectionCallback {
     fun onSuccessConnectingMoney()

@@ -1,8 +1,8 @@
 package com.erank.yogappl.utils.helpers
 
 import android.location.Location
-import com.erank.yogappl.models.BaseData
-import com.erank.yogappl.utils.enums.SortType
+import com.erank.yogappl.data.models.BaseData
+import com.erank.yogappl.data.enums.SortType
 import com.erank.yogappl.utils.extensions.minus
 
 object SortingHelper {

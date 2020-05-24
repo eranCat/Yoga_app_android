@@ -1,8 +1,8 @@
 package com.erank.yogappl.utils.coroutines
 
 import android.util.Log
-import com.erank.yogappl.models.LocationResult
-import com.erank.yogappl.models.TomtomLocationsResponse
+import com.erank.yogappl.data.models.LocationResult
+import com.erank.yogappl.data.models.TomtomLocationsResponse
 import com.erank.yogappl.utils.OnLocationsFetchedCallback
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope

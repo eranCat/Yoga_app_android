@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/signup_bg"
-    tools:context=".activities.RegisterActivity">
+    tools:context=".ui.activities.RegisterActivity">
 
     <ImageView
         android:id="@+id/cameraBtn"
@@ -80,7 +80,7 @@
             android:textColor="@android:color/black"
             android:textColorHint="@android:color/darker_gray" />
 
-        <com.erank.yogappl.utils.custom_views.BirthDateTextView
+        <com.erank.yogappl.ui.custom_views.BirthDateTextView
             android:id="@+id/etDate"
             style="@style/Widget.AppCompat.TextView"
             android:layout_width="match_parent"
@@ -116,14 +116,14 @@
             android:orientation="horizontal"
             android:showDividers="middle">
 
-            <com.erank.yogappl.utils.custom_views.UserLevelSpinner
+            <com.erank.yogappl.ui.custom_views.UserLevelSpinner
                 android:id="@+id/spinnerUserLevel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1" />
 
-            <com.erank.yogappl.utils.custom_views.UserTypeSpinner
+            <com.erank.yogappl.ui.custom_views.UserTypeSpinner
                 android:id="@+id/spinnerUserType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

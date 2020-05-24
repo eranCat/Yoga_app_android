@@ -1,10 +1,10 @@
 package com.erank.yogappl.utils.helpers
 
-import com.erank.yogappl.models.BaseData
-import com.erank.yogappl.models.LocationResult
+import com.erank.yogappl.data.models.BaseData
+import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.utils.Patterns
-import com.erank.yogappl.utils.enums.TextFieldValidStates
-import com.erank.yogappl.utils.enums.TextFieldValidStates.VALID
+import com.erank.yogappl.data.enums.TextFieldValidStates
+import com.erank.yogappl.data.enums.TextFieldValidStates.VALID
 import java.util.*
 
 class BaseDataValidator(state: TextFieldValidStates, vararg fields: Fields) {

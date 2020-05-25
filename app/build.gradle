@@ -93,4 +93,5 @@ dependencies {
 
     implementation 'com.google.dagger:dagger:2.27'
     kapt 'com.google.dagger:dagger-compiler:2.27'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
 }

@@ -1,7 +1,6 @@
 package com.erank.yogappl.data.injection
 
 import android.content.Context
-import com.erank.yogappl.data.network.NetworkDataSource
 import com.erank.yogappl.data.network.TomTomApi
 import com.erank.yogappl.data.repository.*
 import com.erank.yogappl.data.room.AppDatabase
@@ -32,9 +31,6 @@ class DataRepositoryModule {
             authHelper,
             storage
         )
-
-    @Provides
-    fun provideNetworkDataSource(tomTom: TomTomApi) = NetworkDataSource(tomTom)
 
     @Singleton
     @Provides

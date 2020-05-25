@@ -1,4 +1,4 @@
-package com.erank.yogappl.utils.helpers
+package com.erank.yogappl.data.repository
 
 import android.content.Context
 import java.util.*
@@ -45,7 +45,7 @@ class SharedPrefsHelper @Inject constructor(context: Context) : PreferenceProvid
         prefs.getString(key, defaultValue)
 
     fun getLastLocale() = getString(LAST_LOCALE)
-    fun putLastLocale():SharedPrefsHelper{
+    fun putLastLocale(): SharedPrefsHelper {
         put(LAST_LOCALE, Locale.getDefault().country)
         return this
     }

@@ -1,20 +1,26 @@
 package com.erank.yogappl.utils.helpers
 
 import android.net.Uri
+import com.erank.yogappl.data.repository.SharedPrefsHelper
 import com.erank.yogappl.utils.coroutines.CurrencyTask
 import com.erank.yogappl.utils.extensions.add
 import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import java.util.*
 import java.util.Calendar.WEEK_OF_MONTH
 
-class MoneyConverter(val sharedPrefs:SharedPrefsHelper) {
+class MoneyConverter(val sharedPrefs: SharedPrefsHelper) {
 
     companion object {
         private const val ApiKey = "ceb2a9d4119b6738d3fa4b8340d94adb"
         private const val BaseApi = "apilayer.net"
+
+        private var localeCurrencyMultiplier = 1f//1 dollar * x
+
+        fun convertFromLocaleToDefault(amount: Double) = amount / localeCurrencyMultiplier
+
+        fun convertFromDefaultToLocale(amount: Double) = amount * localeCurrencyMultiplier
     }
 
-    private var localeCurrencyMultiplier = 1f//1 dollar * x
 
     fun connect(callback: MoneyConnectionCallback) {
 
@@ -70,7 +76,5 @@ class MoneyConverter(val sharedPrefs:SharedPrefsHelper) {
             .toString()
     }
 
-    fun convertFromLocaleToDefault(amount: Double) = amount / localeCurrencyMultiplier
 
-    fun convertFromDefaultToLocale(amount: Double) = amount * localeCurrencyMultiplier
 }

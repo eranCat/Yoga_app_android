@@ -1,4 +1,4 @@
-package com.erank.yogappl.utils.helpers
+package com.erank.yogappl.data.repository
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
@@ -9,6 +9,4 @@ abstract class PreferenceProvider(context: Context) {
 
     protected val prefs: SharedPreferences
         get() = appContext.getSharedPreferences("user", MODE_PRIVATE)
-
-
 }

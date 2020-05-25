@@ -15,7 +15,6 @@ import com.erank.yogappl.utils.UserErrors
 import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
-import com.erank.yogappl.utils.helpers.SharedPrefsHelper
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback

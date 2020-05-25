@@ -3,14 +3,14 @@ package com.erank.yogappl.utils.helpers
 import android.app.Activity
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.BaseData
-import com.erank.yogappl.data.repository.Repository
+import com.erank.yogappl.data.repository.SharedPrefsHelper
 import com.erank.yogappl.utils.extensions.alert
 import javax.inject.Inject
 
 class RemindersAdapter<T : BaseData>(val data: T) {
 
     @Inject
-    lateinit var prefs:SharedPrefsHelper
+    lateinit var prefs: SharedPrefsHelper
 
     @Inject
     lateinit var calendarHelper: CalendarAppHelper

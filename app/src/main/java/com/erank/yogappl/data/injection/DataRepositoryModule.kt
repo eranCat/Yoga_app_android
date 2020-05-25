@@ -3,10 +3,7 @@ package com.erank.yogappl.data.injection
 import android.content.Context
 import com.erank.yogappl.data.network.ApiServer
 import com.erank.yogappl.data.network.NetworkDataSourceImpl
-import com.erank.yogappl.data.repository.DataModelsHolder
-import com.erank.yogappl.data.repository.Repository
-import com.erank.yogappl.data.repository.RepositoryImpl
-import com.erank.yogappl.data.repository.StorageManager
+import com.erank.yogappl.data.repository.*
 import com.erank.yogappl.data.room.AppDatabase
 import com.erank.yogappl.utils.helpers.*
 import com.google.firebase.auth.FirebaseAuth

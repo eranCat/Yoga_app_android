@@ -50,7 +50,7 @@ interface TomTomApi {
                 .baseUrl(BASE_URL)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(CoroutineCallAdapterFactory.invoke())
+                .addCallAdapterFactory(CoroutineCallAdapterFactory())
                 .build().create(TomTomApi::class.java)
         }
 

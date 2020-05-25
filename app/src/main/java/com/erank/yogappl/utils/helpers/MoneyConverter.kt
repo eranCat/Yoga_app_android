@@ -1,19 +1,23 @@
 package com.erank.yogappl.utils.helpers
 
-import android.net.Uri
+import com.erank.yogappl.data.network.CurrencyLayerApi
 import com.erank.yogappl.data.repository.SharedPrefsHelper
-import com.erank.yogappl.utils.coroutines.CurrencyTask
 import com.erank.yogappl.utils.extensions.add
 import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.Calendar.WEEK_OF_MONTH
 
-class MoneyConverter(val sharedPrefs: SharedPrefsHelper) {
+class MoneyConverter(
+    val api: CurrencyLayerApi,
+    val sharedPrefs: SharedPrefsHelper
+) {
 
     companion object {
-        private const val ApiKey = "ceb2a9d4119b6738d3fa4b8340d94adb"
-        private const val BaseApi = "apilayer.net"
-
         private var localeCurrencyMultiplier = 1f//1 dollar * x
 
         fun convertFromLocaleToDefault(amount: Double) = amount / localeCurrencyMultiplier
@@ -45,36 +49,23 @@ class MoneyConverter(val sharedPrefs: SharedPrefsHelper) {
         //            get current currency code from location
         val code = Currency.getInstance(Locale.getDefault()).currencyCode
 
-        CurrencyTask(converterUrl(code)) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = api.getCurrencyCodes(code).await()
+            withContext(Main) {
+                if (!response.success) {
+                    callback.onFailedConnectingMoney(response.error)
+                    return@withContext
+                }
 
-            if (!it.success) {
-                callback.onFailedConnectingMoney(it.error)
-                return@CurrencyTask
+                localeCurrencyMultiplier = response.getUSD(code)!!
+                saveMoneyOnSharedPrefs()
+                callback.onSuccessConnectingMoney()
             }
-
-            localeCurrencyMultiplier = it.getUSD(code)!!
-            saveMoneyOnSharedPrefs()
-            callback.onSuccessConnectingMoney()
 
         }.start()
     }
 
-    private fun saveMoneyOnSharedPrefs() {
-        sharedPrefs.putLastLocale().putUpdatedDate()
-            .putMoney(localeCurrencyMultiplier)
-    }
-
-    private fun converterUrl(code: String): String {
-        return Uri.Builder()
-            .scheme("http")
-            .authority(BaseApi)
-            .appendPath("api")
-            .appendPath("live")
-            .appendQueryParameter("access_key", ApiKey)
-            .appendQueryParameter("currencies", code)
-            .build()
-            .toString()
-    }
-
+    private fun saveMoneyOnSharedPrefs() = sharedPrefs
+        .putLastLocale().putUpdatedDate().putMoney(localeCurrencyMultiplier)
 
 }

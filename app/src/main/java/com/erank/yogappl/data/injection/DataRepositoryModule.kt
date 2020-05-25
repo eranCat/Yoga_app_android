@@ -1,6 +1,7 @@
 package com.erank.yogappl.data.injection
 
 import android.content.Context
+import com.erank.yogappl.data.network.CurrencyLayerApi
 import com.erank.yogappl.data.network.TomTomApi
 import com.erank.yogappl.data.repository.*
 import com.erank.yogappl.data.room.AppDatabase
@@ -41,7 +42,11 @@ class DataRepositoryModule {
 
     @Provides
     @Singleton
-    fun provideTomTomApi(clientBuilder: OkHttpClient.Builder) = TomTomApi.create(clientBuilder)
+    fun provideTomTomApi(builder: OkHttpClient.Builder) = TomTomApi.create(builder)
+
+    @Provides
+    @Singleton
+    fun provideCurrencyLayerApi(builder: OkHttpClient.Builder) = CurrencyLayerApi.create(builder)
 
     @Provides
     fun provideOkHttpClientBuilder(): OkHttpClient.Builder {
@@ -66,7 +71,8 @@ class DataRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideMoneyConverter(sharedPrefs: SharedPrefsHelper) = MoneyConverter(sharedPrefs)
+    fun provideMoneyConverter(api:CurrencyLayerApi, prefs: SharedPrefsHelper) =
+        MoneyConverter(api, prefs)
 
     @Singleton
     @Provides

@@ -41,11 +41,4 @@ abstract class DataListAdapter<T: BaseData, VH : DataVH<T>>(
     fun removeAt(position: Int) {
         Log.d(TAG, "removed at [$position]")
     }
-
-    private var originalList: List<T>? = null
-
-    fun reset() {
-        submitList(originalList)
-        originalList = null
-    }
 }

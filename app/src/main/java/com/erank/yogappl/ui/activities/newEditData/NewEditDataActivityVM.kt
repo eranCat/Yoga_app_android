@@ -9,7 +9,7 @@ import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import java.util.*
 import javax.inject.Inject
 
-class NewEditDataActivityVM @Inject constructor(val repository: Repository): ViewModel() {
+class NewEditDataActivityVM @Inject constructor(val repository: Repository) : ViewModel() {
     fun getData(
         type: DataType, id: String,
         callback: (BaseData?) -> Unit
@@ -17,20 +17,25 @@ class NewEditDataActivityVM @Inject constructor(val repository: Repository): Vie
 
     fun uploadData(data: BaseData, callback: UploadDataTaskCallback) {
         repository.uploadData(
-            dataInfo.type,data,
-            result?.uri,result?.bitmap,
-            callback)
+            dataInfo.type, data,
+            result?.uri, result?.bitmap,
+            callback
+        )
     }
 
     fun updateLesson(lesson: Lesson, callback: UploadDataTaskCallback) {
         repository.updateLesson(lesson, callback)
     }
+
     fun updateEvent(event: Event, callback: UploadDataTaskCallback) {
-        repository.updateEvent(event,
-            result?.uri,result?.bitmap,
-            callback)
+        repository.updateEvent(
+            event,
+            result?.uri, result?.bitmap,
+            callback
+        )
     }
 
+    val currentUser = repository.currentUser
     lateinit var dataInfo: DataInfo
     var data: BaseData? = null
     var selectedLocation: LocationResult? = null
@@ -41,7 +46,5 @@ class NewEditDataActivityVM @Inject constructor(val repository: Repository): Vie
 
     val canRemoveImage: Boolean
         get() = result?.hasImage ?: false
-
-//TODO move db related stuff here
 
 }

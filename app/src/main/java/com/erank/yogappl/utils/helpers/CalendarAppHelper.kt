@@ -16,16 +16,15 @@ import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.extensions.toast
 import java.util.*
 
-object CalendarAppHelper {
-    private const val PERMISSION_REQUEST_WRITE_CALENDAR = 3455
-    private val DEBUG_TAG = CalendarAppHelper::class.java.name
+class CalendarAppHelper(val context:Context,
+                        val prefs: SharedPrefsHelper) {
+    companion object {
+        private const val PERMISSION_REQUEST_WRITE_CALENDAR = 3455
+        private val TAG = CalendarAppHelper::class.java.name
+    }
 
-    fun createEvent(
-        activity: Activity,
-        data: BaseData,
-        prefs: SharedPrefsHelper.Builder
-    ) {
-        if (needsCalendarPermission(activity)) {
+    fun createEvent(activity: Activity, data: BaseData) {
+        if (needsCalendarPermission()) {
             requestPermission(activity)
             return
         }
@@ -53,9 +52,9 @@ object CalendarAppHelper {
 
     private fun requestPermission(activity: Activity) {
         // Here, thisActivity is the current activity
-        if (!needsCalendarPermission(activity)) {
+        if (!needsCalendarPermission()) {
             // Permission has already been granted
-            activity.toast("got calendar permission")
+//            context.toast("got calendar permission")
             return
         }
 
@@ -100,18 +99,17 @@ object CalendarAppHelper {
         return false
     }
 
-    private fun needsCalendarPermission(context: Context) =
+    private fun needsCalendarPermission() =
         ContextCompat.checkSelfPermission(context, WRITE_CALENDAR) != PERMISSION_GRANTED
 
-    fun <T : BaseData> deleteEvent(context: Context, data: T, prefs: SharedPrefsHelper.Builder) {
+    fun <T : BaseData> deleteEvent(data: T) {
 
         val eventID = prefs.getLong(data.id) ?: return
 
         val deleteUri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID)
 
-        val rows = context.contentResolver
-            .delete(deleteUri, null, null)
+        val rows = context.contentResolver.delete(deleteUri, null, null)
 
-        Log.i(DEBUG_TAG, "Rows deleted: $rows")
+        Log.i(TAG, "Rows deleted: $rows")
     }
 }

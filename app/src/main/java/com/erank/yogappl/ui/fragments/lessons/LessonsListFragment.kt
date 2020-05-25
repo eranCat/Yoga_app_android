@@ -59,6 +59,10 @@ class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdap
     override fun getLiveData() =
         viewModel.getLessons(currentSourceType)
 
+    override suspend fun getFilteredData(query: String): List<Lesson> {
+        return viewModel.getFilteredLessons(currentSourceType, query)
+    }
+
     override fun onListUpdated(list: List<Lesson>) {
         GlobalScope.launch(IO) {
             val users = viewModel.getUsersMap(list)

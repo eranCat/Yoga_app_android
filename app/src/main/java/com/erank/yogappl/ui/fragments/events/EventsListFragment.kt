@@ -52,6 +52,10 @@ class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.
 
     override fun getLiveData() = viewModel.getEvents(currentSourceType)
 
+    override suspend fun getFilteredData(query: String): List<Event> {
+        return viewModel.getFilteredEvents(currentSourceType,query)
+    }
+
     override fun onDeleteConfirmed(item: Event) =
         viewModel.deleteEvent(item, this)
 

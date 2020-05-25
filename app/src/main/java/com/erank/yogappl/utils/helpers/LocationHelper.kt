@@ -4,7 +4,6 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Resources
 import android.location.Geocoder
@@ -19,15 +18,29 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import java.util.*
 
-object LocationHelper {
+class LocationHelper(val context: Context) {
+
+    companion object {
+        private const val VERSION = 2
+
+        private const val RESULT_LIMIT = 50
+        private const val SEARCH_RADIUS = 500 * 1_000//in meters : 500 KM
+        private const val BASE_API = "api.tomtom.com"
+
+        private const val KEY = "hEhWkGvw4i8xlpLfIfY6P3AA1cOBGutJ"
+        private const val RPC_COARSE_LOCATION = 3
+    }
+
 
     var lastKnownLocation: Location? = null
-    private const val RPC_COARSE_LOCATION = 3
 
-    fun getLocationIntent(
-        packageManager: PackageManager,
-        latLng: LatLng
-    ): Intent? {
+    private var fusedLocationClient: FusedLocationProviderClient? = null
+
+    private val currentLocale: Locale
+        get() = Resources.getSystem().configuration.locales[0]
+
+
+    fun getLocationIntent(latLng: LatLng): Intent? {
         // Create a Uri from an intent string. Use the result to create an Intent.
         val lat = latLng.latitude
         val lng = latLng.longitude
@@ -36,23 +49,10 @@ object LocationHelper {
 
         // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
         val mapIntent = Intent(Intent.ACTION_VIEW, uri)
-        return mapIntent.resolveActivity(packageManager)?.let { mapIntent }
+        return mapIntent.resolveActivity(context.packageManager)?.let { mapIntent }
     }
 
-    private const val VERSION = 2
-    private const val RESULT_LIMIT = 50
-    private const val SEARCH_RADIUS = 500 * 1_000//in meters : 500 KM
-
-    private const val BASE_API = "api.tomtom.com"
-    private const val KEY = "hEhWkGvw4i8xlpLfIfY6P3AA1cOBGutJ"
-
-    private var fusedLocationClient: FusedLocationProviderClient? = null
-
-
-    private val currentLocale: Locale
-        get() = Resources.getSystem().configuration.locales[0]
-
-    fun getCountryCode(context: Context, callback: (String, LatLng?) -> Unit) {
+    fun getCountryCode(callback: (String, LatLng?) -> Unit) {
         getLastKnownLocation()
             .addOnFailureListener { callback(currentLocale.country, null) }
             .addOnSuccessListener {
@@ -75,7 +75,7 @@ object LocationHelper {
             }
     }
 
-    fun initLocationService(context: Context) {
+    fun initLocationService() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     }
 
@@ -111,9 +111,9 @@ object LocationHelper {
             .addOnSuccessListener { lastKnownLocation = it }
 
     fun getLocationResults(
-        context: Context, query: String,
+        query: String,
         callback: OnLocationsFetchedCallback
-    ) = getCountryCode(context) { code, latLon ->
+    ) = getCountryCode { code, latLon ->
         LocationsTask(buildUrl(query, code, latLon)).start(callback)
     }
 
@@ -133,16 +133,15 @@ object LocationHelper {
 
 
     private fun checkPermissionResults(
-        context: Context, permissions: Array<String>,
-        results: IntArray, permission: String
+        permissions: Array<String>, results: IntArray
     ): Boolean {
 
-        val index = permissions.indexOf(permission)
+        val index = permissions.indexOf(ACCESS_COARSE_LOCATION)
 
         return when {
             index == -1 -> false
             results[index] != PERMISSION_GRANTED -> false
-            ContextCompat.checkSelfPermission(context, permission)
+            ContextCompat.checkSelfPermission(context, ACCESS_COARSE_LOCATION)
                     != PERMISSION_GRANTED ->
                 false
             else -> true
@@ -151,12 +150,9 @@ object LocationHelper {
     }
 
     fun checkAllPermissionResults(
-        context: Context, requestCode: Int,
-        permissions: Array<String>, results: IntArray
+        requestCode: Int, permissions: Array<String>, results: IntArray
     ) = when (requestCode) {
-        RPC_COARSE_LOCATION -> checkPermissionResults(
-            context, permissions, results, ACCESS_COARSE_LOCATION
-        )
+        RPC_COARSE_LOCATION -> checkPermissionResults(permissions, results)
         else -> false
     }
 

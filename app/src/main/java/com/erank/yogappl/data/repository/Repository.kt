@@ -10,7 +10,6 @@ import com.erank.yogappl.data.models.*
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
-import com.google.firebase.firestore.DocumentSnapshot
 
 interface Repository {
     var currentUser: User?
@@ -18,7 +17,6 @@ interface Repository {
     fun getEvents(type: SourceType): LiveData<List<Event>>
     fun loadData(context: Context, onLoadedCallback: TaskCallback<Void, Exception>)
     fun loadAll(
-        context: Context,
         dType: DataType,
         loaded: TaskCallback<Void, Exception>
     )
@@ -27,8 +25,8 @@ interface Repository {
     fun fetchUserIfNeeded(uid: String, callback: UserTaskCallback)
     fun addAllLessons(lessons: List<Lesson>, callback: () -> Unit)
     fun addAllEvents(events: List<Event>, callback: () -> Unit)
-    fun filterEvents(type: SourceType, query: String): LiveData<List<Event>>
-    fun filterLessons(type: SourceType, query: String): LiveData<List<Lesson>>
+    suspend fun getFilteredEvents(type: SourceType, query: String): List<Event>
+    suspend fun getFilteredLessons(type: SourceType, query: String): List<Lesson>
     fun createUser(
         user: User,
         pass: String,
@@ -69,4 +67,5 @@ interface Repository {
     fun updateLesson(lesson: Lesson, callback: UploadDataTaskCallback)
     fun fetchLoggedUser(callback: UserTaskCallback)
     suspend fun getUsers(ids: Set<String>):Map<String, PreviewUser>
+    fun clearCurrentUser()
 }

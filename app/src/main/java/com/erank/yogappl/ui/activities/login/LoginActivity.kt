@@ -5,30 +5,40 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.ui.activities.register.RegisterActivity
-import com.erank.yogappl.ui.activities.splash.SplashActivity
+import com.erank.yogappl.utils.App
+import com.erank.yogappl.utils.extensions.hide
 import com.erank.yogappl.utils.extensions.setTextChangedListener
+import com.erank.yogappl.utils.extensions.show
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.UserValidator
 import com.erank.yogappl.utils.helpers.UserValidator.Fields.EMAIL
 import com.erank.yogappl.utils.helpers.UserValidator.Fields.PASS
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
+import javax.inject.Inject
 
 class LoginActivity : AppCompatActivity() {
 
-    private val TAG = LoginActivity::class.java.name
-
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    companion object {
+        private val TAG = LoginActivity::class.java.name
+        const val RC_REGISTER = 243
+    }
 
     private val progressLayout by lazy { llProgressBar }
+
+    @Inject
+    lateinit var viewModel: LoginViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        (application as App).getAppComponent().inject(this)
 
         UserValidator(TextFieldValidStates.EMPTY, EMAIL, PASS).apply {
 
@@ -56,9 +66,7 @@ class LoginActivity : AppCompatActivity() {
 
         signUpBtn.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
-            startActivityForResult(intent,
-                RegisterActivity.RC_REGISTER
-            )
+            startActivityForResult(intent,RC_REGISTER)
         }
 
     }
@@ -68,20 +76,22 @@ class LoginActivity : AppCompatActivity() {
         val username = login_email.text.toString()
         val password = login_password.text.toString()
 
-        progressLayout.visibility = View.VISIBLE
-        auth.signInWithEmailAndPassword(username, password)
-            .addOnCompleteListener {
-                progressLayout.visibility = View.GONE
-            }
+        progressLayout.show()
+        viewModel.signIn(username, password)
+            .addOnCompleteListener { progressLayout.hide() }
             .addOnSuccessListener {
                 //send result to splash screen
                 setResult(RESULT_OK)
-                finishActivity(SplashActivity.RC_LOGIN)
                 finish()
             }
             .addOnFailureListener {
                 Log.w(TAG, "createUserWithEmail:failure", it)
-                toast("Authentication failed: ${it.localizedMessage}", Toast.LENGTH_LONG)
+                val msg ="Authentication failed: ${it.localizedMessage}"
+                AlertDialog.Builder(this)
+                    .setTitle("login failed")
+                    .setMessage(msg)
+                    .setPositiveButton("OK", null)
+                    .show()
             }
 
     }
@@ -90,7 +100,7 @@ class LoginActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         when (requestCode) {
-            RegisterActivity.RC_REGISTER -> {
+            RC_REGISTER -> {
                 setResult(resultCode)
                 finish()
             }

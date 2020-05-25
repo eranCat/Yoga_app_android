@@ -26,4 +26,11 @@ class LessonsViewModel @Inject constructor(val repository: Repository) {
         return repository.getUsers(ids)
     }
 
+    suspend fun getFilteredLessons(
+        type: SourceType,
+        query: String
+    ): List<Lesson> {
+        return repository.getFilteredLessons(type,query)
+    }
+
 }

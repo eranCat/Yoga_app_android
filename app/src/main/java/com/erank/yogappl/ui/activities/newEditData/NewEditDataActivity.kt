@@ -253,7 +253,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
     }
 
     fun createData(data: BaseData? = null): BaseData {
-        val uid = AuthHelper.currentUser!!.uid
+        val uid = viewModel.currentUser!!.id
         val title = titleET.text.toString()
         val cost = Money(costEt.text.toString().toDouble())
 

@@ -1,6 +1,8 @@
 package com.erank.yogappl.data.injection
 
 import android.content.Context
+import com.erank.yogappl.ui.activities.location.LocationPickerActivity
+import com.erank.yogappl.ui.activities.login.LoginActivity
 import com.erank.yogappl.ui.activities.main.MainActivity
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.activities.register.RegisterActivity
@@ -21,6 +23,8 @@ interface AppComponent {
     fun inject(activity: RegisterActivity)
     fun inject(fragment: EventsListFragment)
     fun inject(fragment: LessonsListFragment)
+    fun inject(activity: LoginActivity)
+    fun inject(activity: LocationPickerActivity)
 
     @Component.Factory
     interface Factory {

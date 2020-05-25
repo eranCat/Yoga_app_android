@@ -14,12 +14,12 @@ import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.utils.extensions.addMinuets
 
 
-object NotificationsHelper {
+class NotificationsHelper(val context: Context) {
+    companion object {
+        const val CHANNEL_ID = "555"
+    }
 
-    const val CHANNEL_ID = "1101010"
-
-
-    fun <T : BaseData> createNotification(context: Context, data: T) {
+    fun <T : BaseData> createNotification(data: T) {
 
         val drawable = ContextCompat.getDrawable(context, R.drawable.app_icon_yoga)
         val largeIcon = (drawable as BitmapDrawable).bitmap
@@ -60,7 +60,7 @@ object NotificationsHelper {
         alarmManager[AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis] = pendingIntent
     }
 
-    fun <T : BaseData> removeNotification(context: Context, data: T) {
+    fun <T : BaseData> removeNotification(data: T) {
         val intent = Intent(context, NotificationReceiver::class.java)
         intent.putExtra("title", data.title)
         val pending =

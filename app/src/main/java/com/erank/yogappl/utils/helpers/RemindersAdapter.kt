@@ -1,23 +1,31 @@
 package com.erank.yogappl.utils.helpers
 
 import android.app.Activity
-import android.content.Context
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.BaseData
+import com.erank.yogappl.data.repository.Repository
 import com.erank.yogappl.utils.extensions.alert
+import javax.inject.Inject
 
 class RemindersAdapter<T : BaseData>(val data: T) {
 
-    private val user = DataSource.currentUser!!
+    @Inject
+    lateinit var prefs:SharedPrefsHelper
+
+    @Inject
+    lateinit var calendarHelper: CalendarAppHelper
+
+    @Inject
+    lateinit var notificationsHelper: NotificationsHelper
+
 
     fun showDialog(activity: Activity) {
 
-        val prefs = SharedPrefsHelper.Builder(activity, user)
         val items = activity.resources.getStringArray(R.array.reminders_items)
 
         val actions = arrayOf(
-            Runnable { NotificationsHelper.createNotification(activity, data) },
-            Runnable { CalendarAppHelper.createEvent(activity, data, prefs) }
+            Runnable { notificationsHelper.createNotification(data) },
+            Runnable { calendarHelper.createEvent(activity, data) }
         )
 
         activity.alert("You may select a reminder")
@@ -26,10 +34,9 @@ class RemindersAdapter<T : BaseData>(val data: T) {
             .show()
     }
 
-    fun removeReminder(context: Context, data: T) {
-        NotificationsHelper.removeNotification(context, data)
-        val prefs = SharedPrefsHelper.Builder(context, user)
-        CalendarAppHelper.deleteEvent(context, data, prefs)
+    fun removeReminder(data: T) {
+        notificationsHelper.removeNotification(data)
+        calendarHelper.deleteEvent(data)
     }
 
     fun tryAgainIfAvailable(
@@ -37,9 +44,8 @@ class RemindersAdapter<T : BaseData>(val data: T) {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        if (CalendarAppHelper.checkPermission(activity, permissions, grantResults)) {
-            val prefs = SharedPrefsHelper.Builder(activity, user)
-            CalendarAppHelper.createEvent(activity, data, prefs)
+        if (calendarHelper.checkPermission(activity, permissions, grantResults)) {
+            calendarHelper.createEvent(activity, data)
         }
     }
 }

@@ -8,9 +8,7 @@ import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.data.enums.TableNames
-import com.erank.yogappl.data.injection.NetworkDataSource
 import com.erank.yogappl.data.models.*
-import com.erank.yogappl.data.room.AppDatabase
 import com.erank.yogappl.utils.DataTypeError
 import com.erank.yogappl.utils.SigningErrors
 import com.erank.yogappl.utils.UserErrors
@@ -18,7 +16,6 @@ import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.helpers.SharedPrefsHelper
-import com.erank.yogappl.utils.helpers.StorageManager
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
@@ -32,7 +29,10 @@ import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
     val dataModelHolder: DataModelsHolder,
-    val sharedProvider: SharedPrefsHelper
+    val sharedProvider: SharedPrefsHelper,
+    val locationHelper: LocationHelper,
+    val authHelper: AuthHelper,
+    val storage: StorageManager
 ) : Repository {
     companion object {
         const val TAG = "Repository"
@@ -65,13 +65,11 @@ class RepositoryImpl @Inject constructor(
     ) {
 
         loadAll(
-            context,
             DataType.LESSONS,
             object : TaskCallback<Void, Exception> {
 
                 override fun onSuccess(result: Void?) =
                     loadAll(
-                        context,
                         DataType.EVENTS,
                         onLoadedCallback
                     )
@@ -82,14 +80,11 @@ class RepositoryImpl @Inject constructor(
             })
     }
 
-    override fun loadAll(
-        context: Context, dType: DataType,
-        loaded: TaskCallback<Void, Exception>
-    ) {
+    override fun loadAll(dType: DataType, loaded: TaskCallback<Void, Exception>) {
 //        TODO use real location locale, not setting one
-        LocationHelper.getCountryCode(context) { code, _ ->
+        locationHelper.getCountryCode { code, _ ->
             //        MARK: Important! don't use 2 ordered or limited queries
-            val handler = LoadDataValueEventHandler(dType,this, loaded)
+            val handler = LoadDataValueEventHandler(dType, this, loaded)
             DBRefs.refForType(dType)
                 .whereEqualTo("countryCode", code)
                 .orderBy("postedDate")
@@ -103,7 +98,7 @@ class RepositoryImpl @Inject constructor(
 
     override fun fetchLoggedUser(callback: UserTaskCallback) {
 
-        val uid = AuthHelper.currentUser?.uid
+        val uid = authHelper.currentUser?.uid
         if (uid == null) {
             callback.onFailedFetchingUser(UserErrors.NoUserFound())
             return
@@ -176,18 +171,16 @@ class RepositoryImpl @Inject constructor(
     ) {
 
         //        stage 1 - add new simple user to the firebase Auth
-        AuthHelper.createUser(user.email, pass)
+        authHelper.createUser(user.email, pass)
             .addOnFailureListener(callback::onFailedFetchingUser)
             .addOnSuccessListener { authResult ->
                 //       set id to user
                 user.id = authResult.user!!.uid
+                val task = selectedImage?.let { storage.saveUserImage(user, it, callback) }
+                    ?: bitmap?.let { storage.saveUserImage(user, it, callback) }
 
-                selectedImage?.let { StorageManager.saveUserImage(user, it, callback) }
-                    ?: bitmap?.let { StorageManager.saveUserImage(user, it, callback) }
-                    ?: uploadUserToDB(
-                        user,
-                        callback
-                    )
+                task?.addOnSuccessListener { uploadUserToDB(user, callback) }
+                    ?: uploadUserToDB(user, callback)
             }
     }
 
@@ -204,7 +197,7 @@ class RepositoryImpl @Inject constructor(
 
         when {
             selectedImage != null ->
-                StorageManager.saveUserImage(user, selectedImage, callback)
+                storage.saveUserImage(user, selectedImage, callback)
                     .addOnSuccessListener {
                         updateUser(
                             user,
@@ -213,7 +206,7 @@ class RepositoryImpl @Inject constructor(
                     }
 
             selectedImageBitmap != null ->
-                StorageManager.saveUserImage(user, selectedImageBitmap, callback)
+                storage.saveUserImage(user, selectedImageBitmap, callback)
                     .addOnSuccessListener {
                         updateUser(
                             user,
@@ -283,10 +276,10 @@ class RepositoryImpl @Inject constructor(
 
                 when {
                     selectedImage != null -> {
-                        StorageManager.saveEventImage(data, selectedImage)
+                        storage.saveEventImage(data, selectedImage)
                     }
                     selectedBitmap != null -> {
-                        StorageManager.saveEventImage(data, selectedBitmap)
+                        storage.saveEventImage(data, selectedBitmap)
                     }
                     else -> {
                         saveUserEvent(
@@ -365,10 +358,10 @@ class RepositoryImpl @Inject constructor(
         callback.onLoading()
 
         when {
-            eventImg != null -> StorageManager
+            eventImg != null -> storage
                 .saveEventImage(event, eventImg)
 
-            selectedEventImgBitmap != null -> StorageManager
+            selectedEventImgBitmap != null -> storage
                 .saveEventImage(event, selectedEventImgBitmap)
 //            TODO add image From url - upload to server
             else -> {
@@ -442,7 +435,7 @@ class RepositoryImpl @Inject constructor(
                             callback.onSuccess()
                         }
 
-                        StorageManager.removeEventImage(event)
+                        storage.removeEventImage(event)
 
                     }
 
@@ -624,11 +617,16 @@ class RepositoryImpl @Inject constructor(
     override fun addAllEvents(events: List<Event>, callback: () -> Unit) =
         dataModelHolder.addEvents(events, callback)
 
-    override fun filterEvents(type: SourceType, query: String) =
-        dataModelHolder.filterEvents(type, currentUser!!.id, query)
 
-    override fun filterLessons(type: SourceType, query: String) =
-        dataModelHolder.filterLessons(type, currentUser!!.id, query)
+    override suspend fun getFilteredEvents(type: SourceType, query: String): List<Event> {
+        return dataModelHolder.filterEvents(type, currentUser!!.id, query)
+    }
 
+    override suspend fun getFilteredLessons(type: SourceType, query: String): List<Lesson> {
+        return dataModelHolder.filterLessons(type, currentUser!!.id, query)
+    }
 
+    override fun clearCurrentUser() {
+        currentUser = null
+    }
 }

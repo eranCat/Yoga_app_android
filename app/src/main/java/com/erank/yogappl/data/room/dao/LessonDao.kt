@@ -26,22 +26,12 @@ interface LessonDao : GenericDao<Lesson> {
     override suspend fun getById(id: String): Lesson?
 
 
-    //    TODO fix search queries
-    @Query(
-        """SELECT * FROM LESSONS 
-        WHERE (uid != :uid) AND 
-        (title LIKE '%'+:query+'%')"""
-    )
-    fun allLessonsFiltered(uid: String, query: String): LiveData<List<Lesson>>
+    @Query("SELECT * FROM LESSONS WHERE uid != :uid AND title LIKE '%'|:query|'%'")
+    fun allLessonsFiltered(uid: String, query: String): List<Lesson>
 
-    @Query(
-        """SELECT * FROM LESSONS
-            WHERE signed LIKE '%'+:uid+'%' 
-            AND title LIKE '%'+:query+'%' """
-    )
-    fun signedLessonsFiltered(uid: String, query: String): LiveData<List<Lesson>>
+    @Query("SELECT * FROM LESSONS WHERE signed LIKE '%'|:uid|'%' AND title LIKE '%'|:query|'%'")
+    fun signedLessonsFiltered(uid: String, query: String): List<Lesson>
 
-    @Query("SELECT * FROM LESSONS WHERE uid = :uid AND title LIKE '%'+:query+'%'")
-    fun uploadedLessonsFiltered(uid: String, query: String): LiveData<List<Lesson>>
-
+    @Query("SELECT * FROM LESSONS WHERE uid = :uid AND title LIKE '%'|:query|'%'")
+    fun uploadedLessonsFiltered(uid: String, query: String): List<Lesson>
 }

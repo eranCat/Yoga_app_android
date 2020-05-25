@@ -6,8 +6,10 @@ import com.erank.yogappl.data.network.NetworkDataSourceImpl
 import com.erank.yogappl.data.repository.DataModelsHolder
 import com.erank.yogappl.data.repository.Repository
 import com.erank.yogappl.data.repository.RepositoryImpl
+import com.erank.yogappl.data.repository.StorageManager
 import com.erank.yogappl.data.room.AppDatabase
-import com.erank.yogappl.utils.helpers.SharedPrefsHelper
+import com.erank.yogappl.utils.helpers.*
+import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -19,9 +21,18 @@ class DataRepositoryModule {
     @Provides
     fun provideDataRepository(
         sharedProvider: SharedPrefsHelper,
-        dataModelHolder: DataModelsHolder
+        dataModelHolder: DataModelsHolder,
+        locationHelper: LocationHelper,
+        authHelper: AuthHelper,
+        storage: StorageManager
     ): Repository =
-        RepositoryImpl(dataModelHolder, sharedProvider)
+        RepositoryImpl(
+            dataModelHolder,
+            sharedProvider,
+            locationHelper,
+            authHelper,
+            storage
+        )
 
     @Provides
     fun provideNetworkDataSource(api: ApiServer) = NetworkDataSourceImpl(api)
@@ -35,4 +46,34 @@ class DataRepositoryModule {
 
     @Provides
     fun provideRetrofitApi(): ApiServer = ApiServer()
+
+    @Provides
+    fun provideFirebaseAuth() = FirebaseAuth.getInstance()
+
+    @Singleton
+    @Provides
+    fun provideAuthHelper(context: Context, auth: FirebaseAuth) = AuthHelper(auth, context)
+
+    @Singleton
+    @Provides
+    fun provideLocationHelper(context: Context) = LocationHelper(context)
+
+    @Singleton
+    @Provides
+    fun provideMoneyConverter(sharedPrefs: SharedPrefsHelper) = MoneyConverter(sharedPrefs)
+
+    @Singleton
+    @Provides
+    fun provideCalendarAppHelper(context: Context, prefs: SharedPrefsHelper) =
+        CalendarAppHelper(context, prefs)
+
+    @Singleton
+    @Provides
+    fun provideStorageManager() =
+        StorageManager()
+
+    @Singleton
+    @Provides
+    fun provideNotificationHelper(context: Context) = NotificationsHelper(context)
+
 }

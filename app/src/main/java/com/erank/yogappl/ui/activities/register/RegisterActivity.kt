@@ -38,7 +38,6 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
     private val progressLayout by lazy { llProgressBar }
 
     companion object {
-        const val RC_REGISTER = 243
         private val TAG = RegisterActivity::class.java.name
     }
 

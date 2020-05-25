@@ -22,26 +22,12 @@ interface EventDao : GenericDao<Event> {
     override suspend fun getById(id: String): Event?
 
 
-    //    TODO fix search queries
+    @Query("SELECT * FROM EVENTS WHERE uid != :uid AND title LIKE '%'|:query|'%'")
+    fun allEventsFiltered(uid: String, query: String): List<Event>
 
-    @Query(
-        """SELECT * FROM EVENTS 
-        WHERE uid != :uid 
-        AND title LIKE '%'+:query+'%'"""
-    )
-    fun allEventsFiltered(uid: String, query: String): LiveData<List<Event>>
+    @Query("SELECT * FROM EVENTS WHERE uid = :uid AND title LIKE '%'|:query|'%'")
+    fun uploadedEventsFiltered(uid: String, query: String): List<Event>
 
-    @Query(
-        """SELECT * FROM EVENTS
-        WHERE uid = :uid 
-        AND title LIKE '%'+:query+'%'"""
-    )
-    fun uploadedEventsFiltered(uid: String, query: String): LiveData<List<Event>>
-
-    @Query(
-        """SELECT * FROM EVENTS 
-        WHERE (signed LIKE '%'+:uid+'%')
-         AND (title LIKE '%'+:query+'%')"""
-    )
-    fun signedEventsFiltered(uid: String, query: String): LiveData<List<Event>>
+    @Query("SELECT * FROM EVENTS WHERE signed LIKE '%'|:uid|'%' AND title LIKE '%'|:query|'%'")
+    fun signedEventsFiltered(uid: String, query: String): List<Event>
 }

@@ -22,4 +22,9 @@ class EventsViewModel @Inject constructor(val repository: Repository) {
         repository.toggleSignToEvent(event, callback)
     }
 
+    suspend fun getFilteredEvents(type: SourceType, query: String): List<Event> {
+        return repository.getFilteredEvents(type, query)
+    }
+
+
 }

@@ -5,22 +5,26 @@ import android.content.Intent
 import com.erank.yogappl.ui.activities.login.LoginActivity
 import com.google.firebase.auth.FirebaseAuth
 
-object AuthHelper {
+class AuthHelper(
+    val mAuth: FirebaseAuth,
+    val context: Context
+) {
 
-    private val mAuth = FirebaseAuth.getInstance()
     val currentUser
         get() = mAuth.currentUser
 
-    private fun openLogin(context: Context) {
+    val isFbUserConnected: Boolean
+        get() = (currentUser == null)
+
+    private fun openLogin() {
         val intent = Intent(context, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         context.startActivity(intent)
     }
 
-    fun signOut(context: Context) {
+    fun signOut() {
         mAuth.signOut()
-        DataSource.currentUser = null
-        openLogin(context)
+        openLogin()
     }
 
     fun createUser(email: String, pass: String) =

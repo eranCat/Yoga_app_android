@@ -10,10 +10,11 @@ import androidx.appcompat.widget.SearchView
 import com.erank.yogappl.R
 import com.erank.yogappl.ui.adapters.LocationsAdapter
 import com.erank.yogappl.data.models.LocationResult
+import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.setIconTintCompat
-import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.interfaces.OnLocationSelectedCallback
 import kotlinx.android.synthetic.main.activity_location_picker.*
+import javax.inject.Inject
 
 
 class LocationPickerActivity : AppCompatActivity(),
@@ -21,12 +22,16 @@ class LocationPickerActivity : AppCompatActivity(),
 
     private val resultsRV by lazy { results_recycler }
     private val locationsEmptyTv by lazy { locations_empty_tv }
-
     private val locationsAdapter by lazy { LocationsAdapter(this) }
+
+    @Inject
+    lateinit var viewModel:LocationPickerVM
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_location_picker)
+
+        (application as App).getAppComponent().inject(this)
 
         resultsRV.adapter = locationsAdapter
     }
@@ -56,7 +61,7 @@ class LocationPickerActivity : AppCompatActivity(),
             return false
         }
 
-        LocationHelper.getLocationResults(this, query) {
+        viewModel.getLocationResults(query) {
             locationsAdapter.submitList(it)
 
             locationsEmptyTv.visibility =

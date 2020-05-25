@@ -17,7 +17,6 @@ import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.formatted
 import com.erank.yogappl.utils.extensions.setIconTintCompat
 import com.erank.yogappl.utils.extensions.toast
-import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.helpers.RemindersAdapter
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.google.android.gms.maps.model.LatLng
@@ -36,7 +35,8 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
     private val progressLayout by lazy { progress_layout }
 
-    @Inject lateinit var viewModel:DataInfoViewModel
+    @Inject
+    lateinit var viewModel: DataInfoViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -187,10 +187,9 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
 
     private fun openLocation(location: LatLng) =
-        LocationHelper.getLocationIntent(packageManager, location)
-            ?.let {
-                startActivity(it)
-            }
+        viewModel.getLocationIntent(location)?.let {
+            startActivity(it)
+        }
 
     private var remindersAdapter: RemindersAdapter<BaseData>? = null
 
@@ -210,7 +209,7 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
         remindersAdapter!!.let {
             if (res) it.showDialog(this)
             else currentData?.let { data ->
-                it.removeReminder(this, data)
+                it.removeReminder(data)
             }
         }
     }

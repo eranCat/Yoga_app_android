@@ -6,6 +6,7 @@ import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.helpers.MoneyConverter
 import com.google.firebase.firestore.Exclude
 import java.text.NumberFormat
+import javax.inject.Inject
 
 class Money(var amount: Double) : Parcelable {
     constructor() : this(0.0)
@@ -14,10 +15,13 @@ class Money(var amount: Double) : Parcelable {
         encoded = map
     }
 
+    @Inject
+    lateinit var moneyConverter:MoneyConverter
+
     var encoded: SMap<Double>
-        get() = mutableMapOf("amount" to MoneyConverter.convertFromLocaleToDefault(amount))
+        get() = mutableMapOf("amount" to moneyConverter.convertFromLocaleToDefault(amount))
         set(value) {
-            amount = MoneyConverter.convertFromDefaultToLocale(value["amount"]!!)
+            amount = moneyConverter.convertFromDefaultToLocale(value["amount"]!!)
         }
 
     @Exclude

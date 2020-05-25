@@ -28,7 +28,6 @@ import com.erank.yogappl.data.enums.SourceType.*
 import com.erank.yogappl.ui.activities.register.RegisterActivity
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.*
-import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
@@ -263,7 +262,7 @@ class MainActivity : AppCompatActivity(),
     private fun showSignOutDialog() {
         alert(null, "Are you sure you want to sign out?")
             .setPositiveButton("Yep") { _, _ ->
-                AuthHelper.signOut(this)
+                viewModel.signOut()
                 finish()
             }
             .setNegativeButton("Nope", null)

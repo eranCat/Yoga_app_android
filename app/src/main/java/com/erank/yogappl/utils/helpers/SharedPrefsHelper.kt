@@ -1,6 +1,7 @@
 package com.erank.yogappl.utils.helpers
 
 import android.content.Context
+import java.util.*
 import javax.inject.Inject
 
 
@@ -8,6 +9,9 @@ class SharedPrefsHelper @Inject constructor(context: Context) : PreferenceProvid
 
     companion object {
         const val IS_FIRST_TIME = "IS_FIRST_TIME"
+        private const val LAST_LOCALE = "last_locale"
+        private const val UPDATED_DATE = "moneyLastUpdatedDate"
+        private const val MONEY = "money"
     }
 
     fun put(key: String, data: Long) {
@@ -37,7 +41,28 @@ class SharedPrefsHelper @Inject constructor(context: Context) : PreferenceProvid
         if (!prefs.contains(key)) null
         else prefs.getFloat(key, 0f)
 
-    fun getString(key: String, defaultValue: String?): String? =
+    fun getString(key: String, defaultValue: String? = null): String? =
         prefs.getString(key, defaultValue)
+
+    fun getLastLocale() = getString(LAST_LOCALE)
+    fun putLastLocale():SharedPrefsHelper{
+        put(LAST_LOCALE, Locale.getDefault().country)
+        return this
+    }
+
+
+    fun getUpdatedDate() = getLong(UPDATED_DATE)
+
+
+    fun getMoney() = getFloat(MONEY)
+    fun putMoney(localeCurrencyMultiplier: Float): SharedPrefsHelper {
+        put(MONEY,localeCurrencyMultiplier)
+        return this
+    }
+
+    fun putUpdatedDate(): SharedPrefsHelper {
+        put(UPDATED_DATE, Date().time)
+        return this
+    }
 
 }

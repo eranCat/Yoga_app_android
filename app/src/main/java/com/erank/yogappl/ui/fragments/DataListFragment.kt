@@ -30,6 +30,11 @@ import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import kotlinx.android.synthetic.main.fragment_data_list.*
 import kotlinx.android.synthetic.main.no_search_results.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     SearchUpdateable,
@@ -76,9 +81,9 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
     abstract fun createAdapter(): AT
 
-    protected fun initAdapter(adapter: AT) = adapter.apply {
+    protected fun initAdapter(adapter: AT) = adapter.also {
 
-        adapter.callback = this@DataListFragment
+        adapter.callback = this
         recyclerView.adapter = adapter
 
 //        TODO fix swipe
@@ -95,13 +100,18 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
     override fun updateSearch(state: SearchState, query: String) {
         when (state) {
-            SearchState.CLOSED -> dataAdapter.reset()
-            SearchState.CHANGED -> dataAdapter.filter(query)
+            SearchState.CHANGED -> CoroutineScope(IO).launch {
+                val filteredData = getFilteredData(query)
+                withContext(Main){
+                    dataAdapter.submitList(filteredData)
+                }
+            }
+            SearchState.CLOSED -> observeData(getLiveData())
         }
     }
 
     abstract fun getLiveData(): LiveData<List<T>>
-
+    abstract suspend fun getFilteredData(query: String): List<T>
 
     private fun setEmptyView(isEmpty: Boolean) {
         emptyTV.visibility = if (isEmpty) View.VISIBLE else View.GONE
@@ -195,7 +205,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
                     if (didSign!!)
                         showDialog(activity!!)
                     else
-                        removeReminder(context!!, item)
+                        removeReminder(item)
                 }
             }
 

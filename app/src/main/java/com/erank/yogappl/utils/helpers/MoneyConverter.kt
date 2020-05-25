@@ -1,6 +1,5 @@
 package com.erank.yogappl.utils.helpers
 
-import android.content.Context
 import android.net.Uri
 import com.erank.yogappl.utils.coroutines.CurrencyTask
 import com.erank.yogappl.utils.extensions.add
@@ -8,35 +7,28 @@ import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import java.util.*
 import java.util.Calendar.WEEK_OF_MONTH
 
-object MoneyConverter {
+class MoneyConverter(val sharedPrefs:SharedPrefsHelper) {
 
-    private val LAST_LOCALE = "last_locale"
-    private const val ApiKey = "ceb2a9d4119b6738d3fa4b8340d94adb"
-    private const val BaseApi = "apilayer.net"
-
-    private const val UPDATED_DATE = "moneyLastUpdatedDate"
-    private const val MONEY = "money"
+    companion object {
+        private const val ApiKey = "ceb2a9d4119b6738d3fa4b8340d94adb"
+        private const val BaseApi = "apilayer.net"
+    }
 
     private var localeCurrencyMultiplier = 1f//1 dollar * x
 
-    fun connect(
-        context: Context,
-        callback: MoneyConnectionCallback
-    ) {
-        val prefs = SharedPrefsHelper.Builder(context)
+    fun connect(callback: MoneyConnectionCallback) {
 
-        val lastLocale = prefs.getString(LAST_LOCALE, null)
+        val lastLocale = sharedPrefs.getLastLocale()
         if (lastLocale == Locale.getDefault().country) {
 
-            val updateDate = prefs.getLong(UPDATED_DATE)
+            val updateDate = sharedPrefs.getUpdatedDate()
             if (updateDate != null) {
 
                 val weekAfter = Date(updateDate).add(WEEK_OF_MONTH, 1)
 
                 if (weekAfter <= Date()) {
-                    val money = prefs.getFloat(MONEY)
-                    if (money != null) {
-                        localeCurrencyMultiplier = money
+                    sharedPrefs.getMoney()?.let {
+                        localeCurrencyMultiplier = it
                         callback.onSuccessConnectingMoney()
                         return
                     }
@@ -55,17 +47,15 @@ object MoneyConverter {
             }
 
             localeCurrencyMultiplier = it.getUSD(code)!!
-            saveMoneyOnSharedPrefs(context)
+            saveMoneyOnSharedPrefs()
             callback.onSuccessConnectingMoney()
 
         }.start()
     }
 
-    private fun saveMoneyOnSharedPrefs(context: Context) {
-        SharedPrefsHelper.Builder(context)
-            .put(MONEY, localeCurrencyMultiplier)
-            .put(UPDATED_DATE, Date().time)
-            .put(LAST_LOCALE, Locale.getDefault().country)
+    private fun saveMoneyOnSharedPrefs() {
+        sharedPrefs.putLastLocale().putUpdatedDate()
+            .putMoney(localeCurrencyMultiplier)
     }
 
     private fun converterUrl(code: String): String {

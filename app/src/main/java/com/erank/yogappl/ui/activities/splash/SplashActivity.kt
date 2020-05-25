@@ -15,12 +15,9 @@ import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.startZoomAnimation
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.Connectivity
-import com.erank.yogappl.utils.helpers.LocationHelper
-import com.erank.yogappl.utils.helpers.MoneyConverter
 import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_splash.*
 import javax.inject.Inject
 
@@ -81,20 +78,16 @@ class SplashActivity : AppCompatActivity(),
             return
         }
 
-        if (!LocationHelper.getLocationPermissionIfNeeded(this)) {
+        if (!viewModel.getLocationPermissionIfNeeded(this)) {
             toast("needs location permission")
             return
         }
 
-        LocationHelper.initLocationService(this)
+        viewModel.initLocationService()
 
-        if (FirebaseAuth.getInstance().currentUser == null) {
-
+        if (viewModel.isFbUserConnected) {
             val intent = Intent(this, LoginActivity::class.java)
-            startActivityForResult(intent,
-                RC_LOGIN
-            )
-
+            startActivityForResult(intent, RC_LOGIN)
             return
         }
 
@@ -104,7 +97,7 @@ class SplashActivity : AppCompatActivity(),
     }
 
     override fun onSuccessFetchingUser(user: User?) {
-        MoneyConverter.connect(this, this)
+        viewModel.connectMoneyConverter(this)
     }
 
     override fun onFailedFetchingUser(e: Exception) =
@@ -150,13 +143,7 @@ class SplashActivity : AppCompatActivity(),
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
-        if (LocationHelper.checkAllPermissionResults(
-                this,
-                requestCode,
-                permissions,
-                grantResults
-            )
-        ) {
+        if (viewModel.checkAllPermissionResults(requestCode, permissions, grantResults)) {
             startSetup()
         } else {
             toast("Can't continue without location permission")

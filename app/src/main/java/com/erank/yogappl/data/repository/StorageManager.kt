@@ -1,4 +1,4 @@
-package com.erank.yogappl.utils.helpers
+package com.erank.yogappl.data.repository
 
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
@@ -6,7 +6,6 @@ import android.net.Uri
 import android.util.Log
 import com.erank.yogappl.data.models.Event
 import com.erank.yogappl.data.models.User
-import com.erank.yogappl.utils.UserErrors
 import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import com.google.android.gms.tasks.Task
@@ -16,7 +15,7 @@ import com.google.firebase.storage.UploadTask
 import java.io.ByteArrayOutputStream
 
 
-object StorageManager {
+class StorageManager() {
 
     enum class StorageRefs(path: String) {
 
@@ -29,26 +28,20 @@ object StorageManager {
 
     private val TAG = StorageManager::class.java.name
 
-    fun removeCurrentUserProfileImage(completion: TaskCallback<Void, Exception>) {
-        DataSource.currentUser?.let {
-            // remove the file from storage
-            userImageRef(it).delete()
-                .addOnSuccessListener { removeUserProfileImageFromDB(completion) }
-                .addOnFailureListener(completion::onFailure)
-
-        } ?: completion.onFailure(UserErrors.NoUserFound())
+    fun removeCurrentUserProfileImage(user:User,completion: TaskCallback<Void, Exception>) {
+        // remove the file from storage
+        userImageRef(user).delete()
+            .addOnSuccessListener { removeUserProfileImageFromDB(user,completion) }
+            .addOnFailureListener(completion::onFailure)
     }
 
-    private fun removeUserProfileImageFromDB(completion: TaskCallback<Void, Exception>) {
-        DataSource.currentUser?.let {
-            //save the image url in current users obj
-            it.profileImageUrl = null
-            //update in DB
+    private fun removeUserProfileImageFromDB(user:User,completion: TaskCallback<Void, Exception>) {
+        //save the image url in current users obj
+        user.profileImageUrl = null
+        //update in DB
 
-            userImageRef(it).delete()
-                .addOnFailureListener(completion::onFailure)
-
-        } ?: completion.onFailure(UserErrors.NoUserFound())
+        userImageRef(user).delete()
+            .addOnFailureListener(completion::onFailure)
     }
 
     fun saveUserImage(user: User, imageUri: Uri, callback: UserTaskCallback): Task<Uri> =
@@ -83,7 +76,6 @@ object StorageManager {
         }.addOnFailureListener(listener::onFailedFetchingUser)
             .addOnSuccessListener {
                 user.profileImageUrl = it.toString()
-                DataSource.uploadUserToDB(user, listener)
             }
     }
 

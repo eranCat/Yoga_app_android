@@ -48,9 +48,9 @@ class LocationsAdapter :
             with(address) {
                 localNameTV.text = POI?.name ?: localName
 
-                var name = streetName ?: freeformAddress
+                var name = streetName ?: longName
 
-                if (streetNumber > 0) {
+                if (streetNumber.isNotEmpty()) {
                     name += " $streetNumber"
                 }
 

@@ -1,14 +1,16 @@
 package com.erank.yogappl.data.injection
 
 import android.content.Context
-import com.erank.yogappl.data.network.ApiServer
-import com.erank.yogappl.data.network.NetworkDataSourceImpl
+import com.erank.yogappl.data.network.NetworkDataSource
+import com.erank.yogappl.data.network.TomTomApi
 import com.erank.yogappl.data.repository.*
 import com.erank.yogappl.data.room.AppDatabase
 import com.erank.yogappl.utils.helpers.*
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import javax.inject.Singleton
 
 @Module
@@ -32,7 +34,7 @@ class DataRepositoryModule {
         )
 
     @Provides
-    fun provideNetworkDataSource(api: ApiServer) = NetworkDataSourceImpl(api)
+    fun provideNetworkDataSource(tomTom: TomTomApi) = NetworkDataSource(tomTom)
 
     @Singleton
     @Provides
@@ -42,7 +44,18 @@ class DataRepositoryModule {
     fun provideDataModelHolder(appDB: AppDatabase) = DataModelsHolder(appDB)
 
     @Provides
-    fun provideRetrofitApi(): ApiServer = ApiServer()
+    @Singleton
+    fun provideTomTomApi(clientBuilder: OkHttpClient.Builder) = TomTomApi.create(clientBuilder)
+
+    @Provides
+    fun provideOkHttpClientBuilder(): OkHttpClient.Builder {
+        val logging = HttpLoggingInterceptor()
+            .setLevel(HttpLoggingInterceptor.Level.BODY)
+
+        return OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor())
+            .addInterceptor(logging)
+    }
 
     @Provides
     fun provideFirebaseAuth() = FirebaseAuth.getInstance()
@@ -53,7 +66,7 @@ class DataRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideLocationHelper(context: Context) = LocationHelper(context)
+    fun provideLocationHelper(context: Context, api: TomTomApi) = LocationHelper(context, api)
 
     @Singleton
     @Provides
@@ -66,8 +79,7 @@ class DataRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideStorageManager() =
-        StorageManager()
+    fun provideStorageManager() = StorageManager()
 
     @Singleton
     @Provides

@@ -11,26 +11,23 @@ import android.location.Location
 import android.net.Uri
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.erank.yogappl.data.network.TomTomApi
 import com.erank.yogappl.utils.OnLocationsFetchedCallback
-import com.erank.yogappl.utils.coroutines.LocationsTask
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
-class LocationHelper(val context: Context) {
+class LocationHelper(val context: Context, val api: TomTomApi) {
 
     companion object {
-        private const val VERSION = 2
-
-        private const val RESULT_LIMIT = 50
-        private const val SEARCH_RADIUS = 500 * 1_000//in meters : 500 KM
-        private const val BASE_API = "api.tomtom.com"
-
-        private const val KEY = "hEhWkGvw4i8xlpLfIfY6P3AA1cOBGutJ"
         private const val RPC_COARSE_LOCATION = 3
     }
-
 
     var lastKnownLocation: Location? = null
 
@@ -79,42 +76,20 @@ class LocationHelper(val context: Context) {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     }
 
-    //https://api.tomtom.com/search/2/search/tel.json?typeahead=true&countrySet=IL&idxSet=POI&key=*****
-    private fun buildUrl(
-        query: String,
-        countryCode: String,
-        latLon: LatLng?
-    ) = Uri.Builder()
-        .scheme("https")
-        .authority(BASE_API)
-        .appendPath("search")
-        .appendPath("$VERSION")
-        .appendPath("search")
-        .appendEncodedPath("$query.json")
-        .appendQueryParameter("typeahead", "true")
-        .appendQueryParameter("language", currentLocale.toLanguageTag())
-        .appendQueryParameter("limit", "$RESULT_LIMIT")
-        .appendQueryParameter("countrySet", countryCode)
-        .apply {
-            latLon?.let {
-                appendQueryParameter("lat", "${it.latitude}")
-                appendQueryParameter("lon", "${it.longitude}")
-                appendQueryParameter("radius", "$SEARCH_RADIUS")
-            }
-        }
-        .appendQueryParameter("key", KEY)
-        .toString()
-
-
     private fun getLastKnownLocation() =
         fusedLocationClient!!.lastLocation
             .addOnSuccessListener { lastKnownLocation = it }
 
     fun getLocationResults(
-        query: String,
-        callback: OnLocationsFetchedCallback
+        query: String, callback: OnLocationsFetchedCallback
     ) = getCountryCode { code, latLon ->
-        LocationsTask(buildUrl(query, code, latLon)).start(callback)
+        CoroutineScope(IO).launch {
+            val results = api.searchAsync(query,
+                currentLocale.toLanguageTag(), code,
+                latLon?.latitude, latLon?.longitude
+            ).await().results
+            withContext(Main) { callback(results) }
+        }
     }
 
     fun getLocationPermissionIfNeeded(activity: Activity): Boolean {

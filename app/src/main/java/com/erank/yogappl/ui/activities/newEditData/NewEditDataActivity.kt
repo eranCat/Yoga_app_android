@@ -22,7 +22,6 @@ import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.*
-import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.BaseDataValidator
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
@@ -158,7 +157,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
                     viewModel.selectedLocation = data.getParcelableExtra("location")
 
                     viewModel.selectedLocation?.address?.let {
-                        locationTV.text = it.freeformAddress
+                        locationTV.text = it.longName
                     }
                 }
                 if (validator.validateLocation(viewModel.selectedLocation) != VALID)
@@ -258,7 +257,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
         val cost = Money(costEt.text.toString().toDouble())
 
         val coordinate = viewModel.selectedLocation!!.location.latLng
-        val locationName = viewModel.selectedLocation!!.address.freeformAddress
+        val locationName = viewModel.selectedLocation!!.address.longName
         val countryCode = viewModel.selectedLocation!!.address.countryCode
         val level = levelSpinner.enumValue!!
         val equip = equipEt.text.toString()

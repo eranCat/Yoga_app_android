@@ -1,15 +1,12 @@
 package com.erank.yogappl.ui.activities.splash
 
 import android.app.Activity
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.erank.yogappl.data.repository.Repository
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.helpers.MoneyConverter
-import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import com.erank.yogappl.utils.interfaces.TaskCallback
-import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import javax.inject.Inject
 
 class SplashViewModel @Inject constructor(
@@ -21,12 +18,8 @@ class SplashViewModel @Inject constructor(
     val isFbUserConnected: Boolean
         get() = authHelper.isFbUserConnected
 
-    fun fetchLoggedUser(callback: UserTaskCallback) =
-        repository.fetchLoggedUser(callback)
-
-    fun loadData(context: Context, callback: TaskCallback<Void, Exception>) {
-        repository.loadData(context, callback)
-    }
+    suspend fun fetchLoggedUser() = repository.fetchLoggedUser()
+    suspend fun loadData() = repository.loadData()
 
     fun getLocationPermissionIfNeeded(activity: Activity): Boolean {
         return locationHelper.getLocationPermissionIfNeeded(activity)
@@ -36,8 +29,8 @@ class SplashViewModel @Inject constructor(
         locationHelper.initLocationService()
     }
 
-    fun connectMoneyConverter(callback: MoneyConnectionCallback) {
-        moneyConverter.connect(callback)
+    suspend fun connectMoneyConverter() {
+        moneyConverter.connect()
     }
 
     fun checkAllPermissionResults(

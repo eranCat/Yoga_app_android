@@ -6,8 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.erank.yogappl.R
-import com.erank.yogappl.data.models.CurrencyLayerResponse
-import com.erank.yogappl.data.models.User
 import com.erank.yogappl.ui.activities.login.LoginActivity
 import com.erank.yogappl.ui.activities.main.MainActivity
 import com.erank.yogappl.utils.App
@@ -15,17 +13,16 @@ import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.startZoomAnimation
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.Connectivity
-import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
-import com.erank.yogappl.utils.interfaces.TaskCallback
-import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import kotlinx.android.synthetic.main.activity_splash.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
-class SplashActivity : AppCompatActivity(),
-    MoneyConnectionCallback,
-    UserTaskCallback,
-    TaskCallback<Void, Exception> {
+class SplashActivity : AppCompatActivity() {
 
     companion object {
         const val RC_LOGIN = 1
@@ -93,23 +90,25 @@ class SplashActivity : AppCompatActivity(),
 
 //        start floating animation
         floatAnimator.start()
-        viewModel.fetchLoggedUser(this)
+
+        GlobalScope.launch(Dispatchers.IO) {
+            fetchData()
+        }
     }
 
-    override fun onSuccessFetchingUser(user: User?) {
-        viewModel.connectMoneyConverter(this)
-    }
+    private suspend fun fetchData() {
+        try {
+            viewModel.fetchLoggedUser()
+            viewModel.connectMoneyConverter()
+            viewModel.loadData()
+            withContext(Main) {
+                logoImg.startZoomAnimation { openMain() }
+            }
+        } catch (e: Exception) {
+            notifyError("There was a problem loading", e)
+            return
+        }
 
-    override fun onFailedFetchingUser(e: Exception) =
-        notifyError("user fetch problem", e)
-
-
-    override fun onSuccessConnectingMoney() {
-        viewModel.loadData(this, this)
-    }
-
-    override fun onSuccess(result: Void?) {
-        logoImg.startZoomAnimation(this::openMain)
     }
 
     private fun openMain() {
@@ -117,11 +116,6 @@ class SplashActivity : AppCompatActivity(),
         startActivity(intent)
         finish()
     }
-
-    override fun onFailure(e: Exception) = notifyError(e.localizedMessage, e)
-
-    override fun onFailedConnectingMoney(error: CurrencyLayerResponse.Error) =
-        notifyError(error.info)
 
     private fun notifyError(msg: String, e: Exception? = null) {
         logoImg.clearAnimation()

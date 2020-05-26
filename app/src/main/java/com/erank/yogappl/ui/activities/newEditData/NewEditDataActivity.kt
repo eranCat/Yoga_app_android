@@ -13,26 +13,28 @@ import android.widget.DatePicker
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.data.models.*
-import com.erank.yogappl.utils.DateValidationPredicate
-import com.erank.yogappl.utils.OnDateSet
-import com.erank.yogappl.ui.activities.location.LocationPickerActivity
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
+import com.erank.yogappl.data.models.*
+import com.erank.yogappl.ui.activities.location.LocationPickerActivity
 import com.erank.yogappl.utils.App
+import com.erank.yogappl.utils.DateValidationPredicate
+import com.erank.yogappl.utils.OnDateSet
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.BaseDataValidator
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
-import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
+import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_new_edit_data.*
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.withContext
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
 import java.util.*
 import javax.inject.Inject
 
-class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePickerCallback {
+class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     companion object {
         const val RC_LOCATION = 11
@@ -91,7 +93,7 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
             return
         }
 
-        viewModel.getData(dataInfo.type, id) {
+        runOnBackground({ viewModel.getData(dataInfo.type, id) }) { it ->
             it?.let {
                 fillData(it)
                 initValidator(VALID)
@@ -138,7 +140,8 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
 
     private fun startLocationActivity() {
         val intent = Intent(this, LocationPickerActivity::class.java)
-        startActivityForResult(intent,
+        startActivityForResult(
+            intent,
             RC_LOCATION
         )
     }
@@ -240,15 +243,52 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
         item.isEnabled = false
         progressLayout.visibility = View.VISIBLE
 
-        viewModel.data?.let {
+        val data = viewModel.data
+        data?.let {
             createData(it)
 
-            when (it) {
-                is Lesson -> viewModel.updateLesson(it, this)
-                is Event -> viewModel.updateEvent(it, this)
-            }
+            runOnBackground({
 
-        } ?: viewModel.uploadData(createData(), this)
+                try {
+                    when (it) {
+                        is Lesson -> viewModel.updateLesson(it)
+                        is Event -> viewModel.updateEvent(it)
+                    }
+                } catch (e: Exception) {
+                    withContext(Main) {
+                        onFailed(e)
+                    }
+                }
+            }, this@NewEditDataActivity::onSuccess)
+
+        } ?: runOnBackground({
+            try {
+                viewModel.uploadData(createData())
+            } catch (e: Exception) {
+                withContext(Main) {
+                    onFailed(e)
+                }
+            }
+        }, this@NewEditDataActivity::onSuccess)
+    }
+
+    private fun onFailed(e: Exception) {
+        progressLayout.hide()
+        alert("Problem found", e.localizedMessage)
+            .setPositiveButton("ok", null)
+            .show()
+
+        setResult(Activity.RESULT_CANCELED)
+        finish()
+    }
+
+    private fun onSuccess() {
+        toast("success!")
+
+        val info = Intent().putExtra("dataInfo", viewModel.dataInfo)
+
+        setResult(Activity.RESULT_OK, info)
+        finish()
     }
 
     fun createData(data: BaseData? = null): BaseData {
@@ -397,30 +437,6 @@ class NewEditDataActivity : AppCompatActivity(), UploadDataTaskCallback, ImagePi
 
             }, cal.getHour(is24HourFormat), cal.minute, is24HourFormat
         ).show()
-    }
-
-    override fun onSuccess(result: Void?) {
-        toast("success!")
-
-//        ToDo check why this is needed
-//        if (viewModel.dataInfo.id == null)
-//            viewModel.dataInfo.id = ""
-
-        val data = Intent().putExtra("dataInfo", viewModel.dataInfo)
-
-        setResult(Activity.RESULT_OK, data)
-        finish()
-    }
-
-    override fun onFailure(error: Exception) {
-        progressLayout.visibility = View.GONE
-        progressLayout.visibility = View.GONE
-        alert("Problem found", error.localizedMessage)
-            .setPositiveButton("ok", null)
-            .show()
-
-        setResult(Activity.RESULT_CANCELED)
-        finish()
     }
 
     override fun onRequestPermissionsResult(

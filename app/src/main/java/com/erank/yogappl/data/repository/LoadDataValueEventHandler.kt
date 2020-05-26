@@ -3,109 +3,70 @@ package com.erank.yogappl.data.repository
 import android.util.Log
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.utils.SSet
-import com.erank.yogappl.utils.UserErrors
 import com.erank.yogappl.data.enums.DataType
-import com.erank.yogappl.utils.interfaces.TaskCallback
-import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.toObject
 import java.util.*
 
 class LoadDataValueEventHandler(
     private val dType: DataType,
-    private val repository: Repository,
-    private val loaded: TaskCallback<Void, Exception>
-) : EventListener<QuerySnapshot> {
+    private val repository: Repository) {
 
     val TAG = javaClass.name
 
-    private val isFilteringByDate = false
-
     private var usersToFetch: MutableSet<String> = HashSet()
 
-    override fun onEvent(
-        snapshot: QuerySnapshot?,
-        firebaseException: FirebaseFirestoreException?
-    ) {
+    suspend fun convertSnapshot(snapshot: QuerySnapshot) {
+        if (snapshot.isEmpty) return
 
-        firebaseException?.let {
-            loaded.onFailure(it)
-            return
-        }
-        if (snapshot == null || snapshot.isEmpty) {
-            loaded.onSuccess()
-            return
-        }
+        val docs = snapshot.documents
+        val user = repository.currentUser!!
 
-        val children = snapshot.documents
-        val user = repository.currentUser?: run {
-            loaded.onFailure(UserErrors.NoUserFound())
-            return
-        }
         when (dType) {
-            DataType.LESSONS -> convertValuesToLessons(children, user)
-            DataType.EVENTS -> convertValuesToEvents(children, user)
+            DataType.LESSONS -> convertValuesToLessons(docs, user)
+            DataType.EVENTS -> convertValuesToEvents(docs, user)
         }
     }
 
-    private fun fetchUsers() {
+    private suspend fun fetchUsers() {
         Log.d(TAG, "cached from firebase into room DB")
 
-        if (usersToFetch.isEmpty()) {
-            loaded.onSuccess()
-            return
-        }
-        for (id in usersToFetch) {
+        if (usersToFetch.isEmpty()) return
 
-            repository.fetchUserIfNeeded(id, object : UserTaskCallback {
-                override fun onSuccessFetchingUser(user: User?) {
-                    usersToFetch.remove(user!!.id)
-                    if (usersToFetch.isEmpty())
-                        loaded.onSuccess()
-                }
-
-                override fun onFailedFetchingUser(e: Exception) =
-                    loaded.onFailure(e)
-            })
-        }
+        repository.fetchUsersIfNeeded(usersToFetch)
     }
 
-    private fun convertValuesToLessons(
-        children: MutableList<DocumentSnapshot>,
-        user: User
-    ) {
+    private suspend fun convertValuesToLessons(docs: MutableList<DocumentSnapshot>, user: User) {
 
         val convertedValues = convertValues<Lesson>(
-            children, user.signedLessonsIDS,
+            docs, user.signedLessonsIDS,
             (user as? Teacher)?.teachingLessonsIDs
         )
 
-        repository.addAllLessons(convertedValues){fetchUsers()}
+        repository.addAllLessons(convertedValues)
+        fetchUsers()
     }
 
-    private fun convertValuesToEvents(children: MutableList<DocumentSnapshot>, user: User) {
+    private suspend fun convertValuesToEvents(docs: MutableList<DocumentSnapshot>, user: User) {
         val convertedValues = convertValues<Event>(
-            children, user.signedEventsIDS, user.createdEventsIDs
+            docs, user.signedEventsIDS, user.createdEventsIDs
         )
-        repository.addAllEvents(convertedValues){fetchUsers()}
+        repository.addAllEvents(convertedValues)
+        fetchUsers()
     }
 
     private inline fun <reified T : BaseData> convertValues(
-        values: MutableList<DocumentSnapshot>, signedIDS: SSet, uploadsIDs: Set<String>?
+        docs: MutableList<DocumentSnapshot>,
+        signedIDS: SSet, uploadsIDs: Set<String>?
     ): MutableList<T> {
 
         val list = mutableListOf<T>()
 
-        val today = Date()
-
-        for (child in values) {
-            val data = child.toObject<T>()!!
+        for (doc in docs) {
+            val data = doc.toObject<T>()!!
 
             if (uploadsIDs?.contains(data.id) == true
-                || !isFilteringByDate || data.endDate >= today
                 || signedIDS.contains(data.id)
             ) list.add(data)
 

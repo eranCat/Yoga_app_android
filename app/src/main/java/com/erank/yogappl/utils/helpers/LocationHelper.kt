@@ -11,8 +11,10 @@ import android.location.Location
 import android.net.Uri
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.data.network.TomTomApi
 import com.erank.yogappl.utils.OnLocationsFetchedCallback
+import com.erank.yogappl.utils.extensions.await
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
@@ -49,27 +51,23 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         return mapIntent.resolveActivity(context.packageManager)?.let { mapIntent }
     }
 
-    fun getCountryCode(callback: (String, LatLng?) -> Unit) {
-        getLastKnownLocation()
-            .addOnFailureListener { callback(currentLocale.country, null) }
-            .addOnSuccessListener {
-                if (it == null) {
-                    callback(currentLocale.country, null)
-                    return@addOnSuccessListener
-                }
+    suspend fun getCountryCode(): Pair<String, LatLng?> {
+        val location = getLastKnownLocation().await()
+            ?: return Pair(currentLocale.country, null)
 
-                val geocoder = Geocoder(context, currentLocale)
-                val locations = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+        val geoCoder = Geocoder(context, currentLocale)
 
-                val latLng = LatLng(it.latitude, it.longitude)
+        val latLng = LatLng(location.latitude, location.longitude)
 
-                if (locations.isNotEmpty()) {
-                    callback(locations[0].countryCode, latLng)
-                } else {
-                    callback(currentLocale.country, latLng)
-                }
+        val locations = geoCoder.getFromLocation(
+            latLng.latitude, latLng.longitude, 1
+        )
 
-            }
+        return if (locations.isNotEmpty()) {
+            Pair(locations[0].countryCode, latLng)
+        } else {
+            Pair(currentLocale.country, latLng)
+        }
     }
 
     fun initLocationService() {
@@ -80,16 +78,15 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         fusedLocationClient!!.lastLocation
             .addOnSuccessListener { lastKnownLocation = it }
 
-    fun getLocationResults(
-        query: String, callback: OnLocationsFetchedCallback
-    ) = getCountryCode { code, latLon ->
-        CoroutineScope(IO).launch {
-            val results = api.searchAsync(query,
-                currentLocale.toLanguageTag(), code,
-                latLon?.latitude, latLon?.longitude
-            ).await().results
-            withContext(Main) { callback(results) }
-        }
+    suspend fun getLocationResults(query: String): List<LocationResult> {
+        val (countryCode, latLng) = getCountryCode()
+        val language = currentLocale.toLanguageTag()
+        val lat = latLng?.latitude
+        val lon = latLng?.longitude
+        return api
+            .searchAsync(query, language, countryCode, lat, lon)
+            .await()
+            .results
     }
 
     fun getLocationPermissionIfNeeded(activity: Activity): Boolean {

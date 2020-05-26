@@ -21,13 +21,12 @@ import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.SearchState
 import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.data.enums.SourceType.UPLOADS
-import com.erank.yogappl.utils.extensions.alert
-import com.erank.yogappl.utils.extensions.lowercaseName
-import com.erank.yogappl.utils.extensions.toast
+import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.RemindersAdapter
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.erank.yogappl.utils.interfaces.TaskCallback
+import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.fragment_data_list.*
 import kotlinx.android.synthetic.main.no_search_results.*
 import kotlinx.coroutines.CoroutineScope
@@ -38,8 +37,7 @@ import kotlinx.coroutines.withContext
 
 abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     SearchUpdateable,
-    OnItemActionCallback<T>,
-    TaskCallback<Int, Exception>
+    OnItemActionCallback<T>
         where X : DataVH<T>, AT : DataListAdapter<T, X> {
 
     companion object {
@@ -173,13 +171,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         }
     }
 
-    override fun onSuccess(position: Int?) {
-//        TODO use liveData
-        dataAdapter.notifyDataSetChanged()
-//        dataAdapter.notifyItemRemoved(position)
-    }
-
-    override fun onFailure(error: Exception) {
+    fun onFailure(error: Exception) {
         alert("There was a problem", error.localizedMessage)
             ?.setPositiveButton("ok", null)
             ?.show()
@@ -191,32 +183,22 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         isEditable = currentSourceType == UPLOADS
     }
 
-
     override fun onSignAction(item: T) {
 
-        progressBar.visibility = View.VISIBLE
-        toggleSign(item, object : TaskCallback<Boolean, Exception> {
-            override fun onSuccess(didSign: Boolean?) {
-//                dataAdapter?.notifyItemChanged(i)
-                progressBar.visibility = View.GONE
+        progressBar.show()
+        runOnBackground({
+            toggleSign(item)
+        }){ isSigned ->
+            progressBar.hide()
 
-                with(RemindersAdapter(item)) {
-                    remindersAdapter = this
-                    if (didSign!!)
-                        showDialog(activity!!)
-                    else
-                        removeReminder(item)
-                }
+            RemindersAdapter(item).also {
+                remindersAdapter = it
+                if (isSigned)
+                    it.showDialog(activity!!)
+                else
+                    it.removeReminder(item)
             }
-
-            override fun onFailure(error: Exception) {
-                progressBar.visibility = View.GONE
-                //in or out
-                alert("Failed signing", error.localizedMessage)
-                    ?.setPositiveButton("ok", null)
-                    ?.show()
-            }
-        })
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -228,5 +210,5 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         remindersAdapter?.tryAgainIfAvailable(activity!!, permissions, grantResults)
     }
 
-    abstract fun toggleSign(item: T, callback: TaskCallback<Boolean, Exception>)
+    abstract suspend fun toggleSign(item: T):Boolean
 }

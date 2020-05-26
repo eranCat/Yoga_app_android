@@ -10,29 +10,21 @@ import java.util.*
 import javax.inject.Inject
 
 class NewEditDataActivityVM @Inject constructor(val repository: Repository) : ViewModel() {
-    fun getData(
-        type: DataType, id: String,
-        callback: (BaseData?) -> Unit
-    ) = repository.getData(type, id, callback)
 
-    fun uploadData(data: BaseData, callback: UploadDataTaskCallback) {
+    suspend fun getData(type: DataType, id: String) = repository.getData(type, id)
+
+    suspend fun uploadData(data: BaseData) {
         repository.uploadData(
             dataInfo.type, data,
-            result?.uri, result?.bitmap,
-            callback
-        )
+            result?.uri, result?.bitmap)
     }
 
-    fun updateLesson(lesson: Lesson, callback: UploadDataTaskCallback) {
-        repository.updateLesson(lesson, callback)
+    suspend fun updateLesson(lesson: Lesson) {
+        repository.updateLesson(lesson)
     }
 
-    fun updateEvent(event: Event, callback: UploadDataTaskCallback) {
-        repository.updateEvent(
-            event,
-            result?.uri, result?.bitmap,
-            callback
-        )
+    suspend fun updateEvent(event: Event) {
+        repository.updateEvent(event, result?.uri, result?.bitmap)
     }
 
     val currentUser = repository.currentUser

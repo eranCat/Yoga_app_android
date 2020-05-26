@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -43,31 +42,20 @@ class DataModelsHolder(db: AppDatabase) {
         SIGNED -> eventsDao.getSignedEvents(uid)
     }
 
-    fun getUser(uid: String, callback: (User?) -> Unit) {
-        GlobalScope.launch(IO) {
-            val user = userDao.getById(uid)
-            withContext(Main) { callback(user) }
-        }
-    }
+    suspend fun getUser(uid: String) = userDao.getById(uid)
 
-    fun addNewData(data: BaseData, callback: () -> Unit) {
-        GlobalScope.launch(IO) {
-            when (data) {
-                is Lesson -> lessonsDao.insert(data)
-                is Event -> eventsDao.insert(data)
-            }
-            withContext(Main) { callback() }
+    suspend fun addNewData(data: BaseData) {
+        when (data) {
+            is Lesson -> lessonsDao.insert(data)
+            is Event -> eventsDao.insert(data)
         }
     }
 
 
-    fun removeData(data: BaseData, callback: () -> Unit) {
-        CoroutineScope(Default).launch {
-            when (data) {
-                is Lesson -> lessonsDao.delete(data)
-                is Event -> eventsDao.delete(data)
-            }
-            withContext(Main) { callback() }
+    suspend fun removeData(data: BaseData) {
+        when (data) {
+            is Lesson -> lessonsDao.delete(data)
+            is Event -> eventsDao.delete(data)
         }
     }
 
@@ -79,41 +67,33 @@ class DataModelsHolder(db: AppDatabase) {
         }
     }
 
-    fun updateData(data: BaseData, callback: () -> Unit) {
-        CoroutineScope(Default).launch {
-            when (data) {
-                is Lesson -> lessonsDao.update(data)
-                is Event -> eventsDao.update(data)
-            }
-            withContext(Main) { callback() }
-        }
-
-    }
-
-    fun getData(type: DataType, id: String, callback: (BaseData?) -> Unit) {
-        CoroutineScope(Default).launch {
-            val data = when (type) {
-                DataType.LESSONS -> lessonsDao
-                DataType.EVENTS -> eventsDao
-            }.getById(id)
-
-            withContext(Main) { callback(data) }
+    suspend fun updateData(data: BaseData) {
+        when (data) {
+            is Lesson -> lessonsDao.update(data)
+            is Event -> eventsDao.update(data)
         }
     }
 
-    fun addLessons(lessons: List<Lesson>, callback: () -> Unit) {
-        GlobalScope.launch(IO) {
-            lessonsDao.insert(lessons)
+    suspend fun getData(type: DataType, id: String) = when (type) {
+        DataType.LESSONS -> lessonsDao
+        DataType.EVENTS -> eventsDao
+    }.getById(id)
 
-            withContext(Main) { callback() }
-        }
+
+    suspend fun addLesson(lesson: Lesson) {
+        lessonsDao.insert(lesson)
     }
 
-    fun addEvents(events: List<Event>, callback: () -> Unit) {
-        GlobalScope.launch(IO) {
-            eventsDao.insert(events)
-            withContext(Main) { callback() }
-        }
+    suspend fun addLessons(lessons: List<Lesson>) {
+        lessonsDao.insertAll(lessons)
+    }
+
+    suspend fun addEvent(event: Event) {
+        eventsDao.insert(event)
+    }
+
+    suspend fun addEvents(events: List<Event>) {
+        eventsDao.insertAll(events)
     }
 
     fun filterEvents(
@@ -136,14 +116,11 @@ class DataModelsHolder(db: AppDatabase) {
         UPLOADS -> lessonsDao.uploadedLessonsFiltered(uid, query)
     }
 
-    fun insertUser(user: User, callback: () -> Unit) {
-        CoroutineScope(IO).launch {
-            userDao.insert(user)
-            withContext(Main) { callback() }
-        }
-    }
+    suspend fun insertUser(user: User) = userDao.insert(user)
 
     suspend fun getUsers(ids: Set<String>): Map<String, PreviewUser> =
         userDao.getPreviewUserById(ids).associateBy { it.id }
+
+    suspend fun updateUser(user: User) = userDao.update(user)
 
 }

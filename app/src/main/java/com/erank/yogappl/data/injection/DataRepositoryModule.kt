@@ -27,7 +27,6 @@ class DataRepositoryModule {
     ): Repository =
         RepositoryImpl(
             dataModelHolder,
-            sharedProvider,
             locationHelper,
             authHelper,
             storage
@@ -53,9 +52,7 @@ class DataRepositoryModule {
         val logging = HttpLoggingInterceptor()
             .setLevel(HttpLoggingInterceptor.Level.BODY)
 
-        return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor())
-            .addInterceptor(logging)
+        return OkHttpClient.Builder().addInterceptor(logging)
     }
 
     @Provides

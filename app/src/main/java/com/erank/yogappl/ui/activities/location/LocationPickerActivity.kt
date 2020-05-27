@@ -66,8 +66,10 @@ class LocationPickerActivity : AppCompatActivity(),
             viewModel.getLocationResults(query)
         }) { results ->
             locationsAdapter.submitList(results)
-            if (results.isEmpty()) locationsEmptyTv.show()
-            else locationsEmptyTv.hide()
+            with(locationsEmptyTv){
+                if (results.isEmpty()) show()
+                else hide()
+            }
         }
 
         return false

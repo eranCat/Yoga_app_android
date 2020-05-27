@@ -24,7 +24,6 @@ import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
     val dataModelHolder: DataModelsHolder,
-    val sharedProvider: SharedPrefsHelper,
     val locationHelper: LocationHelper,
     val authHelper: AuthHelper,
     val storage: StorageManager
@@ -84,7 +83,6 @@ class RepositoryImpl @Inject constructor(
         val uid = authHelper.currentUser?.uid
             ?: return null
 
-        //kind of caching
         return currentUser ?: fetchUserIfNeeded(uid).also {
             currentUser = it
         }

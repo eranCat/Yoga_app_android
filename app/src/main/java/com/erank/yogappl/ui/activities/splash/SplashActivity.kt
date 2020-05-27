@@ -101,7 +101,9 @@ class SplashActivity : AppCompatActivity() {
                 logoImg.startZoomAnimation { openMain() }
             }
         } catch (e: Exception) {
-            notifyError("There was a problem loading", e)
+            withContext(Main) {
+                notifyError("There was a problem loading", e)
+            }
             return
         }
 

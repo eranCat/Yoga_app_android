@@ -6,8 +6,8 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.data.models.Event
 import com.erank.yogappl.data.enums.DataType
+import com.erank.yogappl.data.models.Event
 import com.erank.yogappl.utils.extensions.equalDate
 import com.erank.yogappl.utils.extensions.equalTime
 import com.erank.yogappl.utils.extensions.toggleRotation

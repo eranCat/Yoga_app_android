@@ -2,10 +2,11 @@ package com.erank.yogappl.data.models
 
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.Status
-import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.SMap
+import com.erank.yogappl.utils.extensions.LatLng
+import com.erank.yogappl.utils.extensions.mapped
 import com.erank.yogappl.utils.interfaces.Searchable
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Timestamp
@@ -176,7 +177,7 @@ abstract class BaseData : Searchable {
     @set:Ignore
     @get:PropertyName("location")
     @set:PropertyName("location")
-    var locationFB: Map<String,Any>
+    var locationFB: Map<String, Any>
         get() = location.mapped
         set(value) {
             location = LatLng(value)

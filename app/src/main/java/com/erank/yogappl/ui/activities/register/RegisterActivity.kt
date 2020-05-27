@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.View.GONE
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -114,7 +113,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
             try {
                 viewModel.updateCurrentUser()
             } catch (e: Exception) {
-                withContext(Main){onFail(e)}
+                withContext(Main) { onFail(e) }
             }
         }, this@RegisterActivity::onSuccess)
     }
@@ -221,7 +220,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
             try {
                 viewModel.createUser(user, pass)
             } catch (e: Exception) {
-                withContext(Main){onFail(e)}
+                withContext(Main) { onFail(e) }
             }
         }, this@RegisterActivity::onSuccess)
     }

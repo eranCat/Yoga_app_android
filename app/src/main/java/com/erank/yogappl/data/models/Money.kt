@@ -2,21 +2,18 @@ package com.erank.yogappl.data.models
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.erank.yogappl.data.injection.DaggerAppComponent
-import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.helpers.MoneyConverter
 import com.google.firebase.firestore.Exclude
 import java.text.NumberFormat
-import javax.inject.Inject
 
 class Money(var amount: Double) : Parcelable {
     constructor() : this(0.0)
 
-    constructor(map: Map<String,Double>) : this() {
+    constructor(map: Map<String, Double>) : this() {
         encoded = map
     }
 
-    var encoded: Map<String,Double>
+    var encoded: Map<String, Double>
         get() = mapOf("amount" to MoneyConverter.convertFromLocaleToDefault(amount))
         set(value) {
             amount = MoneyConverter.convertFromDefaultToLocale(value["amount"]!!)

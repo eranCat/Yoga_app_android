@@ -21,7 +21,8 @@ class RegisterViewModel @Inject constructor(val repository: Repository) : ViewMo
     suspend fun createUser(user: User, pass: String) =
         repository.createUser(
             user, pass,
-            profileImage?.uri, profileImage?.bitmap)
+            profileImage?.uri, profileImage?.bitmap
+        )
 
 
     val currentUser = repository.currentUser

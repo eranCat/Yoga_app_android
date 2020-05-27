@@ -7,9 +7,9 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import com.erank.yogappl.R
-import com.erank.yogappl.ui.adapters.DataPagerAdapter
 import com.erank.yogappl.data.enums.SearchState
 import com.erank.yogappl.data.enums.SourceType
+import com.erank.yogappl.ui.adapters.DataPagerAdapter
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import kotlinx.android.synthetic.main.fragment_tabs.*
 

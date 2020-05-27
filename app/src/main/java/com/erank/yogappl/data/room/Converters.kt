@@ -1,13 +1,13 @@
 package com.erank.yogappl.data.room
 
 import androidx.room.TypeConverter
+import com.erank.yogappl.data.enums.DataType
+import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.data.models.Money
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.SSet
-import com.erank.yogappl.data.enums.DataType
-import com.erank.yogappl.data.enums.Status
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

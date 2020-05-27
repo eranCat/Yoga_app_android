@@ -3,7 +3,6 @@ package com.erank.yogappl.ui.adapters.diffs
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
 import com.erank.yogappl.data.models.BaseData
-import com.erank.yogappl.data.models.PreviewData
 
 class DataDiffCallback<T : BaseData> : DiffUtil.ItemCallback<T>() {
 

@@ -1,9 +1,9 @@
 package com.erank.yogappl.utils
 
 import android.util.Patterns
-import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
+import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.utils.extensions.addMinuets
 import com.erank.yogappl.utils.extensions.compareDate
 import java.util.*

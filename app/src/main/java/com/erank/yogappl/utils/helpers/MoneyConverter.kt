@@ -3,12 +3,6 @@ package com.erank.yogappl.utils.helpers
 import com.erank.yogappl.data.network.CurrencyLayerApi
 import com.erank.yogappl.data.repository.SharedPrefsHelper
 import com.erank.yogappl.utils.extensions.add
-import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.Calendar.WEEK_OF_MONTH
 

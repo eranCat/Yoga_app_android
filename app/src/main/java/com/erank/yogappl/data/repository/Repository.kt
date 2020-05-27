@@ -25,7 +25,7 @@ interface Repository {
         pass: String,
         selectedImage: Uri?,
         bitmap: Bitmap?
-    ):User?
+    ): User?
 
     suspend fun updateCurrentUser(selectedImage: Uri?, selectedImageBitmap: Bitmap?)
 

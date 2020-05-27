@@ -11,21 +11,20 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.erank.yogappl.R
-import com.erank.yogappl.ui.activities.dataInfo.DataInfoActivity
-import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
-import com.erank.yogappl.ui.adapters.DataListAdapter
-import com.erank.yogappl.ui.adapters.DataVH
-import com.erank.yogappl.data.models.BaseData
-import com.erank.yogappl.data.models.DataInfo
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.SearchState
 import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.data.enums.SourceType.UPLOADS
+import com.erank.yogappl.data.models.BaseData
+import com.erank.yogappl.data.models.DataInfo
+import com.erank.yogappl.ui.activities.dataInfo.DataInfoActivity
+import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
+import com.erank.yogappl.ui.adapters.DataListAdapter
+import com.erank.yogappl.ui.adapters.DataVH
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.RemindersAdapter
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
-import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.fragment_data_list.*
 import kotlinx.android.synthetic.main.no_search_results.*
@@ -100,7 +99,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         when (state) {
             SearchState.CHANGED -> CoroutineScope(IO).launch {
                 val filteredData = getFilteredData(query)
-                withContext(Main){
+                withContext(Main) {
                     dataAdapter.submitList(filteredData)
                 }
             }
@@ -126,7 +125,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         })
     }
 
-    protected open fun onListUpdated(list: List<T>){}
+    protected open fun onListUpdated(list: List<T>) {}
 
     override fun onItemSelected(item: T) = openActivity(item.id)
 
@@ -188,7 +187,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         progressBar.show()
         runOnBackground({
             toggleSign(item)
-        }){ isSigned ->
+        }) { isSigned ->
             progressBar.hide()
 
             RemindersAdapter(item).also {
@@ -210,5 +209,5 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         remindersAdapter?.tryAgainIfAvailable(activity!!, permissions, grantResults)
     }
 
-    abstract suspend fun toggleSign(item: T):Boolean
+    abstract suspend fun toggleSign(item: T): Boolean
 }

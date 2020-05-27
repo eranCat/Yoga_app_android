@@ -1,9 +1,9 @@
 package com.erank.yogappl.data.repository
 
 import android.util.Log
+import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.utils.SSet
-import com.erank.yogappl.data.enums.DataType
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.toObject
@@ -11,7 +11,8 @@ import java.util.*
 
 class LoadDataValueEventHandler(
     private val dType: DataType,
-    private val repository: Repository) {
+    private val repository: Repository
+) {
 
     val TAG = javaClass.name
 

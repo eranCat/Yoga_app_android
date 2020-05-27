@@ -5,7 +5,6 @@ import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.data.repository.Repository
 import com.erank.yogappl.utils.helpers.MyImagePicker
-import com.erank.yogappl.utils.interfaces.UploadDataTaskCallback
 import java.util.*
 import javax.inject.Inject
 
@@ -16,7 +15,8 @@ class NewEditDataActivityVM @Inject constructor(val repository: Repository) : Vi
     suspend fun uploadData(data: BaseData) {
         repository.uploadData(
             dataInfo.type, data,
-            result?.uri, result?.bitmap)
+            result?.uri, result?.bitmap
+        )
     }
 
     suspend fun updateLesson(lesson: Lesson) {

@@ -20,5 +20,6 @@ class App : Application() {
 
         appComponent = DaggerAppComponent.factory().create(this)
     }
+
     fun getAppComponent(): AppComponent = appComponent
 }

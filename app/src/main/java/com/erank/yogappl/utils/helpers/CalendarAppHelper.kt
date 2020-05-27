@@ -17,8 +17,9 @@ import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.extensions.toast
 import java.util.*
 
-class CalendarAppHelper(val context:Context,
-                        val prefs: SharedPrefsHelper
+class CalendarAppHelper(
+    val context: Context,
+    val prefs: SharedPrefsHelper
 ) {
     companion object {
         private const val PERMISSION_REQUEST_WRITE_CALENDAR = 3455

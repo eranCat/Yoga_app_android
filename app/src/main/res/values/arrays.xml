@@ -25,7 +25,7 @@
         <item>Remove image</item>
     </string-array>
 
-    <string-array name="supportedTomTomCodes" >
+    <string-array name="supportedTomTomCodes">
         <item>NGT</item>
         <item>NGT-Latn</item>
         <item>af-ZA</item>

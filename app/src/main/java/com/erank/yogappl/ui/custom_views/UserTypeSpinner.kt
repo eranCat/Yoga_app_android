@@ -16,7 +16,7 @@ class UserTypeSpinner : EnumSpinner<User.Type>, AdapterView.OnItemSelectedListen
     constructor(context: Context) : super(context)
     constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)
 
-    init{
+    init {
         val typeNames = values.map { it.cName }
         adapter = ArrayAdapter(context, simple_spinner_item, typeNames)
         onItemSelectedListener = this

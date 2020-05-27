@@ -2,7 +2,6 @@ package com.erank.yogappl.ui.custom_views
 
 import android.R.layout.simple_spinner_item
 import android.content.Context
-import android.content.res.Resources
 import android.util.AttributeSet
 import android.widget.AdapterView
 import android.widget.ArrayAdapter

@@ -10,15 +10,17 @@ import com.erank.yogappl.data.enums.TableNames
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.utils.SigningErrors
 import com.erank.yogappl.utils.extensions.await
-import com.erank.yogappl.utils.extensions.lowercaseName
+import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.JsonParseException
+import org.imperiumlabs.geofirestore.GeoFirestore
 import java.util.*
 import javax.inject.Inject
 
@@ -31,6 +33,7 @@ class RepositoryImpl @Inject constructor(
     companion object {
         const val TAG = "Repository"
         private const val MaxPerBatch = 100L
+        private const val MAX_KM = 20.0
     }
 
     override var currentUser: User? = null
@@ -61,16 +64,26 @@ class RepositoryImpl @Inject constructor(
 
     override suspend fun loadAll(dType: DataType) {
         val (code, latLng) = locationHelper.getCountryCode()
-//        TODO use latLng for radius check - fetch nearby locations
-        val snapshot = DBRefs.refForType(dType)
-            .whereEqualTo("countryCode", code)
-            .apply {
-                if (isFilteringByDate) {
-                    whereGreaterThanOrEqualTo("startDate", Date())
-                }
-            }
-            .orderBy("postedDate")
-            .limitToLast(MaxPerBatch).get().await()
+
+        val ref = DBRefs.refForType(dType)
+        var query = latLng?.let {
+            val center = GeoPoint(it.latitude, it.longitude)
+            GeoFirestore(ref)
+                .queryAtLocation(center, MAX_KM)
+                .queries.first()
+                ?: ref.whereEqualTo("countryCode", code)
+
+        } ?: ref.whereEqualTo("countryCode", code)
+
+        if (isFilteringByDate) {
+           query = query.whereGreaterThanOrEqualTo("startDate", Date())
+        }
+
+
+        val snapshot = query
+//            .orderBy("postedDate")
+            .limitToLast(MaxPerBatch)
+            .get().await()
             ?: throw NullPointerException("No snapshot found")
 
         LoadDataValueEventHandler(dType, this).convertSnapshot(snapshot)
@@ -185,13 +198,13 @@ class RepositoryImpl @Inject constructor(
         selectedBitmap: Bitmap?
     ) {
 
-        val ref = DBRefs.refForType(
-            dType
-        ).document()
+        val collection = DBRefs.refForType(dType)
+        val ref = collection.document()
 
         data.id = ref.id
 
         ref.set(data).await()
+        GeoFirestore(collection).setLocation(data.id, data.location)//uses callback
 
         dataModelHolder.addNewData(data)
         Log.d(TAG, "added in room")

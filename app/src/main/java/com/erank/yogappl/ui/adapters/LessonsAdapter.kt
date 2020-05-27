@@ -4,9 +4,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.data.models.Lesson
-import com.erank.yogappl.data.models.Teacher
 import com.erank.yogappl.data.enums.DataType
+import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.data.models.PreviewUser
 import com.erank.yogappl.utils.extensions.relativeTimeString
 import com.erank.yogappl.utils.extensions.toggleRotation
@@ -17,9 +16,11 @@ import kotlinx.android.synthetic.main.lesson_item.view.*
 import kotlinx.android.synthetic.main.profile_image.view.*
 
 
-class LessonsAdapter(isEditable: Boolean,
-                     private val userUploads: Set<String>,
-                     private val signed: Set<String>) :
+class LessonsAdapter(
+    isEditable: Boolean,
+    private val userUploads: Set<String>,
+    private val signed: Set<String>
+) :
     DataListAdapter<Lesson, LessonsAdapter.LessonVH>(isEditable) {
 
     private var users: Map<String, PreviewUser> = emptyMap()
@@ -33,7 +34,7 @@ class LessonsAdapter(isEditable: Boolean,
     }
 
     inner class LessonVH(parent: ViewGroup) :
-        DataVH<Lesson>( parent,R.layout.lesson_item) {
+        DataVH<Lesson>(parent, R.layout.lesson_item) {
 
         private val teacherImgView by lazy { itemView.profile_Img }
         private val teacherNameTv by lazy { itemView.teacherNameTV }

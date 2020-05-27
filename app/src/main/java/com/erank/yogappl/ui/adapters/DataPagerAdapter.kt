@@ -3,9 +3,9 @@ package com.erank.yogappl.ui.adapters
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.ui.fragments.lessons.LessonsListFragment
-import com.erank.yogappl.data.enums.SourceType
 
 
 //for the 2 tabs of lessons,events viewpager

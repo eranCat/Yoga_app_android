@@ -6,12 +6,12 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class Address(
-    val streetNumber: String ="",
+    val streetNumber: String = "",
     val streetName: String? = null,
-    val countryCode: String= "",
-    val country: String="",
+    val countryCode: String = "",
+    val country: String = "",
     @SerializedName("freeformAddress")
-    val longName: String="",
+    val longName: String = "",
     val localName: String? = null
 ) : Parcelable {
 

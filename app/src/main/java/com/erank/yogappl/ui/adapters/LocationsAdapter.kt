@@ -6,8 +6,8 @@ import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.erank.yogappl.R
-import com.erank.yogappl.ui.adapters.diffs.LocationDiffCallback
 import com.erank.yogappl.data.models.LocationResult
+import com.erank.yogappl.ui.adapters.diffs.LocationDiffCallback
 import com.erank.yogappl.utils.extensions.formattedDistance
 import com.erank.yogappl.utils.interfaces.OnLocationSelectedCallback
 import kotlinx.android.synthetic.main.location_item.view.*

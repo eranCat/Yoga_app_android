@@ -8,7 +8,6 @@ import javax.inject.Inject
 class SharedPrefsHelper @Inject constructor(context: Context) : PreferenceProvider(context) {
 
     companion object {
-        const val IS_FIRST_TIME = "IS_FIRST_TIME"
         private const val LAST_LOCALE = "last_locale"
         private const val UPDATED_DATE = "moneyLastUpdatedDate"
         private const val MONEY = "money"
@@ -56,7 +55,7 @@ class SharedPrefsHelper @Inject constructor(context: Context) : PreferenceProvid
 
     fun getMoney() = getFloat(MONEY)
     fun putMoney(localeCurrencyMultiplier: Float): SharedPrefsHelper {
-        put(MONEY,localeCurrencyMultiplier)
+        put(MONEY, localeCurrencyMultiplier)
         return this
     }
 

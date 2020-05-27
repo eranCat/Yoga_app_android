@@ -11,16 +11,13 @@ import android.location.Location
 import android.net.Uri
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.erank.yogappl.R
+import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.data.network.TomTomApi
-import com.erank.yogappl.utils.OnLocationsFetchedCallback
+import com.erank.yogappl.utils.extensions.await
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
 
 class LocationHelper(val context: Context, val api: TomTomApi) {
@@ -29,47 +26,43 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         private const val RPC_COARSE_LOCATION = 3
     }
 
-    var lastKnownLocation: Location? = null
+    private var lastKnownLocation: Location? = null
 
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
     private val currentLocale: Locale
         get() = Resources.getSystem().configuration.locales[0]
 
+    private val supportedCodes = context.resources
+        .getStringArray(R.array.supportedTomTomCodes)
 
     fun getLocationIntent(latLng: LatLng): Intent? {
         // Create a Uri from an intent string. Use the result to create an Intent.
         val lat = latLng.latitude
         val lng = latLng.longitude
 
-        val uri = Uri.parse("geo:$lat,${lng}?q=$lat,$lng")
+        val uri = Uri.parse("geo:$lat,$lng?q=$lat,$lng")
 
         // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
         val mapIntent = Intent(Intent.ACTION_VIEW, uri)
         return mapIntent.resolveActivity(context.packageManager)?.let { mapIntent }
     }
 
-    fun getCountryCode(callback: (String, LatLng?) -> Unit) {
-        getLastKnownLocation()
-            .addOnFailureListener { callback(currentLocale.country, null) }
-            .addOnSuccessListener {
-                if (it == null) {
-                    callback(currentLocale.country, null)
-                    return@addOnSuccessListener
-                }
+    suspend fun getCountryCode(): Pair<String, LatLng?> {
+        val location = getLastKnownLocation().await()
+            ?: return Pair(currentLocale.country, null)
 
-                val geocoder = Geocoder(context, currentLocale)
-                val locations = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+        val latLng = LatLng(location.latitude, location.longitude)
 
-                val latLng = LatLng(it.latitude, it.longitude)
+        val locations = Geocoder(context, currentLocale)
+            .getFromLocation(latLng.latitude, latLng.longitude, 1)
 
-                if (locations.isNotEmpty()) {
-                    callback(locations[0].countryCode, latLng)
-                } else {
-                    callback(currentLocale.country, latLng)
-                }
+        val country = if (locations.isNotEmpty())
+            locations[0].countryCode
+        else
+            currentLocale.country
 
-            }
+        return Pair(country, latLng)
     }
 
     fun initLocationService() {
@@ -80,16 +73,22 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         fusedLocationClient!!.lastLocation
             .addOnSuccessListener { lastKnownLocation = it }
 
-    fun getLocationResults(
-        query: String, callback: OnLocationsFetchedCallback
-    ) = getCountryCode { code, latLon ->
-        CoroutineScope(IO).launch {
-            val results = api.searchAsync(query,
-                currentLocale.toLanguageTag(), code,
-                latLon?.latitude, latLon?.longitude
-            ).await().results
-            withContext(Main) { callback(results) }
-        }
+    suspend fun getLocationResults(query: String): List<LocationResult> {
+        val (countryCode, latLng) = getCountryCode()
+
+        val languageTag = currentLocale.toLanguageTag()
+
+        val language =
+            if (supportedCodes.contains(languageTag))
+                languageTag
+            else null
+
+        val lat = latLng?.latitude
+        val lon = latLng?.longitude
+        return api
+            .searchAsync(query, countryCode, language, lat, lon)
+            .await()
+            .results
     }
 
     fun getLocationPermissionIfNeeded(activity: Activity): Boolean {

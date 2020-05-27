@@ -5,11 +5,10 @@ import androidx.recyclerview.widget.ListAdapter
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.data.models.DataInfo
-import com.erank.yogappl.data.models.PreviewData
 import com.erank.yogappl.ui.adapters.diffs.DataDiffCallback
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 
-abstract class DataListAdapter<T: BaseData, VH : DataVH<T>>(
+abstract class DataListAdapter<T : BaseData, VH : DataVH<T>>(
     protected val isEditable: Boolean
 ) : ListAdapter<T, VH>(DataDiffCallback.get()) {
 

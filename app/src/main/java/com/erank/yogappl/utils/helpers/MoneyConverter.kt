@@ -3,12 +3,6 @@ package com.erank.yogappl.utils.helpers
 import com.erank.yogappl.data.network.CurrencyLayerApi
 import com.erank.yogappl.data.repository.SharedPrefsHelper
 import com.erank.yogappl.utils.extensions.add
-import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.Calendar.WEEK_OF_MONTH
 
@@ -26,7 +20,7 @@ class MoneyConverter(
     }
 
 
-    fun connect(callback: MoneyConnectionCallback) {
+    suspend fun connect() {
 
         val lastLocale = sharedPrefs.getLastLocale()
         if (lastLocale == Locale.getDefault().country) {
@@ -39,7 +33,6 @@ class MoneyConverter(
                 if (weekAfter <= Date()) {
                     sharedPrefs.getMoney()?.let {
                         localeCurrencyMultiplier = it
-                        callback.onSuccessConnectingMoney()
                         return
                     }
                 }
@@ -49,20 +42,13 @@ class MoneyConverter(
         //            get current currency code from location
         val code = Currency.getInstance(Locale.getDefault()).currencyCode
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val response = api.getCurrencyCodes(code).await()
-            withContext(Main) {
-                if (!response.success) {
-                    callback.onFailedConnectingMoney(response.error)
-                    return@withContext
-                }
+        val response = api.getCurrencyCodes(code).await()
+        if (!response.success) {
+            throw Exception(response.error.toString())
+        }
 
-                localeCurrencyMultiplier = response.getUSD(code)!!
-                saveMoneyOnSharedPrefs()
-                callback.onSuccessConnectingMoney()
-            }
-
-        }.start()
+        localeCurrencyMultiplier = response.getUSD(code)!!
+        saveMoneyOnSharedPrefs()
     }
 
     private fun saveMoneyOnSharedPrefs() = sharedPrefs

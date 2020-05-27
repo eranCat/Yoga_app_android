@@ -9,13 +9,8 @@ import com.erank.yogappl.data.models.Teacher
 import com.erank.yogappl.ui.adapters.LessonsAdapter
 import com.erank.yogappl.ui.fragments.DataListFragment
 import com.erank.yogappl.utils.App
-import com.erank.yogappl.utils.interfaces.TaskCallback
+import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.fragment_data_list.*
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -48,13 +43,19 @@ class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdap
         return initAdapter(adapter)
     }
 
-    override fun onDeleteConfirmed(item: Lesson) =
-        viewModel.deleteLesson(item, this)
-
-
-    override fun toggleSign(item: Lesson, callback: TaskCallback<Boolean, Exception>) {
-        viewModel.toggleSignToLesson(item, callback)
+    //    TODO add index for delete
+    override fun onDeleteConfirmed(item: Lesson) {
+        runOnBackground({
+            viewModel.deleteLesson(item)
+        }) {
+            data_recycler_view.adapter?.notifyDataSetChanged()
+        }
     }
+
+
+    override suspend fun toggleSign(item: Lesson) =
+        viewModel.toggleSignToLesson(item)
+
 
     override fun getLiveData() =
         viewModel.getLessons(currentSourceType)
@@ -64,12 +65,11 @@ class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdap
     }
 
     override fun onListUpdated(list: List<Lesson>) {
-        GlobalScope.launch(IO) {
-            val users = viewModel.getUsersMap(list)
-            withContext(Main) {
-                val adapter = data_recycler_view.adapter as LessonsAdapter
-                adapter.setUsers(users)
-            }
+        runOnBackground({
+            viewModel.getUsersMap(list)
+        }) { it ->
+            val adapter = data_recycler_view.adapter as LessonsAdapter
+            adapter.setUsers(it)
         }
     }
 }

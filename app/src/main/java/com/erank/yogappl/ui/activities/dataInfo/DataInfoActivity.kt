@@ -13,21 +13,22 @@ import com.erank.yogappl.data.models.DataInfo
 import com.erank.yogappl.data.models.Event
 import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
-import com.erank.yogappl.utils.extensions.alert
-import com.erank.yogappl.utils.extensions.formatted
-import com.erank.yogappl.utils.extensions.setIconTintCompat
-import com.erank.yogappl.utils.extensions.toast
+import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.RemindersAdapter
-import com.erank.yogappl.utils.interfaces.TaskCallback
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.activity_data_info.*
 import kotlinx.android.synthetic.main.profile_image.*
 import kotlinx.android.synthetic.main.progress_layout.*
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
 import javax.inject.Inject
 
-class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
+class DataInfoActivity : AppCompatActivity() {
 
     private val RC_EDIT: Int = 2
     private var currentData: BaseData? = null
@@ -46,14 +47,17 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
         dataInfo = intent!!.getParcelableExtra("dataInfo")
         val dataType = dataInfo.type
 
-        viewModel.getData(dataType, dataInfo.id!!) {
-            it?.let {
-                currentData = it
-                fillData(it)
-                if (it is Event) {
-                    loadEventImage(it)
+        GlobalScope.launch(IO) {
+            val data = viewModel.getData(dataType, dataInfo.id!!)
+            withContext(Main) {
+                data ?: run {
+                    finish()
+                    return@withContext
                 }
-            } ?: finish()
+                currentData = data
+                fillData(data)
+                (data as? Event)?.let { loadEventImage(it) }
+            }
         }
     }
 
@@ -72,13 +76,12 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
     }
 
     private fun fillData(data: BaseData) {
+
         title = data.title
-
-        data.apply {
-
-            viewModel.getUser(uid) {
-                it?.let {
-
+        GlobalScope.launch(IO) {
+            val user = viewModel.getUser(data.uid)
+            withContext(Main) {
+                user?.let {
                     Glide.with(this@DataInfoActivity)
                         .load(it.profileImageUrl)
                         .placeholder(R.drawable.yoga_model)
@@ -89,32 +92,35 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
                     teacher_about.text = it.about
                 }
             }
+        }
 
-            title_tv.text = title
-            cost_tv.text = cost.toString()
+        title_tv.text = title
+        cost_tv.text = data.cost.toString()
 
-            val startDateStr = startDate.formatted(MEDIUM, SHORT)
-            val endDateStr = endDate.formatted(MEDIUM, SHORT)
-            date_btn.text = getString(R.string.range, startDateStr, endDateStr)
+        val startDateStr = data.startDate.formatted(MEDIUM, SHORT)
+        val endDateStr = data.endDate.formatted(MEDIUM, SHORT)
+        date_btn.text = getString(R.string.range, startDateStr, endDateStr)
 
-            current_signed.text = signed.size.toString()
-            total_signed.text = maxParticipants.toString()
+        current_signed.text = data.signed.size.toString()
+        total_signed.text = data.maxParticipants.toString()
 
-            min_age_tv.text = (if (minAge < 0) 0 else minAge).toString()
-            max_age_tv.text = maxAge.toString()
+        min_age_tv.text =
+            (if (data.minAge < 0) 0
+            else data.minAge).toString()
 
-            equip_et.text = equip
-            if (extraNotes != null && extraNotes!!.isNotEmpty()) {
-                extras_tv.text = extraNotes
-            } else {
-                extra_notes_title.visibility = View.GONE
-                extras_tv.visibility = View.GONE
-            }
+        max_age_tv.text = data.maxAge.toString()
+
+        equip_et.text = data.equip
+        val extraNotes = data.extraNotes
+        if (extraNotes == null || extraNotes.isEmpty()) {
+            extra_notes_title.hide()
+            extras_tv.hide()
+        } else {
+            extras_tv.text = extraNotes
         }
 
         location_btn.apply {
             text = data.locationName
-
             setOnClickListener { openLocation(data.location) }
         }
     }
@@ -172,11 +178,19 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
     }
 
     private fun toggleSign() {
-        progressLayout.visibility = View.VISIBLE
+        progressLayout.show()
 
-        when (val it = currentData) {
-            is Lesson -> viewModel.toggleSignToLesson(it, this)
-            is Event -> viewModel.toggleSignToEvent(it, this)
+        GlobalScope.launch(IO) {
+            try {
+                val result = when (val it = currentData) {
+                    is Lesson -> viewModel.toggleSignToLesson(it)
+                    is Event -> viewModel.toggleSignToEvent(it)
+                    else -> false
+                }
+                withContext(Main) { onSignToggled(result) }
+            } catch (e: Exception) {
+                onFailedSign(e)
+            }
         }
     }
 
@@ -193,13 +207,11 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
 
     private var remindersAdapter: RemindersAdapter<BaseData>? = null
 
-    override fun onSuccess(result: Boolean?) {
-        progressLayout.visibility = View.GONE
+    private fun onSignToggled(result: Boolean) {
+        progressLayout.hide()
         toggleSignNav.isEnabled = true
 
-        val res = result ?: false
-
-        toggleSignNav.title = "Sign ${if (res) "out" else "in"}"
+        toggleSignNav.title = "Sign ${if (result) "out" else "in"}"
 
         val data = currentData ?: return
 
@@ -207,15 +219,15 @@ class DataInfoActivity : AppCompatActivity(), TaskCallback<Boolean, Exception> {
             remindersAdapter = RemindersAdapter(data)
 
         remindersAdapter!!.let {
-            if (res) it.showDialog(this)
+            if (result) it.showDialog(this)
             else currentData?.let { data ->
                 it.removeReminder(data)
             }
         }
     }
 
-    override fun onFailure(error: Exception) {
-        progressLayout.visibility = View.GONE
+    fun onFailedSign(error: Exception) {
+        progressLayout.hide()
         toggleSignNav.isEnabled = true
         //in or out
         alert("Failed signing", error.localizedMessage)

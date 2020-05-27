@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.repository.Repository
 import com.erank.yogappl.utils.helpers.MyImagePicker
-import com.erank.yogappl.utils.interfaces.UserTaskCallback
 import javax.inject.Inject
 
 class RegisterViewModel @Inject constructor(val repository: Repository) : ViewModel() {
@@ -15,19 +14,16 @@ class RegisterViewModel @Inject constructor(val repository: Repository) : ViewMo
         get() = currentUser?.profileImageUrl != null
                 || profileImage?.urls != null
 
-    fun updateCurrentUser(
-        callback: UserTaskCallback
-    ) {
-        repository.updateCurrentUser(profileImage?.uri, profileImage?.bitmap, callback)
+    suspend fun updateCurrentUser() {
+        repository.updateCurrentUser(profileImage?.uri, profileImage?.bitmap)
     }
 
-    fun createUser(user: User, pass: String, callback: UserTaskCallback) {
+    suspend fun createUser(user: User, pass: String) =
         repository.createUser(
             user, pass,
-            profileImage?.uri, profileImage?.bitmap,
-            callback
+            profileImage?.uri, profileImage?.bitmap
         )
-    }
+
 
     val currentUser = repository.currentUser
 }

@@ -10,10 +10,10 @@ import androidx.room.Update
 interface GenericDao<T> {
 
     @Insert(onConflict = REPLACE)
-    suspend fun insert(vararg data: T)
+    suspend fun insert(data: T)
 
-    @Insert(onConflict = REPLACE)
-    suspend fun insert(data: List<T>)
+    @Insert
+    suspend fun insertAll(data: List<T>)
 
     @Update
     suspend fun update(vararg data: T)

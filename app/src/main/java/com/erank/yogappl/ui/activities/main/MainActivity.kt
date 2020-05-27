@@ -15,18 +15,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.ui.fragments.events.EventsListFragment
-import com.erank.yogappl.ui.fragments.TabsFragment
-import com.erank.yogappl.data.models.DataInfo
-import com.erank.yogappl.utils.SearchWatcher
-import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.DataType.EVENTS
 import com.erank.yogappl.data.enums.SearchState
 import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.data.enums.SourceType.*
+import com.erank.yogappl.data.models.DataInfo
+import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.activities.register.RegisterActivity
+import com.erank.yogappl.ui.fragments.TabsFragment
+import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.utils.App
+import com.erank.yogappl.utils.SearchWatcher
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity(),
     private val addFab by lazy { add_fab }
 
     @Inject
-    lateinit var viewModel:MainViewModel
+    lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +75,8 @@ class MainActivity : AppCompatActivity(),
 
         if (viewModel.isUserStudent) {
             intent.putExtra("dataInfo", DataInfo(EVENTS))
-            startActivityForResult(intent,
+            startActivityForResult(
+                intent,
                 RC_NEW
             )
             return
@@ -94,7 +95,8 @@ class MainActivity : AppCompatActivity(),
 
                 intent.putExtra("dataInfo", dataInfo)
 
-                startActivityForResult(intent,
+                startActivityForResult(
+                    intent,
                     RC_NEW
                 )
             }
@@ -185,7 +187,8 @@ class MainActivity : AppCompatActivity(),
 
 
     private fun replaceTabs(type: SourceType) =
-        replaceFragment(TabsFragment.newInstance(type),
+        replaceFragment(
+            TabsFragment.newInstance(type),
             TABS_FRAGMENT_TAG
         )
 

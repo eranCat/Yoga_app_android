@@ -19,7 +19,6 @@ class DataRepositoryModule {
     @Singleton
     @Provides
     fun provideDataRepository(
-        sharedProvider: SharedPrefsHelper,
         dataModelHolder: DataModelsHolder,
         locationHelper: LocationHelper,
         authHelper: AuthHelper,
@@ -27,7 +26,6 @@ class DataRepositoryModule {
     ): Repository =
         RepositoryImpl(
             dataModelHolder,
-            sharedProvider,
             locationHelper,
             authHelper,
             storage
@@ -53,9 +51,7 @@ class DataRepositoryModule {
         val logging = HttpLoggingInterceptor()
             .setLevel(HttpLoggingInterceptor.Level.BODY)
 
-        return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor())
-            .addInterceptor(logging)
+        return OkHttpClient.Builder().addInterceptor(logging)
     }
 
     @Provides
@@ -71,7 +67,7 @@ class DataRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideMoneyConverter(api:CurrencyLayerApi, prefs: SharedPrefsHelper) =
+    fun provideMoneyConverter(api: CurrencyLayerApi, prefs: SharedPrefsHelper) =
         MoneyConverter(api, prefs)
 
     @Singleton

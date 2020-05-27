@@ -5,8 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
-import android.view.View.GONE
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -18,19 +16,18 @@ import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.utils.App
-import com.erank.yogappl.utils.extensions.alert
-import com.erank.yogappl.utils.extensions.setTextChangedListener
-import com.erank.yogappl.utils.extensions.toast
-import com.erank.yogappl.utils.extensions.txt
+import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.helpers.UserValidator
 import com.erank.yogappl.utils.helpers.UserValidator.Fields
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
-import com.erank.yogappl.utils.interfaces.UserTaskCallback
+import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_register.*
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallback {
+class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
     private lateinit var userValidator: UserValidator
     private val myImagePicker by lazy { MyImagePicker(this) }
@@ -111,12 +108,26 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
 
         } ?: return
 
-        progressLayout.visibility = View.VISIBLE
-        viewModel.updateCurrentUser(this)
+        progressLayout.show()
+        runOnBackground({
+            try {
+                viewModel.updateCurrentUser()
+            } catch (e: Exception) {
+                withContext(Main) { onFail(e) }
+            }
+        }, this@RegisterActivity::onSuccess)
     }
 
-    override fun onSuccessFetchingUser(user: User?) {
-//        toast("${user.name}'s info was updated")
+
+    private fun onFail(e: Exception) {
+        progressLayout.hide()
+        alert("Things wasn't going as planned...", e.localizedMessage)
+            .setPositiveButton("ok", null)
+            .show()
+        Log.d(TAG, e.localizedMessage)
+    }
+
+    private fun onSuccess() {
         if (isEditingUser) finish()
         else {
             setResult(Activity.RESULT_OK)
@@ -124,18 +135,10 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
         }
     }
 
-    override fun onFailedFetchingUser(e: Exception) {
-        progressLayout.visibility = GONE
-        alert("Things wasn't going as planned...", e.localizedMessage)
-            .setPositiveButton("ok", null)
-            .show()
-        Log.d(TAG, e.localizedMessage)
-    }
-
     private fun fillData(user: User) {
-        etEmail.visibility = GONE
-        etPassword.visibility = GONE
-        spinnerUserType.visibility = GONE
+        etEmail.hide()
+        etPassword.hide()
+        spinnerUserType.hide()
 
         Glide.with(this)
             .load(user.profileImageUrl)
@@ -213,7 +216,13 @@ class RegisterActivity : AppCompatActivity(), UserTaskCallback, ImagePickerCallb
 
         progressLayout.isVisible = true
         val pass = etPassword.txt
-        viewModel.createUser(user, pass, this)
+        runOnBackground({
+            try {
+                viewModel.createUser(user, pass)
+            } catch (e: Exception) {
+                withContext(Main) { onFail(e) }
+            }
+        }, this@RegisterActivity::onSuccess)
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

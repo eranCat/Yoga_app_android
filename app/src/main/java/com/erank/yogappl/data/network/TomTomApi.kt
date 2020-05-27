@@ -18,8 +18,8 @@ interface TomTomApi {
     @GET(FUZZY_SEARCH)
     fun searchAsync(
         @Path("query", encoded = true) query: String,
-        @Query("language") language: String,
         @Query("countrySet") countryCode: String,
+        @Query("language") language: String?,
         @Query("lat") lat: Double?,
         @Query("lon") lon: Double?
     ): Deferred<TomtomLocationsResponse>
@@ -27,7 +27,7 @@ interface TomTomApi {
 
     companion object {
 
-        //https://api.tomtom.com/search/2/search/tel.json?typeahead=true&countrySet=IL&idxSet=POI&key=*****
+        //https://api.tomtom.com/search/2/search/<query>.json?typeahead=true&countrySet=IL&idxSet=POI&key=*****
 
         private const val BASE_URL = "https://api.tomtom.com/"
         private const val KEY = "hEhWkGvw4i8xlpLfIfY6P3AA1cOBGutJ"
@@ -35,10 +35,11 @@ interface TomTomApi {
         private const val RESULT_LIMIT = 50
         private const val SEARCH_RADIUS = 500 * 1_000//in meters : 500 KM
 
-        private const val FUZZY_SEARCH = "search/$VERSION/search/{query}.json?" +
-                "typeahead=true" +
-                "&limit=$RESULT_LIMIT" +
-                "&radius=$SEARCH_RADIUS"
+        private const val FUZZY_SEARCH =
+            "search/$VERSION/search/{query}.json?" +
+                    "typeahead=true" +
+                    "&limit=$RESULT_LIMIT" +
+                    "&radius=$SEARCH_RADIUS"
 
         fun create(builder: OkHttpClient.Builder): TomTomApi {
 

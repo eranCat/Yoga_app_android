@@ -3,8 +3,6 @@ package com.erank.yogappl.ui.activities.login
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.erank.yogappl.R
@@ -18,7 +16,6 @@ import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.UserValidator
 import com.erank.yogappl.utils.helpers.UserValidator.Fields.EMAIL
 import com.erank.yogappl.utils.helpers.UserValidator.Fields.PASS
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
 import javax.inject.Inject
 
@@ -66,7 +63,7 @@ class LoginActivity : AppCompatActivity() {
 
         signUpBtn.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
-            startActivityForResult(intent,RC_REGISTER)
+            startActivityForResult(intent, RC_REGISTER)
         }
 
     }
@@ -86,7 +83,7 @@ class LoginActivity : AppCompatActivity() {
             }
             .addOnFailureListener {
                 Log.w(TAG, "createUserWithEmail:failure", it)
-                val msg ="Authentication failed: ${it.localizedMessage}"
+                val msg = "Authentication failed: ${it.localizedMessage}"
                 AlertDialog.Builder(this)
                     .setTitle("login failed")
                     .setMessage(msg)

@@ -5,7 +5,6 @@ import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.data.models.PreviewUser
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.repository.Repository
-import com.erank.yogappl.utils.interfaces.TaskCallback
 import javax.inject.Inject
 
 class LessonsViewModel @Inject constructor(val repository: Repository) {
@@ -13,24 +12,18 @@ class LessonsViewModel @Inject constructor(val repository: Repository) {
 
     fun getLessons(type: SourceType) = repository.getLessons(type)
 
-    fun deleteLesson(lesson: Lesson, callback: TaskCallback<Int, Exception>) {
-        repository.deleteLesson(lesson, callback)
-    }
+    suspend fun deleteLesson(lesson: Lesson) =
+        repository.deleteLesson(lesson)
 
-    fun toggleSignToLesson(lesson: Lesson, callback: TaskCallback<Boolean, Exception>) {
-        repository.toggleSignToLesson(lesson, callback)
-    }
+    suspend fun toggleSignToLesson(lesson: Lesson) =
+        repository.toggleSignToLesson(lesson)
 
-    suspend fun getUsersMap(list: List<Lesson>):Map<String,PreviewUser> {
+    suspend fun getUsersMap(list: List<Lesson>): Map<String, PreviewUser> {
         val ids = list.map { it.uid }.toSet()
         return repository.getUsers(ids)
     }
 
-    suspend fun getFilteredLessons(
-        type: SourceType,
-        query: String
-    ): List<Lesson> {
-        return repository.getFilteredLessons(type,query)
-    }
+    suspend fun getFilteredLessons(type: SourceType, query: String) =
+        repository.getFilteredLessons(type, query)
 
 }

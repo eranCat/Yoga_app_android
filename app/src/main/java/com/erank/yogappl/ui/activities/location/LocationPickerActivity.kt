@@ -3,16 +3,17 @@ package com.erank.yogappl.ui.activities.location
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import com.erank.yogappl.R
-import com.erank.yogappl.ui.adapters.LocationsAdapter
 import com.erank.yogappl.data.models.LocationResult
+import com.erank.yogappl.ui.adapters.LocationsAdapter
 import com.erank.yogappl.utils.App
+import com.erank.yogappl.utils.extensions.hide
 import com.erank.yogappl.utils.extensions.setIconTintCompat
+import com.erank.yogappl.utils.extensions.show
 import com.erank.yogappl.utils.interfaces.OnLocationSelectedCallback
+import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_location_picker.*
 import javax.inject.Inject
 
@@ -25,7 +26,7 @@ class LocationPickerActivity : AppCompatActivity(),
     private val locationsAdapter by lazy { LocationsAdapter(this) }
 
     @Inject
-    lateinit var viewModel:LocationPickerVM
+    lateinit var viewModel: LocationPickerVM
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,12 +62,14 @@ class LocationPickerActivity : AppCompatActivity(),
             return false
         }
 
-        viewModel.getLocationResults(query) {
-            locationsAdapter.submitList(it)
-
-            locationsEmptyTv.visibility =
-                if (it.isEmpty()) VISIBLE
-                else GONE
+        runOnBackground({
+            viewModel.getLocationResults(query)
+        }) { results ->
+            locationsAdapter.submitList(results)
+            with(locationsEmptyTv) {
+                if (results.isEmpty()) show()
+                else hide()
+            }
         }
 
         return false

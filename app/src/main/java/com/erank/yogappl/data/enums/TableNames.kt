@@ -1,18 +1,13 @@
 package com.erank.yogappl.data.enums
 
-import com.erank.yogappl.utils.extensions.lowercaseName
+object TableNames {
 
-enum class TableNames {
+    const val USERS = "users"
+    const val LESSONS = "lessons"
+    const val EVENTS = "events"
 
-    USERS,
-    LESSONS,
-    EVENTS;
-
-    companion object {
-        fun name(dType: DataType) =
-            when (dType) {
-                DataType.LESSONS -> LESSONS.lowercaseName
-                DataType.EVENTS -> EVENTS.lowercaseName
-            }
+    fun name(dType: DataType) = when (dType) {
+        DataType.LESSONS -> LESSONS
+        DataType.EVENTS -> EVENTS
     }
 }

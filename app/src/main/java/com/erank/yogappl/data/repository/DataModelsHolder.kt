@@ -59,14 +59,6 @@ class DataModelsHolder(db: AppDatabase) {
         }
     }
 
-    fun addUser(user: User, callback: () -> Unit) {
-        CoroutineScope(Default).launch {
-            userDao.insert(user)
-
-            withContext(Main) { callback() }
-        }
-    }
-
     suspend fun updateData(data: BaseData) {
         when (data) {
             is Lesson -> lessonsDao.update(data)

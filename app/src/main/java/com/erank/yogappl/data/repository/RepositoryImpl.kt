@@ -37,9 +37,9 @@ class RepositoryImpl @Inject constructor(
     private val isFilteringByDate = false
 
     enum class DBRefs(name: String) {
-        LESSONS_REF(TableNames.LESSONS.lowercaseName),
-        EVENTS_REF(TableNames.EVENTS.lowercaseName),
-        USERS_REF(TableNames.USERS.lowercaseName);
+        LESSONS_REF(TableNames.LESSONS),
+        EVENTS_REF(TableNames.EVENTS),
+        USERS_REF(TableNames.USERS);
 
         val ref = Firebase.firestore.collection(name)
 
@@ -123,10 +123,6 @@ class RepositoryImpl @Inject constructor(
         }
 
         return snapshot.toObject(type)
-    }
-
-    private fun addUser(user: User, callback: () -> Unit) {
-        dataModelHolder.addUser(user, callback)
     }
 
     override suspend fun createUser(

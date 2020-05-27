@@ -13,11 +13,9 @@ import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.startZoomAnimation
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.Connectivity
+import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_splash.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -82,7 +80,7 @@ class SplashActivity : AppCompatActivity() {
 
         viewModel.initLocationService()
 
-        if (viewModel.isFbUserConnected) {
+        if (!viewModel.isFbUserConnected) {
             val intent = Intent(this, LoginActivity::class.java)
             startActivityForResult(intent, RC_LOGIN)
             return
@@ -91,9 +89,7 @@ class SplashActivity : AppCompatActivity() {
 //        start floating animation
         floatAnimator.start()
 
-        GlobalScope.launch(Dispatchers.IO) {
-            fetchData()
-        }
+        runOnBackground({ fetchData() })
     }
 
     private suspend fun fetchData() {

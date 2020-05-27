@@ -14,7 +14,7 @@ class AuthHelper(
         get() = mAuth.currentUser
 
     val isFbUserConnected: Boolean
-        get() = (currentUser == null)
+        get() = (currentUser != null)
 
     private fun openLogin() {
         val intent = Intent(context, LoginActivity::class.java)

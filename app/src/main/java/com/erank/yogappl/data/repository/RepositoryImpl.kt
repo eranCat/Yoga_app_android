@@ -81,10 +81,13 @@ class RepositoryImpl @Inject constructor(
 
     override suspend fun fetchLoggedUser(): User? {
 
-        val uid = authHelper.currentUser?.uid ?: return null
+        val uid = authHelper.currentUser?.uid
+            ?: return null
 
         //kind of caching
-        return currentUser ?: fetchUserIfNeeded(uid)
+        return currentUser ?: fetchUserIfNeeded(uid).also {
+            currentUser = it
+        }
     }
 
     override suspend fun getUsers(ids: Set<String>): Map<String, PreviewUser> {
@@ -98,9 +101,12 @@ class RepositoryImpl @Inject constructor(
     }
 
     override suspend fun fetchUserIfNeeded(id: String): User? {
-        dataModelHolder.getUser(id)?.let { return it }
+        dataModelHolder.getUser(id)?.let {
+            return it
+        }
 
-        val snapshot = userRef(id).get().await() ?: return null
+        val snapshot = userRef(id).get().await()
+            ?: return null
 
         val user = convertUser(snapshot)
             ?: throw JsonParseException("user casting failed")

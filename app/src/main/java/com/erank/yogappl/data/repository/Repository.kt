@@ -32,7 +32,6 @@ class Repository @Inject constructor(
 ) {
     companion object {
         const val TAG = "Repository"
-        private const val MaxPerBatch = 100L
         private const val MAX_KM = 20.0
     }
 

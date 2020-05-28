@@ -5,9 +5,10 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.net.Uri
-import android.telephony.TelephonyManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.R
@@ -47,27 +48,24 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
 
     suspend fun getLastKnownLocation() = fusedLocationClient!!.lastLocation.await()
 
-    fun getCountryCode(): String {
-        val telephonyManager =
-            context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-
-        return telephonyManager.networkCountryIso ?: "IL"
-    }
-    suspend fun getCountryCodeFromLocation(): String{
+    suspend fun getCountryCode(): String{
         val location = getLastKnownLocation() ?: return "IL"
+        val locations = getLocationAddress(location)
+        return locations.getOrNull(0)?.countryCode ?: "IL"
+    }
+
+    private fun getLocationAddress(location: Location): List<Address> {
         val lat = location.latitude
         val lon = location.longitude
-        val locations = Geocoder(context).getFromLocation(lat, lon, 1)
-        return locations.getOrNull(0)?.countryCode ?: "IL"
+        return Geocoder(context).getFromLocation(lat, lon, 1)
     }
 
     suspend fun getLocationResults(query: String): List<LocationResult> {
         val languageTag = currentLocale.toLanguageTag()
 
-        val language =
-            if (supportedCodes.contains(languageTag))
-                languageTag
-            else null
+        val language = languageTag.takeIf {
+            supportedCodes.contains(languageTag)
+        }
 
         val loc = getLastKnownLocation()
         val lat = loc?.latitude

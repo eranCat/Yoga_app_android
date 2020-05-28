@@ -37,7 +37,7 @@ class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdap
 
     override fun createAdapter(): LessonsAdapter {
         val uploads = (viewModel.user as? Teacher)?.teachingLessonsIDs
-            ?: emptySet<String>()
+            ?: listOf<String>()
         val signed = viewModel.user!!.signedEventsIDS
         val adapter = LessonsAdapter(isEditable, uploads, signed)
         return initAdapter(adapter)

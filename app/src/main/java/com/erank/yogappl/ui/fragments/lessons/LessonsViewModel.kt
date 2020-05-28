@@ -8,7 +8,8 @@ import com.erank.yogappl.data.repository.Repository
 import javax.inject.Inject
 
 class LessonsViewModel @Inject constructor(val repository: Repository) {
-    val user: User? = repository.currentUser
+    val user: User?
+        get() = repository.currentUser
 
     fun getLessons(type: SourceType) = repository.getLessons(type)
 

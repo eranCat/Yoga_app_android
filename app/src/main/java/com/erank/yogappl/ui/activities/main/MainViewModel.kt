@@ -18,5 +18,5 @@ class MainViewModel @Inject constructor(
 
     val user: User? = repository.currentUser
 
-    val isUserStudent = user?.type == Type.STUDENT
+    val isUserStudent = user!!.type == Type.STUDENT
 }

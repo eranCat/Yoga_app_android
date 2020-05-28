@@ -293,7 +293,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val selectedLocation = viewModel.selectedLocation!!
         val coordinate = selectedLocation.location.latLng
         val address = selectedLocation.address
-        val locationName = address.longName
+        val locationName = address.streetName ?: address.localName
+            ?: address.longName.ifEmpty { "Location" }
         val countryCode = address.countryCode
         val level = levelSpinner.enumValue!!
         val equip = equipEt.text.toString()

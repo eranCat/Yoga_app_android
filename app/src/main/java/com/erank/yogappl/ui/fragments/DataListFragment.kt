@@ -46,7 +46,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
     private val RC_EDIT = 1
     internal var isEditable: Boolean = false
-    private val dataAdapter by lazy { createAdapter() }
+    protected val dataAdapter by lazy { createAdapter() }
     protected lateinit var currentSourceType: SourceType
     private var remindersAdapter: RemindersAdapter<T>? = null
 
@@ -117,10 +117,9 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     private fun observeData(liveData: LiveData<List<T>>) {
 
         liveData.observe(viewLifecycleOwner, Observer {
-
-            onListUpdated(it)
-
             dataAdapter.submitList(it)
+            dataAdapter.notifyDataSetChanged()
+            onListUpdated(it)
             setEmptyView(it.isEmpty())
         })
     }

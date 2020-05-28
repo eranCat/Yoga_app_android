@@ -241,23 +241,19 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         }
 
         item.isEnabled = false
-        progressLayout.visibility = View.VISIBLE
+        progressLayout.show()
 
-        val data = viewModel.data
-        data?.let {
+        viewModel.data?.let {
             createData(it)
 
             runOnBackground({
-
                 try {
                     when (it) {
                         is Lesson -> viewModel.updateLesson(it)
                         is Event -> viewModel.updateEvent(it)
                     }
                 } catch (e: Exception) {
-                    withContext(Main) {
-                        onFailed(e)
-                    }
+                    withContext(Main) { onFailed(e) }
                 }
             }, this@NewEditDataActivity::onSuccess)
 
@@ -265,9 +261,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             try {
                 viewModel.uploadData(createData())
             } catch (e: Exception) {
-                withContext(Main) {
-                    onFailed(e)
-                }
+                withContext(Main) { onFailed(e) }
             }
         }, this@NewEditDataActivity::onSuccess)
     }
@@ -291,7 +285,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         finish()
     }
 
-    fun createData(data: BaseData? = null): BaseData {
+    private fun createData(data: BaseData? = null): BaseData {
         val uid = viewModel.currentUser!!.id
         val title = titleET.text.toString()
         val cost = Money(costEt.text.toString().toDouble())

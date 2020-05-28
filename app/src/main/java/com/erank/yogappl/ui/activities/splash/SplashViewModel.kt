@@ -24,10 +24,6 @@ class SplashViewModel @Inject constructor(
         return locationHelper.getLocationPermissionIfNeeded(activity)
     }
 
-    fun initLocationService() {
-        locationHelper.initLocationService()
-    }
-
     suspend fun connectMoneyConverter() {
         moneyConverter.connect()
     }

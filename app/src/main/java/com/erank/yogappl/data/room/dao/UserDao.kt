@@ -11,6 +11,6 @@ interface UserDao : GenericDao<User> {
     @Query("SELECT * FROM users WHERE id = :id")
     override suspend fun getById(id: String): User?
 
-    @Query("SELECT id,name,profileImageUrl FROM users WHERE id IN (:id)")
-    suspend fun getPreviewUserById(id: Set<String>): List<PreviewUser>
+    @Query("SELECT id,name,profileImageUrl FROM users WHERE id IN(:ids)")
+    suspend fun getPreviewUserById(ids: Set<String>): List<PreviewUser>
 }

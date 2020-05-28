@@ -12,6 +12,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class Converters {
@@ -75,6 +76,15 @@ class Converters {
 
     @TypeConverter
     fun fromSet(set: SSet?): String? = Gson().toJson(set)
+
+    @TypeConverter
+    fun toList(json: String?): List<String>? {
+        val setType = object : TypeToken<List<String>>() {}.type
+        return Gson().fromJson(json, setType)
+    }
+
+    @TypeConverter
+    fun fromList(set: List<String>?): String? = Gson().toJson(set)
 
     @TypeConverter
     fun toSMap(json: String?): SMap<Any>? {

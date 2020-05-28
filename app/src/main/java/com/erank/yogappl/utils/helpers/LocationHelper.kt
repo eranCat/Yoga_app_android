@@ -5,17 +5,15 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.content.res.Resources
 import android.location.Geocoder
-import android.location.Location
 import android.net.Uri
+import android.telephony.TelephonyManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.R
 import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.data.network.TomTomApi
 import com.erank.yogappl.utils.extensions.await
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import java.util.*
@@ -26,12 +24,11 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         private const val RPC_COARSE_LOCATION = 3
     }
 
-    private var lastKnownLocation: Location? = null
-
-    private var fusedLocationClient: FusedLocationProviderClient? = null
+    private var fusedLocationClient= LocationServices
+        .getFusedLocationProviderClient(context)
 
     private val currentLocale: Locale
-        get() = Resources.getSystem().configuration.locales[0]
+        get() = context.resources.configuration.locales[0]
 
     private val supportedCodes = context.resources
         .getStringArray(R.array.supportedTomTomCodes)
@@ -48,34 +45,23 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         return mapIntent.resolveActivity(context.packageManager)?.let { mapIntent }
     }
 
-    suspend fun getCountryCode(): Pair<String, LatLng?> {
-        val location = getLastKnownLocation().await()
-            ?: return Pair(currentLocale.country, null)
+    suspend fun getLastKnownLocation() = fusedLocationClient!!.lastLocation.await()
 
-        val latLng = LatLng(location.latitude, location.longitude)
+    fun getCountryCode(): String {
+        val telephonyManager =
+            context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
-        val locations = Geocoder(context, currentLocale)
-            .getFromLocation(latLng.latitude, latLng.longitude, 1)
-
-        val country = if (locations.isNotEmpty())
-            locations[0].countryCode
-        else
-            currentLocale.country
-
-        return Pair(country, latLng)
+        return telephonyManager.networkCountryIso ?: "IL"
     }
-
-    fun initLocationService() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    suspend fun getCountryCodeFromLocation(): String{
+        val location = getLastKnownLocation() ?: return "IL"
+        val lat = location.latitude
+        val lon = location.longitude
+        val locations = Geocoder(context).getFromLocation(lat, lon, 1)
+        return locations.getOrNull(0)?.countryCode ?: "IL"
     }
-
-    private fun getLastKnownLocation() =
-        fusedLocationClient!!.lastLocation
-            .addOnSuccessListener { lastKnownLocation = it }
 
     suspend fun getLocationResults(query: String): List<LocationResult> {
-        val (countryCode, latLng) = getCountryCode()
-
         val languageTag = currentLocale.toLanguageTag()
 
         val language =
@@ -83,13 +69,15 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
                 languageTag
             else null
 
-        val lat = latLng?.latitude
-        val lon = latLng?.longitude
-        return api
-            .searchAsync(query, countryCode, language, lat, lon)
-            .await()
-            .results
+        val loc = getLastKnownLocation()
+        val lat = loc?.latitude
+        val lon = loc?.longitude
+        val countryCode = getCountryCode()
+
+        val response = api.searchAsync(query, countryCode, language, lat, lon).await()
+        return response.results
     }
+
 
     fun getLocationPermissionIfNeeded(activity: Activity): Boolean {
         val per = ACCESS_COARSE_LOCATION
@@ -104,7 +92,6 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         )
         return false
     }
-
 
     private fun checkPermissionResults(
         permissions: Array<String>, results: IntArray
@@ -129,5 +116,4 @@ class LocationHelper(val context: Context, val api: TomTomApi) {
         RPC_COARSE_LOCATION -> checkPermissionResults(permissions, results)
         else -> false
     }
-
 }

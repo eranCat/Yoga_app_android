@@ -9,26 +9,13 @@ import com.erank.yogappl.data.room.dao.EventDao
 import com.erank.yogappl.data.room.dao.LessonDao
 import com.erank.yogappl.data.room.dao.UserDao
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class DataModelsHolder(db: AppDatabase) {
-    private val lessonsDao: LessonDao
-    private val eventsDao: EventDao
-    private val userDao: UserDao
-
-    init {
-        with(db) {
-            CoroutineScope(IO).launch { clearAllTables() }
-            lessonsDao = lessonsDao()
-            eventsDao = eventsDao()
-            userDao = usersDao()
-        }
-    }
-
+    private val lessonsDao = db.lessonsDao
+    private val eventsDao = db.eventsDao
+    private val userDao = db.usersDao
 
     fun getLessons(type: SourceType, uid: String) = when (type) {
         ALL -> lessonsDao.getAllLessons(uid)
@@ -72,23 +59,13 @@ class DataModelsHolder(db: AppDatabase) {
     }.getById(id)
 
 
-    suspend fun addLesson(lesson: Lesson) {
-        lessonsDao.insert(lesson)
-    }
+    suspend fun addLessons(lessons: List<Lesson>) = lessonsDao.insertAll(lessons)
 
-    suspend fun addLessons(lessons: List<Lesson>) {
-        lessonsDao.insertAll(lessons)
-    }
+    suspend fun addEvent(event: Event) = eventsDao.insert(event)
 
-    suspend fun addEvent(event: Event) {
-        eventsDao.insert(event)
-    }
+    suspend fun addEvents(events: List<Event>) = eventsDao.insertAll(events)
 
-    suspend fun addEvents(events: List<Event>) {
-        eventsDao.insertAll(events)
-    }
-
-    fun filterEvents(
+    suspend fun filterEvents(
         type: SourceType,
         uid: String,
         query: String
@@ -98,7 +75,7 @@ class DataModelsHolder(db: AppDatabase) {
         UPLOADS -> eventsDao.uploadedEventsFiltered(uid, query)
     }
 
-    fun filterLessons(
+    suspend fun filterLessons(
         type: SourceType,
         uid: String,
         query: String
@@ -108,10 +85,10 @@ class DataModelsHolder(db: AppDatabase) {
         UPLOADS -> lessonsDao.uploadedLessonsFiltered(uid, query)
     }
 
-    suspend fun insertUser(user: User) = userDao.insert(user)
+    suspend fun addUser(user: User) = userDao.insert(user)
 
-    suspend fun getUsers(ids: Set<String>): Map<String, PreviewUser> =
-        userDao.getPreviewUserById(ids).associateBy { it.id }
+    suspend fun getUsers(ids: Set<String>) = userDao.getPreviewUserById(ids)
+        .associateBy { it.id }
 
     suspend fun updateUser(user: User) = userDao.update(user)
 

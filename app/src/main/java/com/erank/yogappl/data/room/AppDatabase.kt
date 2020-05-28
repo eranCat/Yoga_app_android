@@ -19,9 +19,9 @@ import com.erank.yogappl.data.room.dao.UserDao
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun lessonsDao(): LessonDao
-    abstract fun eventsDao(): EventDao
-    abstract fun usersDao(): UserDao
+    abstract val lessonsDao: LessonDao
+    abstract val eventsDao: EventDao
+    abstract val usersDao: UserDao
 
     companion object {
         // Singleton prevents multiple instances of database opening at the
@@ -32,12 +32,13 @@ abstract class AppDatabase : RoomDatabase() {
         /**
          * use application context when using this
          */
-        fun getDatabase(context: Context) =
-            Room.databaseBuilder(
+        fun getDatabase(context: Context): AppDatabase {
+            return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java, "yoga_db"
-            ).fallbackToDestructiveMigration()
+            )
                 .build()
+        }
 
 
         private val LOCK = Any()

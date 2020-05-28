@@ -18,8 +18,8 @@ import kotlinx.android.synthetic.main.profile_image.view.*
 
 class LessonsAdapter(
     isEditable: Boolean,
-    private val userUploads: Set<String>,
-    private val signed: Set<String>
+    private val userUploads: List<String>,
+    private val signed: MutableList<String>
 ) :
     DataListAdapter<Lesson, LessonsAdapter.LessonVH>(isEditable) {
 
@@ -61,7 +61,7 @@ class LessonsAdapter(
 
             users[item.uid]?.let {
                 Glide.with(teacherImgView)
-                    .load(it.imgUrl)
+                    .load(it.profileImageUrl)
                     .placeholder(R.drawable.yoga_model)
                     .fallback(R.drawable.yoga_model)
                     .circleCrop()

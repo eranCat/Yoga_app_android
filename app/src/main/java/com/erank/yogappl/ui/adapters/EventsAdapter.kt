@@ -22,8 +22,8 @@ import java.text.SimpleDateFormat
 
 class EventsAdapter(
     isEditable: Boolean,
-    private val userUploads: Set<String>,
-    private val signed: Set<String>
+    private val userUploads: MutableList<String>,
+    private val signed: MutableList<String>
 ) :
     DataListAdapter<Event, EventsAdapter.EventVH>(isEditable) {
 

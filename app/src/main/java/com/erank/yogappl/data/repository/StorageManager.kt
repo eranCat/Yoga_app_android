@@ -27,13 +27,8 @@ class StorageManager() {
 
     private val TAG = StorageManager::class.java.name
 
-    suspend fun removeCurrentUserProfileImage(user: User) {
-        // remove the file from storage
-        userImageRef(user.id).delete().await()
-        removeUserProfileImageFromDB(user)
-    }
-
-    private suspend fun removeUserProfileImageFromDB(user: User) {
+//    TODO use this method user activity
+    suspend fun removeUserProfileImage(user: User) {
         //save the image url in current users obj
         userImageRef(user.id).delete().await()
         user.profileImageUrl = null

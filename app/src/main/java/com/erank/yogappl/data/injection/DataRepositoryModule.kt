@@ -24,7 +24,7 @@ class DataRepositoryModule {
         authHelper: AuthHelper,
         storage: StorageManager
     ): Repository =
-        RepositoryImpl(
+        Repository(
             dataModelHolder,
             locationHelper,
             authHelper,

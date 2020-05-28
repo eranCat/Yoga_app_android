@@ -8,6 +8,8 @@ import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.data.enums.TableNames
 import com.erank.yogappl.data.models.*
+import com.erank.yogappl.data.models.User.Type.STUDENT
+import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.utils.SigningErrors
 import com.erank.yogappl.utils.extensions.await
 import com.erank.yogappl.utils.extensions.setLocation
@@ -18,8 +20,8 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import com.google.gson.JsonParseException
 import org.imperiumlabs.geofirestore.GeoFirestore
 import java.util.*
 import javax.inject.Inject
@@ -75,7 +77,7 @@ class Repository @Inject constructor(
         } ?: ref.whereEqualTo("countryCode", code)
 
         if (isFilteringByDate) {
-           query = query.whereGreaterThanOrEqualTo("startDate", Date())
+            query = query.whereGreaterThanOrEqualTo("startDate", Date())
         }
 
 
@@ -87,10 +89,9 @@ class Repository @Inject constructor(
 
     suspend fun getUser(uid: String) = dataModelHolder.getUser(uid)
 
-    suspend fun fetchLoggedUser(): User? {
+    suspend fun fetchLoggedUser(): User {
 
-        val uid = authHelper.currentUser?.uid
-            ?: return null
+        val uid = authHelper.currentUser!!.uid
 
         return currentUser ?: fetchUserIfNeeded(uid).also {
             currentUser = it
@@ -107,31 +108,26 @@ class Repository @Inject constructor(
         }
     }
 
-    suspend fun fetchUserIfNeeded(id: String): User? {
+    private suspend fun fetchUserIfNeeded(id: String): User {
         dataModelHolder.getUser(id)?.let {
             return it
         }
 
-        val snapshot = userRef(id).get().await()
-            ?: return null
+        val snapshot = userRef(id).get().await()!!
 
         val user = convertUser(snapshot)
-            ?: throw JsonParseException("user casting failed")
 
         dataModelHolder.insertUser(user)
         return user
     }
 
-    private fun convertUser(snapshot: DocumentSnapshot): User? {
-        val userTypeIndex = snapshot.getString("type")
-            ?: return null
+    private fun convertUser(snapshot: DocumentSnapshot): User {
+        val value = snapshot.getString("type")!!
 
-        val type = when (User.Type.valueOf(userTypeIndex)) {
-            User.Type.STUDENT -> User::class.java
-            User.Type.TEACHER -> Teacher::class.java
-        }
-
-        return snapshot.toObject(type)
+        return when (User.Type.valueOf(value)) {
+            TEACHER -> snapshot.toObject<Teacher>()
+            STUDENT -> snapshot.toObject<User>()
+        }!!
     }
 
     suspend fun createUser(
@@ -140,22 +136,19 @@ class Repository @Inject constructor(
     ): User? {
 
         //        stage 1 - add new simple user to the firebase Auth
-        val authResult = authHelper.createUser(user.email, pass).await()
-            ?: return null
-
+        val authResult = authHelper.createUser(user.email, pass).await()!!
         //       set id to user
-        user.id = authResult.user!!.uid
+        val uid = authResult.user!!.uid
+        user.id = uid
         val uri = selectedImage?.let {
-            storage.saveUserImage(user, it)
-        }
-            ?: bitmap?.let {
-                storage.saveUserImage(user, it)
-            }
+            storage.saveUserImage(uid, it)
+        } ?: bitmap?.let { storage.saveUserImage(uid, it) }
 
-        return uri?.run {
-            uploadUserToDB(user)
-            user
+        uri?.let {
+            user.profileImageUrl = it.toString()
         }
+        uploadUserToDB(user)
+        return user
     }
 
     suspend fun updateCurrentUser(selectedImage: Uri?, selectedImageBitmap: Bitmap?) {
@@ -163,11 +156,11 @@ class Repository @Inject constructor(
 
         when {
             selectedImage != null -> {
-                storage.saveUserImage(user, selectedImage)
+                storage.saveUserImage(user.id, selectedImage)
             }
 
             selectedImageBitmap != null -> {
-                storage.saveUserImage(user, selectedImageBitmap)
+                storage.saveUserImage(user.id, selectedImageBitmap)
             }
         }
         updateUser(user)

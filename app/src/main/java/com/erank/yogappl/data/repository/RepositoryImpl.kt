@@ -32,7 +32,6 @@ class RepositoryImpl @Inject constructor(
 ) : Repository {
     companion object {
         const val TAG = "Repository"
-        private const val MaxPerBatch = 100L
         private const val MAX_KM = 20.0
     }
 
@@ -62,7 +61,7 @@ class RepositoryImpl @Inject constructor(
         loadAll(DataType.EVENTS)
     }
 
-    override suspend fun loadAll(dType: DataType) {
+    private suspend fun loadAll(dType: DataType) {
         val (code, latLng) = locationHelper.getCountryCode()
 
         val ref = DBRefs.refForType(dType)
@@ -79,14 +78,8 @@ class RepositoryImpl @Inject constructor(
            query = query.whereGreaterThanOrEqualTo("startDate", Date())
         }
 
-
-        val snapshot = query
-//            .orderBy("postedDate")
-            .limitToLast(MaxPerBatch)
-            .get().await()
-            ?: throw NullPointerException("No snapshot found")
-
-        LoadDataValueEventHandler(dType, this).convertSnapshot(snapshot)
+        val snapshot = query.get().await()
+        LoadDataValueEventHandler(dType, this).convertSnapshot(snapshot!!)
     }
 
     override suspend fun getUser(uid: String) = dataModelHolder.getUser(uid)
@@ -180,7 +173,6 @@ class RepositoryImpl @Inject constructor(
     private suspend fun updateUser(user: User) {
         userRef(user).set(user).await()
     }
-
 
     override suspend fun uploadUserToDB(user: User) {
         userRef(user).set(user).await()
@@ -287,12 +279,10 @@ class RepositoryImpl @Inject constructor(
 //        TODO if so, cancel ;else delete
         lessonRef(lesson).delete().await()
         val teacher = currentUser as Teacher
-
-        teacher.teachingLessonsIDs.remove(lesson.id)
+        teacher.removeLesson(lesson.id)
         val map = teacher.teachingClassesMap
 
         userRef(teacher).update(map).await()
-        teacher.removeLesson(lesson.id)
         dataModelHolder.removeData(lesson)
     }
 
@@ -301,10 +291,9 @@ class RepositoryImpl @Inject constructor(
 //        TODO if so, cancel ;else delete
         eventRef(event).delete().await()
         val user = currentUser!!
-        user.createdEventsIDs.remove(event.id)
+        user.removeEvent(event.id)
         val map = user.createdEventsIDsMap
         userRef(user).update(map).await()
-        user.removeEvent(event.id)
         dataModelHolder.removeData(event)
         storage.removeEventImage(event)
     }

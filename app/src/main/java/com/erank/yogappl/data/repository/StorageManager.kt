@@ -3,7 +3,6 @@ package com.erank.yogappl.data.repository
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
 import android.net.Uri
-import android.util.Log
 import com.erank.yogappl.data.models.Event
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.utils.extensions.await
@@ -107,15 +106,9 @@ class StorageManager() {
         eventRef.downloadUrl
     }
 
-    fun removeEventImage(event: Event): Task<Void>? {
-        return event.imageUrl?.let {
-            eventRef(event).delete()
-                .addOnSuccessListener {
-                    Log.d(TAG, "event ${event.id} image removed")
-                }
-                .addOnFailureListener {
-                    Log.d(TAG, "event ${event.id} failed to remove", it)
-                }
+    suspend fun removeEventImage(event: Event) {
+        if (event.imageUrl != null) {
+            eventRef(event).delete().await()
         }
     }
 }

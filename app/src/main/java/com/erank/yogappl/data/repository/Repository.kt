@@ -12,7 +12,6 @@ interface Repository {
     fun getLessons(type: SourceType): LiveData<List<Lesson>>
     fun getEvents(type: SourceType): LiveData<List<Event>>
     suspend fun loadData()
-    suspend fun loadAll(dType: DataType)
     suspend fun getUser(uid: String): User?
     suspend fun fetchUserIfNeeded(id: String): User?
     suspend fun fetchUsersIfNeeded(users: Set<String>)

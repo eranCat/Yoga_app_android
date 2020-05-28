@@ -38,7 +38,7 @@ class LoadDataValueEventHandler(
         repository.fetchUsersIfNeeded(usersToFetch)
     }
 
-    private suspend fun convertValuesToLessons(docs: MutableList<DocumentSnapshot>, user: User) {
+    private suspend fun convertValuesToLessons(docs: List<DocumentSnapshot>, user: User) {
 
         val convertedValues = convertValues<Lesson>(
             docs, user.signedLessonsIDS,
@@ -49,7 +49,7 @@ class LoadDataValueEventHandler(
         fetchUsers()
     }
 
-    private suspend fun convertValuesToEvents(docs: MutableList<DocumentSnapshot>, user: User) {
+    private suspend fun convertValuesToEvents(docs: List<DocumentSnapshot>, user: User) {
         val convertedValues = convertValues<Event>(
             docs, user.signedEventsIDS, user.createdEventsIDs
         )
@@ -58,9 +58,9 @@ class LoadDataValueEventHandler(
     }
 
     private inline fun <reified T : BaseData> convertValues(
-        docs: MutableList<DocumentSnapshot>,
+        docs: List<DocumentSnapshot>,
         signedIDS: SSet, uploadsIDs: Set<String>?
-    ): MutableList<T> {
+    ): List<T> {
 
         val list = mutableListOf<T>()
 

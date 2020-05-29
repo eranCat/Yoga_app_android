@@ -23,6 +23,7 @@ import com.erank.yogappl.data.enums.SourceType.*
 import com.erank.yogappl.data.models.DataInfo
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.activities.register.RegisterActivity
+import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.ui.fragments.TabsFragment
 import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.utils.App
@@ -68,6 +69,8 @@ class MainActivity : AppCompatActivity(),
         initDrawer()
 
         addFab.setOnClickListener { openNewDataActivity() }
+
+        ProgressDialog(this).show()
     }
 
     private fun openNewDataActivity() {

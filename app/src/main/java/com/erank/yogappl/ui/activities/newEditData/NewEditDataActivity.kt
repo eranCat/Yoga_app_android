@@ -11,6 +11,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
 import androidx.appcompat.app.AppCompatActivity
+import com.afollestad.vvalidator.form
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
@@ -23,6 +24,8 @@ import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.DateValidationPredicate
 import com.erank.yogappl.utils.OnDateSet
 import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.extensions.validator.assertation.MaxNumberPickerAssertion
+import com.erank.yogappl.utils.extensions.validator.picker
 import com.erank.yogappl.utils.helpers.BaseDataValidator
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
@@ -79,6 +82,12 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         select_loc_btn.setOnClickListener { startLocationActivity() }
         location_bar.setOnClickListener { startLocationActivity() }
 
+        start_date_btn.setOnClickListener { showStartDatePicker() }
+        start_date_bar.setOnClickListener { showStartDatePicker() }
+
+        end_date_btn.setOnClickListener { showEndDatePicker() }
+        end_date_bar.setOnClickListener { showEndDatePicker() }
+
         /*TODO check data info , from main?*/
         val dataInfo = viewModel.dataInfo
         if (dataInfo.type == DataType.EVENTS) {
@@ -96,12 +105,46 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         }
 
         runOnBackground({ viewModel.getData(dataInfo.type, id) }) { it ->
-            it?.let {
-                fillData(it)
-                initValidator(VALID)
-                viewModel.data = it
-                title = it.title
+            it?.let { data ->
+                fillData(data)
+                initValidatorForUpdate(data)
+                viewModel.data = data
+                title = data.title
             }
+        }
+    }
+
+    private fun initValidatorForUpdate(data: BaseData) {
+        validator = BaseDataValidator(VALID)
+        val v = validator//shorter name
+        form {
+            useRealTimeValidation()
+            input(titleET) {
+                isNotEmpty().description("Please fill a title")
+                length().atMost(3).description("Must be at least 3 characters long")
+                data.title = titleET.txt
+            }
+            input(costEt) {
+                isNotEmpty().description("Please fill a cost")
+                isNumber().description("must be a number")
+                isNumber().atLeast(0).description("must be at least 0")
+                data.cost = Money(costEt.txt.toDouble())
+            }
+            input(equipEt) {
+                isNotEmpty().description("Please fill a equipment")
+                data.equip = equipEt.txt
+            }
+            spinner(levelSpinner) {
+                selection().exactly(1).description("Select a level")
+                data.level = levelSpinner.enumValue!!
+            }
+            picker(maxPplPicker) {
+                MaxNumberPickerAssertion()
+                data.maxParticipants = maxPplPicker.value
+            }
+
+//            TODO add date picked listeners
+//            submitWith()
         }
     }
 
@@ -160,14 +203,12 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         when (requestCode) {
             RC_LOCATION -> {
                 if (resultCode == RESULT_OK && data != null) {
-                    viewModel.selectedLocation = data.getParcelableExtra("location")
-
-                    viewModel.selectedLocation?.address?.let {
-                        locationTV.text = it.longName
-                    }
+                    viewModel.selectedLocation =
+                        data.getParcelableExtra<LocationResult>("location")!!
+                            .also {
+                                locationTV.text = it.address.getName()
+                            }
                 }
-                if (validator.validateLocation(viewModel.selectedLocation) != VALID)
-                    toast("no location picked")
             }
         }
     }
@@ -206,12 +247,6 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             if (v.validateMinMaxPPL(count) != VALID)
                 toast("Pick a number")
         }
-
-        start_date_btn.setOnClickListener { showStartDatePicker() }
-        start_date_bar.setOnClickListener { showStartDatePicker() }
-
-        end_date_btn.setOnClickListener { showEndDatePicker() }
-        end_date_bar.setOnClickListener { showEndDatePicker() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -225,7 +260,9 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.nav_save -> {
-                save(item)
+                viewModel.data?.let {
+                    updateData(it, item)
+                } ?: save(item)
                 true
             }
             R.id.nav_close_new -> {
@@ -237,30 +274,30 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         }
     }
 
+    private fun updateData(data: BaseData, item: MenuItem) {
+        item.isEnabled = false
+        progressDialog.show()
+        runOnBackground({
+            try {
+                when (data) {
+                    is Lesson -> viewModel.updateLesson(data)
+                    is Event -> viewModel.updateEvent(data)
+                }
+            } catch (e: Exception) {
+                withContext(Main) { onFailed(e) }
+            }
+        }, this@NewEditDataActivity::onSuccess)
+    }
+
+
     private fun save(item: MenuItem) {
         if (validator.isDataValid.not()) {
             toast("make sure everything is filled correctly")
             return
         }
-
         item.isEnabled = false
         progressDialog.show()
-
-        viewModel.data?.let {
-            createData(it)
-
-            runOnBackground({
-                try {
-                    when (it) {
-                        is Lesson -> viewModel.updateLesson(it)
-                        is Event -> viewModel.updateEvent(it)
-                    }
-                } catch (e: Exception) {
-                    withContext(Main) { onFailed(e) }
-                }
-            }, this@NewEditDataActivity::onSuccess)
-
-        } ?: runOnBackground({
+        runOnBackground({
             try {
                 viewModel.uploadData(createData())
             } catch (e: Exception) {
@@ -288,10 +325,10 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         finish()
     }
 
-    private fun createData(data: BaseData? = null): BaseData {
+    private fun createData(): BaseData {
         val uid = viewModel.currentUser!!.id
-        val title = titleET.text.toString()
-        val cost = Money(costEt.text.toString().toDouble())
+        val title = titleET.txt
+        val cost = Money(costEt.txt.toDouble())
 
         val selectedLocation = viewModel.selectedLocation!!
         val coordinate = selectedLocation.location.latLng
@@ -300,33 +337,14 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         ?: address.longName.ifEmpty { "Location" }
         val countryCode = address.countryCode
         val level = levelSpinner.enumValue!!
-        val equip = equipEt.text.toString()
-        val extra = extraEt.text.toString()
+        val equip = equipEt.txt
+        val extra = extraEt.txt
         val maxPpl = maxPplPicker.value
 
         val startDate = viewModel.selectedStartDate!!
         val endDate = viewModel.selectedEndDate!!
 
         val imageUrl = viewModel.result?.urls?.small
-
-        data?.let {
-
-            it.title = title
-            it.cost = cost
-            it.location = coordinate
-            it.locationName = locationName
-            it.countryCode = countryCode
-            it.level = level
-            it.equip = equip
-            it.extraNotes = extra
-            it.maxParticipants = maxPpl
-            it.startDate = startDate
-            it.endDate = endDate
-
-            (it as? Event)?.imageUrl = imageUrl
-
-            return it
-        }
 
         return when (viewModel.dataInfo.type) {
             DataType.LESSONS -> Lesson(
@@ -351,7 +369,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
                     startDateTV.text = viewModel.selectedStartDate!!.formatted(MEDIUM, SHORT)
                 }
             },
-            "date can be today or beyond. time needs to be in the future",
+            "date can be today or beyond. time needs to be at least 30 minutes later",
             "please select a start date"
         )
     }

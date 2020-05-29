@@ -37,15 +37,20 @@ class Repository @Inject constructor(
     var currentUser: User? = null
     private val isFilteringByDate = false
 
-    enum class DBRefs(name: String) {
-        LESSONS_REF(TableNames.LESSONS),
-        EVENTS_REF(TableNames.EVENTS),
-        USERS_REF(TableNames.USERS);
+    object DBRefs {
+        val LESSONS_REF: CollectionReference
+            get() = ref(TableNames.LESSONS)
+        val EVENTS_REF: CollectionReference
+            get() = ref(TableNames.EVENTS)
+        val USERS_REF: CollectionReference
+            get() = ref(TableNames.USERS)
 
-        val ref = Firebase.firestore.collection(name)
+        private fun ref(name: String) =
+            Firebase.firestore.collection(name)
 
-        companion object {
-            fun refForType(dType: DataType) = values()[dType.ordinal].ref
+        fun refForType(type: DataType)= when (type) {
+            DataType.LESSONS -> LESSONS_REF
+            DataType.EVENTS -> EVENTS_REF
         }
     }
 
@@ -62,7 +67,7 @@ class Repository @Inject constructor(
     }
 
     private suspend fun loadAllLessons(): MutableSet<String> {
-        val ref = DBRefs.EVENTS_REF.ref
+        val ref = DBRefs.EVENTS_REF
         val documents = getQuerySnapshot(ref).documents
         val users = mutableSetOf<String>()
         val lessons = documents.map { doc ->
@@ -75,7 +80,7 @@ class Repository @Inject constructor(
     }
 
     private suspend fun loadAllEvents(): MutableSet<String> {
-        val ref = DBRefs.LESSONS_REF.ref
+        val ref = DBRefs.LESSONS_REF
         val documents = getQuerySnapshot(ref).documents
         val users = mutableSetOf<String>()
         val events = documents.map { doc ->
@@ -188,7 +193,7 @@ class Repository @Inject constructor(
         currentUser = user
     }
 
-    private fun userRef(uid: String) = DBRefs.USERS_REF.ref.document(uid)
+    private fun userRef(uid: String) = DBRefs.USERS_REF.document(uid)
 
     private fun userRef(user: User) = userRef(user.id)
 
@@ -256,9 +261,9 @@ class Repository @Inject constructor(
         teacher.addLesson(id)
     }
 
-    private fun lessonRef(lesson: Lesson) = DBRefs.LESSONS_REF.ref.document(lesson.id)
+    private fun lessonRef(lesson: Lesson) = DBRefs.LESSONS_REF.document(lesson.id)
 
-    private fun eventRef(event: Event) = DBRefs.EVENTS_REF.ref.document(event.id)
+    private fun eventRef(event: Event) = DBRefs.EVENTS_REF.document(event.id)
 
     suspend fun updateLesson(lesson: Lesson) {
         lessonRef(lesson).set(lesson).await()

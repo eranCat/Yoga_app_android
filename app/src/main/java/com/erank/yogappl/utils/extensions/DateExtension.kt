@@ -15,7 +15,6 @@ fun Date.add(field: Int, amount: Int): Date =
 fun Date.addMonths(amount: Int) = add(Calendar.MONTH, amount)
 
 val Date.epochTime: Long get() = cal().timeInMillis
-
 fun Date.formatted(style: Int = DateFormat.MEDIUM): String? =
     DateFormat.getDateInstance(style).format(this)
 
@@ -26,15 +25,15 @@ fun Date.formatted(
     return DateFormat.getDateTimeInstance(dateStyle, timeStyle).format(this)
 }
 
-private fun Date.cal() = Calendar.getInstance().apply { time = this@cal }
+fun Date.cal() = Calendar.getInstance().apply { time = this@cal }
 
 fun newDate(year: Int, month: Int, day: Int): Date {
     return cal(year, month, day).time
 }
 
 fun newDate(time: Double) = Date((time * 1000).toLong())
-val Date.timeStamp get() = time / 1000.0
 
+val Date.timeStamp get() = time / 1000.0
 private fun cal(year: Int, month: Int, day: Int) =
     Calendar.getInstance().apply {
         set(year, month, day)
@@ -65,8 +64,17 @@ var Calendar.hour
     get() = get(Calendar.HOUR)
     set(value) = set(Calendar.HOUR, value)
 
+var Calendar.minute
+    get() = get(Calendar.MINUTE)
+    set(value) = set(Calendar.MINUTE, value)
+
+private var Calendar.second: Int
+    get() = get(Calendar.SECOND)
+    set(value) = set(Calendar.SECOND, value)
+
 fun Calendar.getHour(is24HourFormat: Boolean) =
     if (is24HourFormat) hourOfDay else hour
+
 
 fun Calendar.setHour(is24HourFormat: Boolean, hour: Int) {
     if (is24HourFormat)
@@ -75,26 +83,26 @@ fun Calendar.setHour(is24HourFormat: Boolean, hour: Int) {
         this.hour = hour
 }
 
-
-var Calendar.minute
-    get() = get(Calendar.MINUTE)
-    set(value) = set(Calendar.MINUTE, value)
-
 fun Date.compareDate(other: Date): Int {
-    val yearDiff = year - other.year
-    val monthDiff = month - other.month
-    val dayDiff = day - other.day
+    val cal = cal()
+    val otherCal = other.cal()
+    val yearDiff = cal.year - otherCal.year
+    val monthDiff = cal.month - otherCal.month
+    val dayDiff = cal.dayOfMonth - otherCal.dayOfMonth
 
     return yearDiff + monthDiff + dayDiff
 }
 
 fun Date.compareTime(other: Date, secondsIncluded: Boolean = false): Int {
-    val hourDiff = hours - other.hours
-    val minutesDiff = minutes - other.minutes
-    if (!secondsIncluded)
-        return hourDiff + minutesDiff
+    val cal = cal()
+    val otherCal = other.cal()
+    val hourDiff = cal.hour - otherCal.hour
+    val minutesDiff = cal.minute - otherCal.minute
 
-    val secondsDiff = seconds - other.seconds
+    if (!secondsIncluded)
+        return hourDiff - minutesDiff
+
+    val secondsDiff = cal.second - otherCal.second
 
     return hourDiff + minutesDiff + secondsDiff
 }

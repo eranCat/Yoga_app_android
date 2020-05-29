@@ -4,7 +4,10 @@ import android.app.Application
 import com.erank.yogappl.R
 import com.erank.yogappl.data.injection.AppComponent
 import com.erank.yogappl.data.injection.DaggerAppComponent
+import com.erank.yogappl.data.room.AppDatabase
+import com.facebook.stetho.Stetho
 import com.unsplash.pickerandroid.photopicker.UnsplashPhotoPicker
+import javax.inject.Inject
 
 class App : Application() {
     private lateinit var appComponent: AppComponent
@@ -19,7 +22,18 @@ class App : Application() {
         )
 
         appComponent = DaggerAppComponent.factory().create(this)
+
+        Stetho.initializeWithDefaults(this)
     }
 
     fun getAppComponent(): AppComponent = appComponent
+
+    @Inject
+    lateinit var appDB: AppDatabase
+
+    override fun onTerminate() {
+        appComponent.inject(this)
+        runOnBackground({appDB.clearAllTables()})
+        super.onTerminate()
+    }
 }

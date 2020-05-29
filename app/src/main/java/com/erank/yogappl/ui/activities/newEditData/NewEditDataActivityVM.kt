@@ -19,13 +19,10 @@ class NewEditDataActivityVM @Inject constructor(val repository: Repository) : Vi
         )
     }
 
-    suspend fun updateLesson(lesson: Lesson) {
-        repository.updateLesson(lesson)
-    }
+    suspend fun updateLesson(lesson: Lesson) = repository.updateLesson(lesson)
 
-    suspend fun updateEvent(event: Event) {
+    suspend fun updateEvent(event: Event) =
         repository.updateEvent(event, result?.uri, result?.bitmap)
-    }
 
     val currentUser = repository.currentUser
     lateinit var dataInfo: DataInfo

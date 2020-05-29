@@ -9,6 +9,7 @@ import com.erank.yogappl.ui.activities.register.RegisterActivity
 import com.erank.yogappl.ui.activities.splash.SplashActivity
 import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.ui.fragments.lessons.LessonsListFragment
+import com.erank.yogappl.utils.App
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -25,6 +26,7 @@ interface AppComponent {
     fun inject(fragment: LessonsListFragment)
     fun inject(activity: LoginActivity)
     fun inject(activity: LocationPickerActivity)
+    fun inject(app: App)
 
     @Component.Factory
     interface Factory {

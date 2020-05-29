@@ -8,18 +8,17 @@ import com.erank.yogappl.data.enums.SourceType
 import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.data.enums.TableNames
 import com.erank.yogappl.data.models.*
+import com.erank.yogappl.data.models.User.Type.STUDENT
+import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.utils.SigningErrors
 import com.erank.yogappl.utils.extensions.await
 import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import com.google.gson.JsonParseException
 import org.imperiumlabs.geofirestore.GeoFirestore
 import java.util.*
 import javax.inject.Inject
@@ -57,42 +56,60 @@ class Repository @Inject constructor(
         dataModelHolder.getEvents(type, currentUser!!.id)
 
     suspend fun loadData() {
-        loadAll(DataType.LESSONS)
-        loadAll(DataType.EVENTS)
+        val usersToFetch = loadAllLessons()
+        val otherUsersToFetch = loadAllEvents()
+        fetchUsersIfNeeded(usersToFetch + otherUsersToFetch)
     }
 
-    suspend fun loadAll(dType: DataType) {
-        val (code, latLng) = locationHelper.getCountryCode()
+    private suspend fun loadAllLessons(): MutableSet<String> {
+        val ref = DBRefs.EVENTS_REF.ref
+        val documents = getQuerySnapshot(ref).documents
+        val users = mutableSetOf<String>()
+        val lessons = documents.map { doc ->
+            doc.toObject<Lesson>()!!.also {
+                users.add(it.uid)
+            }
+        }
+        dataModelHolder.addLessons(lessons)
+        return users
+    }
 
-        val ref = DBRefs.refForType(dType)
-        var query = latLng?.let {
+    private suspend fun loadAllEvents(): MutableSet<String> {
+        val ref = DBRefs.LESSONS_REF.ref
+        val documents = getQuerySnapshot(ref).documents
+        val users = mutableSetOf<String>()
+        val events = documents.map { doc ->
+            doc.toObject<Event>()!!.also {
+                users.add(it.uid)
+            }
+        }
+        dataModelHolder.addEvents(events)
+        return users
+    }
+
+    private suspend fun getQuerySnapshot(ref: CollectionReference): QuerySnapshot {
+        var query = locationHelper.getLastKnownLocation()?.let {
             val center = GeoPoint(it.latitude, it.longitude)
             GeoFirestore(ref)
                 .queryAtLocation(center, MAX_KM)
-                .queries.first()
-                ?: ref.whereEqualTo("countryCode", code)
+                .queries[0]
+        } ?: ref
 
-        } ?: ref.whereEqualTo("countryCode", code)
+        val code = locationHelper.getCountryCode()
+        query = query.whereEqualTo("countryCode", code)
 
         if (isFilteringByDate) {
-           query = query.whereGreaterThanOrEqualTo("startDate", Date())
+            query = query.whereGreaterThanOrEqualTo("startDate", Date())
         }
 
-
-        val snapshot = query.get().await()
-            ?: throw NullPointerException("No snapshot found")
-
-        LoadDataValueEventHandler(dType, this).convertSnapshot(snapshot)
+        return query.get().await()!!
     }
 
     suspend fun getUser(uid: String) = dataModelHolder.getUser(uid)
 
-    suspend fun fetchLoggedUser(): User? {
-
-        val uid = authHelper.currentUser?.uid
-            ?: return null
-
-        return currentUser ?: fetchUserIfNeeded(uid).also {
+    suspend fun fetchLoggedUser(): User {
+        val uid = authHelper.currentUser!!.uid
+        return loadUserFromFirebase(uid).also {
             currentUser = it
         }
     }
@@ -101,37 +118,28 @@ class Repository @Inject constructor(
         return dataModelHolder.getUsers(ids)
     }
 
-    suspend fun fetchUsersIfNeeded(users: Set<String>) {
-        for (id in users) {
-            fetchUserIfNeeded(id)
+    private suspend fun fetchUsersIfNeeded(users: Set<String>) =
+        users.forEach { fetchUserIfNeeded(it) }
+
+    private suspend fun fetchUserIfNeeded(id: String): User {
+        return dataModelHolder.getUser(id)
+            ?: loadUserFromFirebase(id)
+    }
+
+    private suspend fun loadUserFromFirebase(id: String): User {
+        val snapshot = userRef(id).get().await()!!
+        return convertUser(snapshot).also {
+            dataModelHolder.addUser(it)
         }
     }
 
-    suspend fun fetchUserIfNeeded(id: String): User? {
-        dataModelHolder.getUser(id)?.let {
-            return it
-        }
+    private fun convertUser(snapshot: DocumentSnapshot): User {
+        val value = snapshot.getString("type")!!
 
-        val snapshot = userRef(id).get().await()
-            ?: return null
-
-        val user = convertUser(snapshot)
-            ?: throw JsonParseException("user casting failed")
-
-        dataModelHolder.insertUser(user)
-        return user
-    }
-
-    private fun convertUser(snapshot: DocumentSnapshot): User? {
-        val userTypeIndex = snapshot.getString("type")
-            ?: return null
-
-        val type = when (User.Type.valueOf(userTypeIndex)) {
-            User.Type.STUDENT -> User::class.java
-            User.Type.TEACHER -> Teacher::class.java
-        }
-
-        return snapshot.toObject(type)
+        return when (User.Type.valueOf(value)) {
+            TEACHER -> snapshot.toObject<Teacher>()
+            STUDENT -> snapshot.toObject<User>()
+        }!!
     }
 
     suspend fun createUser(
@@ -140,22 +148,19 @@ class Repository @Inject constructor(
     ): User? {
 
         //        stage 1 - add new simple user to the firebase Auth
-        val authResult = authHelper.createUser(user.email, pass).await()
-            ?: return null
-
+        val authResult = authHelper.createUser(user.email, pass).await()!!
         //       set id to user
-        user.id = authResult.user!!.uid
+        val uid = authResult.user!!.uid
+        user.id = uid
         val uri = selectedImage?.let {
-            storage.saveUserImage(user, it)
-        }
-            ?: bitmap?.let {
-                storage.saveUserImage(user, it)
-            }
+            storage.saveUserImage(uid, it)
+        } ?: bitmap?.let { storage.saveUserImage(uid, it) }
 
-        return uri?.run {
-            uploadUserToDB(user)
-            user
+        uri?.let {
+            user.profileImageUrl = it.toString()
         }
+        uploadUserToDB(user)
+        return user
     }
 
     suspend fun updateCurrentUser(selectedImage: Uri?, selectedImageBitmap: Bitmap?) {
@@ -163,11 +168,11 @@ class Repository @Inject constructor(
 
         when {
             selectedImage != null -> {
-                storage.saveUserImage(user, selectedImage)
+                storage.saveUserImage(user.id, selectedImage)
             }
 
             selectedImageBitmap != null -> {
-                storage.saveUserImage(user, selectedImageBitmap)
+                storage.saveUserImage(user.id, selectedImageBitmap)
             }
         }
         updateUser(user)
@@ -257,6 +262,7 @@ class Repository @Inject constructor(
 
     suspend fun updateLesson(lesson: Lesson) {
         lessonRef(lesson).set(lesson).await()
+        dataModelHolder.updateData(lesson)
     }
 
     suspend fun updateEvent(
@@ -276,17 +282,19 @@ class Repository @Inject constructor(
         saveInDB(event)
     }
 
-    private fun saveInDB(event: Event) = eventRef(event).set(event)
+    private suspend fun saveInDB(event: Event) {
+        eventRef(event).set(event).await()
+        dataModelHolder.updateData(event)
+    }
 
     suspend fun deleteLesson(lesson: Lesson) {
 //        TODO check if signed users
 //        TODO if so, cancel ;else delete
         lessonRef(lesson).delete().await()
         val teacher = currentUser as Teacher
-
         teacher.teachingLessonsIDs.remove(lesson.id)
-        val map = teacher.teachingClassesMap
-
+        val uploads = teacher.teachingLessonsIDs.toList()
+        val map = mapOf("teachingLessonsIDs" to uploads)
         userRef(teacher).update(map).await()
         teacher.removeLesson(lesson.id)
         dataModelHolder.removeData(lesson)
@@ -298,7 +306,8 @@ class Repository @Inject constructor(
         eventRef(event).delete().await()
         val user = currentUser!!
         user.createdEventsIDs.remove(event.id)
-        val map = user.createdEventsIDsMap
+        val uploads = user.createdEventsIDs.toList()
+        val map = mapOf("createdEventsIDs" to uploads)
         userRef(user).update(map).await()
         user.removeEvent(event.id)
         dataModelHolder.removeData(event)
@@ -308,17 +317,10 @@ class Repository @Inject constructor(
     suspend fun getData(dataType: DataType, id: String) =
         dataModelHolder.getData(dataType, id)
 
-    fun isUserSignedToLesson(lesson: Lesson) =
-        currentUser!!.signedLessonsIDS.contains(lesson.id)
-
-    fun isUserSignedToEvent(event: Event) =
-        currentUser!!.signedEventsIDS.contains(event.id)
-
     suspend fun toggleSignToLesson(lesson: Lesson): Boolean {
         currentUser!!.run {
             return signToggleToData(
-                id,
-                signedLessonsIDS, signedClassesMap,
+                id, signedLessonsIDS,
                 lessonRef(lesson), lesson
             )
         }
@@ -327,17 +329,14 @@ class Repository @Inject constructor(
     suspend fun toggleSignToEvent(event: Event): Boolean {
         currentUser!!.run {
             return signToggleToData(
-                id,
-                signedEventsIDS, signedEventsMap,
+                id, signedEventsIDS,
                 eventRef(event), event
             )
         }
     }
 
     private suspend inline fun <reified T : BaseData> signToggleToData(
-        userID: String,
-        userSigned: MutableSet<String>,
-        userSignedMap: Map<String, Any>,
+        userID: String, userSigned: MutableList<String>,
         ref: DocumentReference, data: T
     ): Boolean {
         val isSigned = data.signed.contains(userID)
@@ -375,11 +374,11 @@ class Repository @Inject constructor(
         }
 
         snapshot.reference.update(map).await()
-        return addDataToUser(dbData, userID, userSigned, userSignedMap)
+        return addDataToUser(dbData, userID, userSigned)
     }
 
     private suspend fun <T : BaseData> removeDataFromUser(
-        data: T, userID: String, userSigned: MutableSet<String>
+        data: T, userID: String, userSigned: MutableList<String>
     ): Boolean {
         val updateKey = when (data) {
             is Lesson -> "signedClasses"
@@ -399,9 +398,7 @@ class Repository @Inject constructor(
     }
 
     private suspend fun <T : BaseData> addDataToUser(
-        data: T, uid: String,
-        userSigned: MutableSet<String>,
-        userSignedMap: Map<String, Any>
+        data: T, uid: String, userSigned: MutableList<String>
     ): Boolean {
         userSigned.add(data.id)
         val updateKey = when (data) {
@@ -409,19 +406,11 @@ class Repository @Inject constructor(
             is Event -> "signedEvents"
             else -> throw IllegalArgumentException("Data isn't matching")
         }
-        val map = mapOf(updateKey to userSignedMap)
+        val map = mapOf(updateKey to userSigned)
         userRef(uid).update(map).await()
         userSigned.add(data.id)
         dataModelHolder.addNewData(data)
         return true
-    }
-
-    suspend fun addAllLessons(lessons: List<Lesson>) {
-        dataModelHolder.addLessons(lessons)
-    }
-
-    suspend fun addAllEvents(events: List<Event>) {
-        dataModelHolder.addEvents(events)
     }
 
     suspend fun getFilteredEvents(type: SourceType, query: String): List<Event> {

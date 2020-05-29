@@ -1,10 +1,7 @@
 package com.erank.yogappl.data.room.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
+import androidx.room.*
 import androidx.room.OnConflictStrategy.REPLACE
-import androidx.room.Update
 
 @Dao
 interface GenericDao<T> {
@@ -12,10 +9,10 @@ interface GenericDao<T> {
     @Insert(onConflict = REPLACE)
     suspend fun insert(data: T)
 
-    @Insert
+    @Insert(onConflict = REPLACE)
     suspend fun insertAll(data: List<T>)
 
-    @Update
+    @Update(onConflict = REPLACE)
     suspend fun update(vararg data: T)
 
     @Delete

@@ -15,19 +15,19 @@ interface EventDao : GenericDao<Event> {
     fun getUploadedEvents(uid: String): LiveData<List<Event>>
 
     //signed contains uid
-    @Query("SELECT * FROM events where :uid LIKE '%'+signed+'%' ORDER BY startDate")
+    @Query("SELECT * FROM events where :uid IN (signed) ORDER BY startDate")
     fun getSignedEvents(uid: String): LiveData<List<Event>>
 
     @Query("SELECT * FROM events where id = :id LIMIT 1")
     override suspend fun getById(id: String): Event?
 
 
-    @Query("SELECT * FROM EVENTS WHERE uid != :uid AND title LIKE '%'|:query|'%'")
-    fun allEventsFiltered(uid: String, query: String): List<Event>
+    @Query("SELECT * FROM EVENTS WHERE uid != :uid AND :query IN(title)")
+    suspend fun allEventsFiltered(uid: String, query: String): List<Event>
 
-    @Query("SELECT * FROM EVENTS WHERE uid = :uid AND title LIKE '%'|:query|'%'")
-    fun uploadedEventsFiltered(uid: String, query: String): List<Event>
+    @Query("SELECT * FROM EVENTS WHERE uid = :uid AND :query IN(title)")
+    suspend fun uploadedEventsFiltered(uid: String, query: String): List<Event>
 
-    @Query("SELECT * FROM EVENTS WHERE signed LIKE '%'|:uid|'%' AND title LIKE '%'|:query|'%'")
-    fun signedEventsFiltered(uid: String, query: String): List<Event>
+    @Query("SELECT * FROM EVENTS WHERE :uid IN (signed) AND :query IN(title)")
+    suspend fun signedEventsFiltered(uid: String, query: String): List<Event>
 }

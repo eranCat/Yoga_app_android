@@ -37,7 +37,7 @@ class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdap
 
     override fun createAdapter(): LessonsAdapter {
         val uploads = (viewModel.user as? Teacher)?.teachingLessonsIDs
-            ?: emptySet<String>()
+            ?: listOf<String>()
         val signed = viewModel.user!!.signedEventsIDS
         val adapter = LessonsAdapter(isEditable, uploads, signed)
         return initAdapter(adapter)
@@ -45,31 +45,27 @@ class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdap
 
     //    TODO add index for delete
     override fun onDeleteConfirmed(item: Lesson) {
-        runOnBackground({
-            viewModel.deleteLesson(item)
-        }) {
+        runOnBackground({ viewModel.deleteLesson(item) }) {
             data_recycler_view.adapter?.notifyDataSetChanged()
         }
     }
 
-
     override suspend fun toggleSign(item: Lesson) =
         viewModel.toggleSignToLesson(item)
 
+    override fun getLiveData() = viewModel.getLessons(currentSourceType)
 
-    override fun getLiveData() =
-        viewModel.getLessons(currentSourceType)
+    override fun onListUpdated(list: List<Lesson>) = getUsers(list)
 
-    override suspend fun getFilteredData(query: String): List<Lesson> {
-        return viewModel.getFilteredLessons(currentSourceType, query)
-    }
+    override suspend fun getFilteredData(query: String) =
+        viewModel.getFilteredLessons(currentSourceType, query)
 
-    override fun onListUpdated(list: List<Lesson>) {
-        runOnBackground({
-            viewModel.getUsersMap(list)
-        }) { it ->
-            val adapter = data_recycler_view.adapter as LessonsAdapter
-            adapter.setUsers(it)
+    private fun getUsers(list: List<Lesson>) {
+        runOnBackground({ viewModel.getUsersMap(list) }) { it ->
+            with(dataAdapter) {
+                setUsers(it)
+                notifyDataSetChanged()
+            }
         }
     }
 }

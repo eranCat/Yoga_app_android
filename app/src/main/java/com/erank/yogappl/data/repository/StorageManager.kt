@@ -3,7 +3,6 @@ package com.erank.yogappl.data.repository
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat.JPEG
 import android.net.Uri
-import android.util.Log
 import com.erank.yogappl.data.models.Event
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.utils.extensions.await
@@ -28,34 +27,22 @@ class StorageManager() {
 
     private val TAG = StorageManager::class.java.name
 
-    fun removeCurrentUserProfileImage(user: User, completion: TaskCallback<Void, Exception>) {
-        // remove the file from storage
-        userImageRef(user).delete()
-            .addOnSuccessListener { removeUserProfileImageFromDB(user, completion) }
-            .addOnFailureListener(completion::onFailure)
-    }
-
-    private fun removeUserProfileImageFromDB(
-        user: User,
-        completion: TaskCallback<Void, Exception>
-    ) {
+//    TODO use this method user activity
+    suspend fun removeUserProfileImage(user: User) {
         //save the image url in current users obj
+        userImageRef(user.id).delete().await()
         user.profileImageUrl = null
-        //update in DB
-
-        userImageRef(user).delete()
-            .addOnFailureListener(completion::onFailure)
     }
 
-    suspend fun saveUserImage(user: User, imageUri: Uri): Uri? =
-        userImageRef(user).let {
-            continueSaveUserImageTask(it.putFile(imageUri), it, user)
+    suspend fun saveUserImage(uid: String, imageUri: Uri): Uri? =
+        userImageRef(uid).let {
+            continueSaveUserImageTask(it.putFile(imageUri), it)
         }.await()
 
-    suspend fun saveUserImage(user: User, bitmap: Bitmap): Uri? =
-        with(userImageRef(user)) {
+    suspend fun saveUserImage(uid: String, bitmap: Bitmap): Uri? =
+        with(userImageRef(uid)) {
             val uploadTask = putBytes(bitmapToJPEGBytes(bitmap))
-            continueSaveUserImageTask(uploadTask, this, user).await()
+            continueSaveUserImageTask(uploadTask, this).await()
         }
 
     private fun bitmapToJPEGBytes(bitmap: Bitmap) = ByteArrayOutputStream()
@@ -64,8 +51,7 @@ class StorageManager() {
 
     private fun continueSaveUserImageTask(
         uploadTask: UploadTask,
-        userRef: StorageReference,
-        user: User
+        userRef: StorageReference
     ): Task<Uri> {
         return uploadTask.continueWithTask { task ->
             val exception = task.exception
@@ -73,12 +59,10 @@ class StorageManager() {
                 throw exception
             }
             userRef.downloadUrl
-        }.addOnSuccessListener {
-            user.profileImageUrl = it.toString()
         }
     }
 
-    private fun userImageRef(user: User) = StorageRefs.USERS_IMAGES.ref.child(user.id)
+    private fun userImageRef(uid: String) = StorageRefs.USERS_IMAGES.ref.child(uid)
 
     private fun eventRef(event: Event) =
         StorageRefs.EVENTS_IMAGES.ref.child(event.id)
@@ -107,15 +91,9 @@ class StorageManager() {
         eventRef.downloadUrl
     }
 
-    fun removeEventImage(event: Event): Task<Void>? {
-        return event.imageUrl?.let {
-            eventRef(event).delete()
-                .addOnSuccessListener {
-                    Log.d(TAG, "event ${event.id} image removed")
-                }
-                .addOnFailureListener {
-                    Log.d(TAG, "event ${event.id} failed to remove", it)
-                }
+    suspend fun removeEventImage(event: Event) {
+        if (event.imageUrl != null) {
+            eventRef(event).delete().await()
         }
     }
 }

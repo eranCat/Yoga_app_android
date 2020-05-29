@@ -61,6 +61,8 @@ class DataModelsHolder(db: AppDatabase) {
 
     suspend fun addLessons(lessons: List<Lesson>) = lessonsDao.insertAll(lessons)
 
+    suspend fun addLesson(lesson: Lesson) = lessonsDao.insert(lesson)
+
     suspend fun addEvent(event: Event) = eventsDao.insert(event)
 
     suspend fun addEvents(events: List<Event>) = eventsDao.insertAll(events)

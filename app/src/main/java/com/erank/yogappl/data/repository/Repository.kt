@@ -38,17 +38,14 @@ class Repository @Inject constructor(
     private val isFilteringByDate = false
 
     object DBRefs {
-        val LESSONS_REF: CollectionReference
-            get() = ref(TableNames.LESSONS)
-        val EVENTS_REF: CollectionReference
-            get() = ref(TableNames.EVENTS)
-        val USERS_REF: CollectionReference
-            get() = ref(TableNames.USERS)
+        val LESSONS_REF get() = ref(TableNames.LESSONS)
+        val EVENTS_REF get() = ref(TableNames.EVENTS)
+        val USERS_REF get() = ref(TableNames.USERS)
 
         private fun ref(name: String) =
             Firebase.firestore.collection(name)
 
-        fun refForType(type: DataType)= when (type) {
+        fun refForType(type: DataType) = when (type) {
             DataType.LESSONS -> LESSONS_REF
             DataType.EVENTS -> EVENTS_REF
         }
@@ -67,8 +64,7 @@ class Repository @Inject constructor(
     }
 
     private suspend fun loadAllLessons(): MutableSet<String> {
-        val ref = DBRefs.EVENTS_REF
-        val documents = getQuerySnapshot(ref).documents
+        val documents = getQuerySnapshot(DBRefs.LESSONS_REF)
         val users = mutableSetOf<String>()
         val lessons = documents.map { doc ->
             doc.toObject<Lesson>()!!.also {
@@ -80,8 +76,7 @@ class Repository @Inject constructor(
     }
 
     private suspend fun loadAllEvents(): MutableSet<String> {
-        val ref = DBRefs.LESSONS_REF
-        val documents = getQuerySnapshot(ref).documents
+        val documents = getQuerySnapshot(DBRefs.EVENTS_REF)
         val users = mutableSetOf<String>()
         val events = documents.map { doc ->
             doc.toObject<Event>()!!.also {
@@ -92,7 +87,7 @@ class Repository @Inject constructor(
         return users
     }
 
-    private suspend fun getQuerySnapshot(ref: CollectionReference): QuerySnapshot {
+    private suspend fun getQuerySnapshot(ref: CollectionReference): List<DocumentSnapshot> {
         var query = locationHelper.getLastKnownLocation()?.let {
             val center = GeoPoint(it.latitude, it.longitude)
             GeoFirestore(ref)
@@ -107,7 +102,7 @@ class Repository @Inject constructor(
             query = query.whereGreaterThanOrEqualTo("startDate", Date())
         }
 
-        return query.get().await()!!
+        return query.get().await()!!.documents
     }
 
     suspend fun getUser(uid: String) = dataModelHolder.getUser(uid)
@@ -216,7 +211,7 @@ class Repository @Inject constructor(
         Log.d(TAG, "added in room")
 
         if (data is Lesson) {
-            saveUserLesson(data.id)
+            saveUserLesson(data)
             return
         }
 
@@ -241,24 +236,23 @@ class Repository @Inject constructor(
     }
 
     private suspend fun saveUserEvent(event: Event) {
-        val eventMap = event to Status.OPEN.ordinal
         val user = currentUser!!
 
-        userRef(user).update("createdEventsIds", eventMap).await()
+        userRef(user).update("createdEventsIds", event.id).await()
 
         dataModelHolder.addEvent(event)
         user.addEvent(event.id)
         dataModelHolder.updateUser(user)
     }
 
-
-    private suspend fun saveUserLesson(id: String) {
+    private suspend fun saveUserLesson(lesson: Lesson) {
         val teacher = currentUser as Teacher
 
-        val lesson = id to Status.OPEN.ordinal
-        userRef(teacher)
-            .update("teachingClassesIDs", lesson).await()
-        teacher.addLesson(id)
+        userRef(teacher).update("teachingClassesIDs", lesson.id).await()
+
+        dataModelHolder.addLesson(lesson)
+        teacher.addLesson(lesson.id)
+        dataModelHolder.updateUser(teacher)
     }
 
     private fun lessonRef(lesson: Lesson) = DBRefs.LESSONS_REF.document(lesson.id)

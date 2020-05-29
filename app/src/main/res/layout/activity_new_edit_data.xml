@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/info_bg"
-        tools:context=".activities.NewEditDataActivity">
+        tools:context=".ui.activities.newEditData.NewEditDataActivity">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -19,7 +19,7 @@
             android:showDividers="middle"
             android:weightSum="10">
 
-            <com.erank.yogappl.utils.custom_views.RoundedImageView
+            <com.erank.yogappl.ui.custom_views.RoundedImageView
                 android:id="@+id/event_img_view"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
@@ -172,7 +172,7 @@
 
             </LinearLayout>
 
-            <com.erank.yogappl.utils.custom_views.DataLevelSpinner
+            <com.erank.yogappl.ui.custom_views.DataLevelSpinner
                 android:id="@+id/level_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
@@ -184,7 +184,7 @@
                 android:background="@drawable/rounded_edittext"
                 android:fontFamily="@font/archivo_narrow"
                 android:hint="cost"
-                android:inputType="numberDecimal|numberSigned"
+                android:inputType="numberSigned"
                 android:maxLength="5"
                 android:padding="8dp"
                 android:textSize="18sp" />

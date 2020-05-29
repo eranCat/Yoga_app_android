@@ -2,7 +2,7 @@ package com.erank.yogappl.utils
 
 import android.view.MenuItem
 import androidx.appcompat.widget.SearchView
-import com.erank.yogappl.utils.enums.SearchState
+import com.erank.yogappl.data.enums.SearchState
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 
 abstract class SearchWatcher : MenuItem.OnActionExpandListener,

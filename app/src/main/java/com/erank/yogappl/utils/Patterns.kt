@@ -1,9 +1,9 @@
 package com.erank.yogappl.utils
 
 import android.util.Patterns
-import com.erank.yogappl.models.LocationResult
-import com.erank.yogappl.utils.enums.TextFieldValidStates
-import com.erank.yogappl.utils.enums.TextFieldValidStates.*
+import com.erank.yogappl.data.enums.TextFieldValidStates
+import com.erank.yogappl.data.enums.TextFieldValidStates.*
+import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.utils.extensions.addMinuets
 import com.erank.yogappl.utils.extensions.compareDate
 import java.util.*
@@ -19,7 +19,7 @@ object Patterns {
     )
 
     private val USERNAME_PATTERN =
-        Pattern.compile("^(?=.{6,20}\$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])\$")
+        Pattern.compile("^(?=.{3,20}\$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])\$")
 
     fun isEmailValid(email: String) = when {
         email.isBlank() -> EMPTY

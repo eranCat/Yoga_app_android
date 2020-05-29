@@ -13,7 +13,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.R
-import com.erank.yogappl.activities.RegisterActivity
+import com.erank.yogappl.ui.activities.register.RegisterActivity
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
@@ -42,15 +42,15 @@ class MyImagePicker(val callback: ImagePickerCallback) {
         val items = activity.resources.getStringArray(arr)
 
         val actions = arrayOf(
-            Runnable { pickFromGallery(activity) },
-            Runnable { pickFromUnsplash(activity) },
-            Runnable { takePhoto(activity) },
-            Runnable { callback.onImageRemove() }
+            { pickFromGallery(activity) },
+            { pickFromUnsplash(activity) },
+            { takePhoto(activity) },
+            { callback.onImageRemove() }
         )
 
         activity.alert("Select image")
             .setItems(items) { _, i ->
-                actions[i].run()
+                actions[i]()
             }.setNegativeButton("Cancel", null)
             .show()
     }
@@ -95,7 +95,7 @@ class MyImagePicker(val callback: ImagePickerCallback) {
             RC_CAMERA -> if (resultCode == RESULT_OK) {
                 val extras = data.extras ?: return
                 val imageBitmap = extras.get("data") as Bitmap
-                callback.onSelectedImage(Result(imageBitmap))
+                callback.onSelectedImage(Result(bitmap = imageBitmap))
             }
 
             RC_UNSPLASH -> if (resultCode == RESULT_OK) {
@@ -110,7 +110,7 @@ class MyImagePicker(val callback: ImagePickerCallback) {
                 val result = CropImage.getActivityResult(data)
 
                 if (resultCode == RESULT_OK) {
-                    callback.onSelectedImage(Result(result.uri))
+                    callback.onSelectedImage(Result(uri = result.uri))
                     return
                 }
                 if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE)
@@ -162,18 +162,11 @@ class MyImagePicker(val callback: ImagePickerCallback) {
     }
 
     class Result(
-        val urls: UnsplashUrls?,
-        val bitmap: Bitmap?,
-        val uri: Uri?
+        val urls: UnsplashUrls? = null,
+        val bitmap: Bitmap? = null,
+        val uri: Uri? = null
     ) {
-
-        constructor(urls: UnsplashUrls) :
-                this(urls, null, null)
-
-        constructor(bitmap: Bitmap) :
-                this(null, bitmap, null)
-
-        constructor(uri: Uri?) :
-                this(null, null, uri)
+        val hasImage: Boolean
+            get() = urls != null || uri != null || bitmap != null
     }
 }

@@ -1,38 +1,40 @@
 package com.erank.yogappl.utils.helpers
 
-import android.content.Context
-import android.net.Uri
-import com.erank.yogappl.utils.coroutines.CurrencyTask
+import com.erank.yogappl.data.network.CurrencyLayerApi
+import com.erank.yogappl.data.repository.SharedPrefsHelper
 import com.erank.yogappl.utils.extensions.add
-import com.erank.yogappl.utils.interfaces.MoneyConnectionCallback
 import java.util.*
+import java.util.Calendar.WEEK_OF_MONTH
 
-object MoneyConverter {
+class MoneyConverter(
+    val api: CurrencyLayerApi,
+    val sharedPrefs: SharedPrefsHelper
+) {
 
-    private const val ApiKey = "ceb2a9d4119b6738d3fa4b8340d94adb"
-    private const val BaseApi = "apilayer.net"
+    companion object {
+        private var localeCurrencyMultiplier = 1f//1 dollar * x
 
-    private const val UPDATED_DATE = "moneyLastUpdatedDate"
-    private const val MONEY = "money"
+        fun convertFromLocaleToDefault(amount: Double) = amount / localeCurrencyMultiplier
 
-    private var localeCurrencyMultiplier = 1f//1 dollar * x
+        fun convertFromDefaultToLocale(amount: Double) = amount * localeCurrencyMultiplier
+    }
 
-    fun connect(
-        context: Context,
-        callback: MoneyConnectionCallback
-    ) {
-        val prefs = SharedPrefsHelper.Builder(context)
 
-        prefs.getLong(UPDATED_DATE)?.let { timestamp ->
+    suspend fun connect() {
 
-            val weekAfter = Date(timestamp).add(Calendar.WEEK_OF_MONTH, 1)
-            val aWeekHasNotPassed = weekAfter <= Date()
+        val lastLocale = sharedPrefs.getLastLocale()
+        if (lastLocale == Locale.getDefault().country) {
 
-            if (aWeekHasNotPassed) {
-                prefs.getFloat(MONEY)?.let {
-                    localeCurrencyMultiplier = it
-                    callback.onSuccessConnectingMoney()
-                    return
+            val updateDate = sharedPrefs.getUpdatedDate()
+            if (updateDate != null) {
+
+                val weekAfter = Date(updateDate).add(WEEK_OF_MONTH, 1)
+
+                if (weekAfter <= Date()) {
+                    sharedPrefs.getMoney()?.let {
+                        localeCurrencyMultiplier = it
+                        return
+                    }
                 }
             }
         }
@@ -40,39 +42,16 @@ object MoneyConverter {
         //            get current currency code from location
         val code = Currency.getInstance(Locale.getDefault()).currencyCode
 
-        CurrencyTask(converterUrl(code)) {
+        val response = api.getCurrencyCodes(code).await()
+        if (!response.success) {
+            throw Exception(response.error.toString())
+        }
 
-            if (!it.success) {
-                callback.onFailedConnectingMoney(it.error)
-                return@CurrencyTask
-            }
-
-            localeCurrencyMultiplier = it.quotes["USD$code"]?.toFloat()!!
-            saveMoneyOnSharedPrefs(context)
-            callback.onSuccessConnectingMoney()
-
-        }.start()
+        localeCurrencyMultiplier = response.getUSD(code)!!
+        saveMoneyOnSharedPrefs()
     }
 
-    private fun saveMoneyOnSharedPrefs(context: Context) {
-        SharedPrefsHelper.Builder(context)
-            .put(MONEY, localeCurrencyMultiplier)
-            .put(UPDATED_DATE, Date().time)
-    }
+    private fun saveMoneyOnSharedPrefs() = sharedPrefs
+        .putLastLocale().putUpdatedDate().putMoney(localeCurrencyMultiplier)
 
-    private fun converterUrl(code: String): String {
-        return Uri.Builder()
-            .scheme("http")
-            .authority(BaseApi)
-            .appendPath("api")
-            .appendPath("live")
-            .appendQueryParameter("access_key", ApiKey)
-            .appendQueryParameter("currencies", code)
-            .build()
-            .toString()
-    }
-
-    fun convertFromLocaleToDefault(amount: Double) = amount / localeCurrencyMultiplier
-
-    fun convertFromDefaultToLocale(amount: Double) = amount * localeCurrencyMultiplier
 }

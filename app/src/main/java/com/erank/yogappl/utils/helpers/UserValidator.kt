@@ -1,10 +1,10 @@
 package com.erank.yogappl.utils.helpers
 
-import com.erank.yogappl.models.User
+import com.erank.yogappl.data.enums.TextFieldValidStates
+import com.erank.yogappl.data.enums.TextFieldValidStates.EMPTY
+import com.erank.yogappl.data.enums.TextFieldValidStates.VALID
+import com.erank.yogappl.data.models.User
 import com.erank.yogappl.utils.Patterns
-import com.erank.yogappl.utils.enums.TextFieldValidStates
-import com.erank.yogappl.utils.enums.TextFieldValidStates.EMPTY
-import com.erank.yogappl.utils.enums.TextFieldValidStates.VALID
 import java.util.*
 
 class UserValidator(state: TextFieldValidStates, vararg fields: Fields) {

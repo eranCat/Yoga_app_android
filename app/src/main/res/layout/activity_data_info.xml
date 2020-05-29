@@ -314,6 +314,7 @@
 
         <include
             layout="@layout/progress_layout"
+            android:visibility="gone"
             tools:visibility="gone" />
     </FrameLayout>
 </ScrollView>

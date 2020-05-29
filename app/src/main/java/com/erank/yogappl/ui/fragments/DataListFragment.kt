@@ -21,6 +21,7 @@ import com.erank.yogappl.ui.activities.dataInfo.DataInfoActivity
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.adapters.DataListAdapter
 import com.erank.yogappl.ui.adapters.DataVH
+import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.RemindersAdapter
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
@@ -52,7 +53,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
     private val emptyTV by lazy { empty_tv }
     private val recyclerView by lazy { data_recycler_view }
-    private val progressBar by lazy { progress_bar }
+    private val progressDialog by lazy { ProgressDialog(requireContext()) }
     private val emptySearchTV by lazy { no_results_tv }
 
     override fun onCreateView(
@@ -183,11 +184,11 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
     override fun onSignAction(item: T) {
 
-        progressBar.show()
+        progressDialog.show()
         runOnBackground({
             toggleSign(item)
         }) { isSigned ->
-            progressBar.hide()
+            progressDialog.dismiss()
 
             RemindersAdapter(item).also {
                 remindersAdapter = it

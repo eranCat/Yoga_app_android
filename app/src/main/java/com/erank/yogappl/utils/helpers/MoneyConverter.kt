@@ -25,12 +25,10 @@ class MoneyConverter(
         val lastLocale = sharedPrefs.getLastLocale()
         if (lastLocale == Locale.getDefault().country) {
 
-            val updateDate = sharedPrefs.getUpdatedDate()
-            if (updateDate != null) {
-
-                val weekAfter = Date(updateDate).add(WEEK_OF_MONTH, 1)
-
-                if (weekAfter <= Date()) {
+            sharedPrefs.getUpdatedDate()?.let{ timestamp ->
+                val weekAfter = Date(timestamp).add(WEEK_OF_MONTH, 1)
+                val today = Date()
+                if (today.before(weekAfter)) {
                     sharedPrefs.getMoney()?.let {
                         localeCurrencyMultiplier = it
                         return
@@ -43,8 +41,8 @@ class MoneyConverter(
         val code = Currency.getInstance(Locale.getDefault()).currencyCode
 
         val response = api.getCurrencyCodes(code).await()
-        if (!response.success) {
-            throw Exception(response.error.toString())
+        response.error?.let {
+            throw it.toException()
         }
 
         localeCurrencyMultiplier = response.getUSD(code)!!
@@ -52,6 +50,8 @@ class MoneyConverter(
     }
 
     private fun saveMoneyOnSharedPrefs() = sharedPrefs
-        .putLastLocale().putUpdatedDate().putMoney(localeCurrencyMultiplier)
+        .putLastLocale()
+        .putUpdatedDate()
+        .putMoney(localeCurrencyMultiplier)
 
 }

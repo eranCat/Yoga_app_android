@@ -27,6 +27,7 @@ import com.erank.yogappl.utils.helpers.BaseDataValidator
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
 import com.erank.yogappl.utils.runOnBackground
+import com.unsplash.pickerandroid.photopicker.data.UnsplashUrls
 import kotlinx.android.synthetic.main.activity_new_edit_data.*
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.withContext
@@ -128,7 +129,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             endDateTV.text = endDate.formatted()
 
             imageUrl?.let {
-//                viewModel.selectedEventImgUrl = imageUrl
+                val unsplashUrls = UnsplashUrls(null, it, null, null, null, null, null)
+                viewModel.result = MyImagePicker.Result(urls = unsplashUrls)
                 Glide.with(eventImageView).load(it)
                     .placeholder(R.drawable.img_placeholder)
                     .into(eventImageView)
@@ -295,7 +297,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val coordinate = selectedLocation.location.latLng
         val address = selectedLocation.address
         val locationName = address.streetName ?: address.localName
-            ?: address.longName.ifEmpty { "Location" }
+        ?: address.longName.ifEmpty { "Location" }
         val countryCode = address.countryCode
         val level = levelSpinner.enumValue!!
         val equip = equipEt.text.toString()

@@ -8,7 +8,8 @@ import java.util.Calendar.WEEK_OF_MONTH
 
 class MoneyConverter(
     val api: CurrencyLayerApi,
-    val sharedPrefs: SharedPrefsHelper
+    val sharedPrefs: SharedPrefsHelper,
+    val locationHelper: LocationHelper
 ) {
 
     companion object {
@@ -21,25 +22,21 @@ class MoneyConverter(
 
 
     suspend fun connect() {
-
-        val lastLocale = sharedPrefs.getLastLocale()
-        if (lastLocale == Locale.getDefault().country) {
-
-            sharedPrefs.getUpdatedDate()?.let{ timestamp ->
-                val weekAfter = Date(timestamp).add(WEEK_OF_MONTH, 1)
-                val today = Date()
-                if (today.before(weekAfter)) {
-                    sharedPrefs.getMoney()?.let {
-                        localeCurrencyMultiplier = it
-                        return
-                    }
+//            get current currency code from location
+        val countryCode = locationHelper.getCountryCode()
+//        if locale hasn't changed since last time
+        sharedPrefs.getUpdatedDate()?.let { timestamp ->
+            val weekAfter = Date(timestamp).add(WEEK_OF_MONTH, 1)
+            val today = Date()
+            if (today.before(weekAfter)) {
+                sharedPrefs.getMoney()?.let {
+                    localeCurrencyMultiplier = it
+                    return
                 }
             }
         }
-
-        //            get current currency code from location
+//            get current currency code from location
         val code = Currency.getInstance(Locale.getDefault()).currencyCode
-
         val response = api.getCurrencyCodes(code).await()
         response.error?.let {
             throw it.toException()
@@ -50,7 +47,6 @@ class MoneyConverter(
     }
 
     private fun saveMoneyOnSharedPrefs() = sharedPrefs
-        .putLastLocale()
         .putUpdatedDate()
         .putMoney(localeCurrencyMultiplier)
 

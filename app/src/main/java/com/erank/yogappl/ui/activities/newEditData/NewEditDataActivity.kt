@@ -18,6 +18,7 @@ import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.ui.activities.location.LocationPickerActivity
+import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.DateValidationPredicate
 import com.erank.yogappl.utils.OnDateSet
@@ -58,7 +59,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private val levelSpinner by lazy { level_spinner }
 
     private val eventImageView by lazy { event_img_view }
-    private val progressLayout by lazy { llProgressBar }
+    private val progressDialog by lazy { ProgressDialog(this) }
 
     private lateinit var validator: BaseDataValidator
 
@@ -241,7 +242,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         }
 
         item.isEnabled = false
-        progressLayout.show()
+        progressDialog.show()
 
         viewModel.data?.let {
             createData(it)
@@ -267,7 +268,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun onFailed(e: Exception) {
-        progressLayout.hide()
+        progressDialog.dismiss()
         alert("Problem found", e.localizedMessage)
             .setPositiveButton("ok", null)
             .show()

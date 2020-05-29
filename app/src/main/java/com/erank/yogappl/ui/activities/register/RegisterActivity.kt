@@ -15,6 +15,7 @@ import com.erank.yogappl.data.models.Teacher
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.data.models.User.Type.TEACHER
+import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.MyImagePicker
@@ -32,7 +33,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     private lateinit var userValidator: UserValidator
     private val myImagePicker by lazy { MyImagePicker(this) }
 
-    private val progressLayout by lazy { llProgressBar }
+    private val progressDialog by lazy { ProgressDialog(this) }
 
     companion object {
         private val TAG = RegisterActivity::class.java.name
@@ -108,7 +109,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
         } ?: return
 
-        progressLayout.show()
+        progressDialog.show()
         runOnBackground({
             try {
                 viewModel.updateCurrentUser()
@@ -120,7 +121,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
 
     private fun onFail(e: Exception) {
-        progressLayout.hide()
+        progressDialog.dismiss()
         alert("Things wasn't going as planned...", e.localizedMessage)
             .setPositiveButton("ok", null)
             .show()
@@ -214,7 +215,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
             TEACHER -> Teacher(name, email, bDate, level, about, selectedImageURL)
         }
 
-        progressLayout.isVisible = true
+        progressDialog.show()
         val pass = etPassword.txt
         runOnBackground({
             try {

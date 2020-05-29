@@ -104,5 +104,7 @@ dependencies {
 
 //    Stetho by facebook for DB Debugging
     implementation 'com.facebook.stetho:stetho:1.5.1'
+
+//    Blur view
     implementation 'com.github.mmin18:realtimeblurview:1.2.1'
 }

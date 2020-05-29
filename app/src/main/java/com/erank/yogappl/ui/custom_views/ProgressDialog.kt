@@ -3,7 +3,6 @@ package com.erank.yogappl.ui.custom_views
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.view.ViewGroup
 import android.view.Window
 import com.erank.yogappl.R
 import kotlinx.android.synthetic.main.progress_layout.*

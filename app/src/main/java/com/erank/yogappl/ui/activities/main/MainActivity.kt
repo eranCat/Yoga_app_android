@@ -69,8 +69,6 @@ class MainActivity : AppCompatActivity(),
         initDrawer()
 
         addFab.setOnClickListener { openNewDataActivity() }
-
-        ProgressDialog(this).show()
     }
 
     private fun openNewDataActivity() {

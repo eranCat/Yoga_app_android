@@ -8,10 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.ui.activities.register.RegisterActivity
+import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
-import com.erank.yogappl.utils.extensions.hide
 import com.erank.yogappl.utils.extensions.setTextChangedListener
-import com.erank.yogappl.utils.extensions.show
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.UserValidator
 import com.erank.yogappl.utils.helpers.UserValidator.Fields.EMAIL
@@ -26,7 +25,7 @@ class LoginActivity : AppCompatActivity() {
         const val RC_REGISTER = 243
     }
 
-    private val progressLayout by lazy { llProgressBar }
+    private val progressDialog by lazy { ProgressDialog(this) }
 
     @Inject
     lateinit var viewModel: LoginViewModel
@@ -73,9 +72,9 @@ class LoginActivity : AppCompatActivity() {
         val username = login_email.text.toString()
         val password = login_password.text.toString()
 
-        progressLayout.show()
+        progressDialog.show()
         viewModel.signIn(username, password)
-            .addOnCompleteListener { progressLayout.hide() }
+            .addOnCompleteListener { progressDialog.dismiss() }
             .addOnSuccessListener {
                 //send result to splash screen
                 setResult(RESULT_OK)

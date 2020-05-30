@@ -107,4 +107,6 @@ dependencies {
 
 //    Blur view
     implementation 'com.github.mmin18:realtimeblurview:1.2.1'
+//    Validator
+    implementation 'com.afollestad:vvalidator:0.5.2'
 }

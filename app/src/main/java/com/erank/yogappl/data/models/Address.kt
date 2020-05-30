@@ -39,4 +39,6 @@ data class Address(
                 "freeformAddress='$longName',\n" +
                 "localName='$localName')"
     }
+
+    fun getName() = streetName ?: localName?: longName
 }

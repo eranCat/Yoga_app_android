@@ -15,6 +15,7 @@ import com.erank.yogappl.utils.extensions.await
 import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
+import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -195,8 +196,7 @@ class Repository @Inject constructor(
     suspend fun uploadData(
         dType: DataType,
         data: BaseData,
-        selectedImage: Uri?,
-        selectedBitmap: Bitmap?
+        result: MyImagePicker.Result?
     ) {
 
         val collection = DBRefs.refForType(dType)
@@ -217,21 +217,11 @@ class Repository @Inject constructor(
 
         val event = data as Event
 
-        val uri = when {
-            selectedImage != null -> {
-                storage.saveEventImage(event, selectedImage)
-            }
-            selectedBitmap != null -> {
-                storage.saveEventImage(event, selectedBitmap)
-            }
-            else -> {
-                saveUserEvent(event)
-                return
-            }
+        result?.let {
+            storage.saveEventImage(event, it)
+            dataModelHolder.updateData(event) //update in Local DB
+            ref.set(event).await()
         }
-        event.imageUrl = uri.toString()
-        dataModelHolder.updateData(event) //update in Local DB
-        ref.set(event).await()
         saveUserEvent(event)
     }
 
@@ -264,20 +254,8 @@ class Repository @Inject constructor(
         dataModelHolder.updateData(lesson)
     }
 
-    suspend fun updateEvent(
-        event: Event, localImgPath: Uri?, bitmap: Bitmap?
-    ) {
-
-        when {
-            localImgPath != null -> storage
-                .saveEventImage(event, localImgPath)
-
-            bitmap != null -> storage
-                .saveEventImage(event, bitmap)
-
-
-//            TODO add image From url - upload to server
-        }
+    suspend fun updateEvent(event: Event, result: MyImagePicker.Result?) {
+        result?.let { storage.saveEventImage(event, it) }
         saveInDB(event)
     }
 

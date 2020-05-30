@@ -58,13 +58,31 @@ class Repository @Inject constructor(
         dataModelHolder.getEvents(type, currentUser!!.id)
 
     suspend fun loadData() {
+        loadUserUploads()
         val usersToFetch = loadAllLessons()
         val otherUsersToFetch = loadAllEvents()
         fetchUsersIfNeeded(usersToFetch + otherUsersToFetch)
     }
+    private suspend fun loadUserUploads(){
+        val id = currentUser!!.id
+        val lessDocs = DBRefs.LESSONS_REF
+            .whereEqualTo("uid", id)
+            .get().await()!!
+            .documents
 
+        val eveDocs = DBRefs.EVENTS_REF
+            .whereEqualTo("uid", id)
+            .get().await()!!
+            .documents
+
+        val lessons = lessDocs.map { it.toObject<Lesson>()!! }
+        val events = eveDocs.map { it.toObject<Event>()!! }
+
+        dataModelHolder.addLessons(lessons)
+        dataModelHolder.addEvents(events)
+    }
     private suspend fun loadAllLessons(): MutableSet<String> {
-        val documents = getQuerySnapshot(DBRefs.LESSONS_REF)
+        val documents = getAllSnapshotDocs(DBRefs.LESSONS_REF)
         val users = mutableSetOf<String>()
         val lessons = documents.map { doc ->
             doc.toObject<Lesson>()!!.also {
@@ -76,7 +94,7 @@ class Repository @Inject constructor(
     }
 
     private suspend fun loadAllEvents(): MutableSet<String> {
-        val documents = getQuerySnapshot(DBRefs.EVENTS_REF)
+        val documents = getAllSnapshotDocs(DBRefs.EVENTS_REF)
         val users = mutableSetOf<String>()
         val events = documents.map { doc ->
             doc.toObject<Event>()!!.also {
@@ -87,7 +105,7 @@ class Repository @Inject constructor(
         return users
     }
 
-    private suspend fun getQuerySnapshot(ref: CollectionReference): List<DocumentSnapshot> {
+    private suspend fun getAllSnapshotDocs(ref: CollectionReference): List<DocumentSnapshot> {
 
         val location = locationHelper.getLastKnownLocation()
         var query = if (location != null) {
@@ -100,7 +118,6 @@ class Repository @Inject constructor(
             val code = locationHelper.getCountryCode()
             ref.whereEqualTo("countryCode", code)
         }
-
         query = query.whereGreaterThanOrEqualTo("startDate", Date())
 
         return query.get().await()!!.documents
@@ -115,9 +132,7 @@ class Repository @Inject constructor(
         }
     }
 
-    suspend fun getUsers(ids: Set<String>): Map<String, PreviewUser> {
-        return dataModelHolder.getUsers(ids)
-    }
+    suspend fun getUsers(ids: Set<String>) = dataModelHolder.getUsers(ids)
 
     private suspend fun fetchUsersIfNeeded(users: Set<String>) =
         users.forEach { fetchUserIfNeeded(it) }

@@ -22,12 +22,12 @@ interface EventDao : GenericDao<Event> {
     override suspend fun getById(id: String): Event?
 
 
-    @Query("SELECT * FROM EVENTS WHERE uid != :uid AND :query IN(title)")
+    @Query("SELECT * FROM EVENTS WHERE uid != :uid AND title like '%'||:query||'%'")
     suspend fun allEventsFiltered(uid: String, query: String): List<Event>
 
-    @Query("SELECT * FROM EVENTS WHERE uid = :uid AND :query IN(title)")
+    @Query("SELECT * FROM EVENTS WHERE uid = :uid AND title like '%'||:query||'%'")
     suspend fun uploadedEventsFiltered(uid: String, query: String): List<Event>
 
-    @Query("SELECT * FROM EVENTS WHERE :uid IN (signed) AND :query IN(title)")
+    @Query("SELECT * FROM EVENTS WHERE :uid IN (signed) AND title like '%'||:query||'%'")
     suspend fun signedEventsFiltered(uid: String, query: String): List<Event>
 }

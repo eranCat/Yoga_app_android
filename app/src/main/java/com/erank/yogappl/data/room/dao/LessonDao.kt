@@ -22,12 +22,12 @@ interface LessonDao : GenericDao<Lesson> {
     @Query("SELECT * FROM LESSONS where id = :id LIMIT 1")
     override suspend fun getById(id: String): Lesson?
 
-    @Query("SELECT * FROM LESSONS WHERE uid != :uid AND :query IN(title)")
+    @Query("SELECT * FROM LESSONS WHERE uid != :uid AND title like '%'||:query||'%'")
     suspend fun allLessonsFiltered(uid: String, query: String): List<Lesson>
 
-    @Query("SELECT * FROM LESSONS WHERE  :uid IN (signed) AND :query IN(title)")
+    @Query("SELECT * FROM LESSONS WHERE  :uid IN (signed) AND title like '%'||:query||'%'")
     suspend fun signedLessonsFiltered(uid: String, query: String): List<Lesson>
 
-    @Query("SELECT * FROM LESSONS WHERE uid = :uid AND :query IN(title)")
+    @Query("SELECT * FROM LESSONS WHERE uid = :uid AND title like '%'||:query||'%'")
     suspend fun uploadedLessonsFiltered(uid: String, query: String): List<Lesson>
 }

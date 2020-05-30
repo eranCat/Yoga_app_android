@@ -88,16 +88,20 @@ class Repository @Inject constructor(
     }
 
     private suspend fun getQuerySnapshot(ref: CollectionReference): List<DocumentSnapshot> {
-        var query = locationHelper.getLastKnownLocation()?.let {
-            val center = GeoPoint(it.latitude, it.longitude)
-            GeoFirestore(ref)
-                .queryAtLocation(center, MAX_KM)
-                .queries[0]
-        } ?: ref
 
-        val code = locationHelper.getCountryCode()
-        query = query.whereEqualTo("countryCode", code)
-            .whereGreaterThanOrEqualTo("startDate", Date())
+        val location = locationHelper.getLastKnownLocation()
+        var query = if (location != null) {
+            val center = GeoPoint(
+                location.latitude,
+                location.longitude
+            )
+            GeoFirestore(ref).queryAtLocation(center, MAX_KM).queries.first()
+        } else {
+            val code = locationHelper.getCountryCode()
+            ref.whereEqualTo("countryCode", code)
+        }
+
+        query = query.whereGreaterThanOrEqualTo("startDate", Date())
 
         return query.get().await()!!.documents
     }

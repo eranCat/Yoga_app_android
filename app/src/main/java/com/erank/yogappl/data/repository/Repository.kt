@@ -97,7 +97,7 @@ class Repository @Inject constructor(
 
         val code = locationHelper.getCountryCode()
         query = query.whereEqualTo("countryCode", code)
-//            .whereGreaterThanOrEqualTo("startDate", Date())
+            .whereGreaterThanOrEqualTo("startDate", Date())
 
         return query.get().await()!!.documents
     }

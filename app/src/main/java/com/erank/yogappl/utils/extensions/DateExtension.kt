@@ -100,7 +100,7 @@ fun Date.compareTime(other: Date, secondsIncluded: Boolean = false): Int {
     val minutesDiff = cal.minute - otherCal.minute
 
     if (!secondsIncluded)
-        return hourDiff - minutesDiff
+        return hourDiff + minutesDiff
 
     val secondsDiff = cal.second - otherCal.second
 

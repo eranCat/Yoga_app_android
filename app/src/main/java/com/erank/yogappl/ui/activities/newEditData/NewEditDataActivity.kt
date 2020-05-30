@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
+import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.vvalidator.form
 import com.afollestad.vvalidator.form.Form
@@ -269,7 +270,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             toast("make sure everything is filled correctly")
             return
         }
-        val data = createData(formResult)?:return
+        val data = createData(formResult) ?: return
 
         item.isEnabled = false
         progressDialog.show()
@@ -307,7 +308,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val title = res["title"]!!.asString()
         val cost = Money(res["cost"]!!.asDouble()!!)
 
-        val location = viewModel.selectedLocation ?:run {
+        val location = viewModel.selectedLocation ?: run {
             toast("Please select a location")
             return null
         }
@@ -321,11 +322,11 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val extra = extraEt.txt
         val maxPpl = res["max"]!!.asInt()!!
 
-        val startDate = viewModel.selectedStartDate?: run {
+        val startDate = viewModel.selectedStartDate ?: run {
             toast("Please select a start date")
             return null
         }
-        val endDate = viewModel.selectedEndDate?: run {
+        val endDate = viewModel.selectedEndDate ?: run {
             toast("Please select an end date")
             return null
         }
@@ -372,8 +373,9 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val invalidMsg = "date needs to be same as start date or after.\n" +
                 "and min time of $type is 30 min"
         val emptyMsg = "please select an end date"
+        val minDate = startDate.addMinuets(30)
         createDatePickerDialog(
-            endDate, startDate, validation,
+            endDate, minDate, validation,
             {
                 it?.let {
                     viewModel.selectedEndDate = it
@@ -385,8 +387,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun createDatePickerDialog(
-        currentDate: Date?,
-        minDate: Date,
+        currentDate: Date?, minDate: Date,
         validation: DateValidationPredicate,
         listener: OnDateSet,
         invalidMsg: String, emptyMsg: String
@@ -395,50 +396,53 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
         val onDateSet: (DatePicker, Int, Int, Int) -> Unit = { _, year, month, day ->
             val current = newDate(year, month, day)
-            showTimePicker(current, invalidMsg, emptyMsg, validation, listener)
+            showTimePicker(current, minDate, invalidMsg, emptyMsg, validation, listener)
         }
 
         val year = cal.year
         val month = cal.month
         val day = cal.dayOfMonth
 
-        DatePickerDialog(this, onDateSet, year, month, day)
-            .apply {
-                datePicker.minDate = minDate.time
-                datePicker.maxDate = minDate.addMonths(3).time
-            }.show()
+        DatePickerDialog(this, onDateSet, year, month, day).apply {
+            datePicker.minDate = minDate.time
+            datePicker.maxDate = minDate.addMonths(3).time
+            show()
+        }
 
     }
 
     private fun showTimePicker(
-        current: Date,
+        current: Date, minDate: Date,
         invalidMsg: String,
         emptyMsg: String,
         validation: DateValidationPredicate,
         callback: OnDateSet
     ) {
 
-        val cal = Calendar.getInstance().apply { time = current }
+        val cal = (if (current > minDate) current else minDate)
+            .cal()
 
-        val is24HourFormat = DateFormat.is24HourFormat(this)
-        TimePickerDialog(
-            this, { _, hour, min ->
-                cal.setHour(is24HourFormat, hour)
-                cal.minute = min
+        val listener: (TimePicker, Int, Int) -> Unit = { _, hour, minute ->
+            cal.hourOfDay = hour
+            cal.minute = minute
 
-                when (validation(cal.time)) {
+            val result = validation(cal.time)
+            if (result == VALID)
+                callback(cal.time)
+            else {
+                when (result) {
                     EMPTY -> toast(emptyMsg)
                     INVALID -> toast(invalidMsg)
-                    VALID -> {
-                        callback(cal.time)
-                        return@TimePickerDialog
-                    }
                 }
-
                 callback(null)
-
-            }, cal.getHour(is24HourFormat), cal.minute, is24HourFormat
-        ).show()
+            }
+        }
+        TimePickerDialog(
+            this, listener,
+            cal.hourOfDay, cal.minute,
+            DateFormat.is24HourFormat(this)
+        )
+            .show()
     }
 
     override fun onRequestPermissionsResult(

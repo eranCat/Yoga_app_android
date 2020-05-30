@@ -36,7 +36,6 @@ class Repository @Inject constructor(
     }
 
     var currentUser: User? = null
-    private val isFilteringByDate = false
 
     object DBRefs {
         val LESSONS_REF get() = ref(TableNames.LESSONS)
@@ -98,10 +97,7 @@ class Repository @Inject constructor(
 
         val code = locationHelper.getCountryCode()
         query = query.whereEqualTo("countryCode", code)
-
-        if (isFilteringByDate) {
-            query = query.whereGreaterThanOrEqualTo("startDate", Date())
-        }
+//            .whereGreaterThanOrEqualTo("startDate", Date())
 
         return query.get().await()!!.documents
     }

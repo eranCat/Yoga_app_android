@@ -114,12 +114,17 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun notifyError(msg: String, e: Exception? = null) {
-        logoImg.clearAnimation()
-        e?.localizedMessage?.let {
-            toast(it)
-            Log.d(TAG, it, e)
+        floatAnimator.cancel()
 
-        } ?: Log.d(TAG, msg)
+        Log.d(TAG, msg, e)
+        e?.localizedMessage?.let {
+            alert(msg, it)
+                .setPositiveButton("ok", null)
+                .show()
+
+        } ?: alert(msg)
+            .setPositiveButton("ok", null)
+            .show()
     }
 
     private fun showInternetDialog() {

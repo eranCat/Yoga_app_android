@@ -7,14 +7,13 @@ import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.extensions.LatLng
 import com.erank.yogappl.utils.extensions.mapped
-import com.erank.yogappl.utils.interfaces.Searchable
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import java.util.*
 
-abstract class BaseData : Searchable {
+abstract class BaseData {
 
     @PrimaryKey
     lateinit var id: String
@@ -244,13 +243,5 @@ abstract class BaseData : Searchable {
         BEGINNERS,
         INTERMEDIATES,
         ADVANCED;
-    }
-
-    override fun searchApplies(query: String): Boolean {
-        return title.contains(query, true)
-                || locationName.contains(query, true)
-//                || DataSource.getUser(uid)?.name
-//            ?.contains(query, true) ?: false
-//        TODO add search by user name
     }
 }

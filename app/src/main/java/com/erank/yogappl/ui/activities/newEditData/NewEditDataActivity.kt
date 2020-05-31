@@ -8,12 +8,12 @@ import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.DatePicker
+import android.widget.EditText
 import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import com.afollestad.vvalidator.form
-import com.afollestad.vvalidator.form.Form
 import com.afollestad.vvalidator.form.FormResult
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
@@ -42,8 +42,13 @@ import javax.inject.Inject
 class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     companion object {
-        const val RC_LOCATION = 11
         private val TAG = NewEditDataActivity::class.java.name
+        const val RC_LOCATION = 11
+        private const val TITLE_KEY = "title"
+        private const val EQUIP_KEY = "equip"
+        private const val EXTRA_KEY = "extra"
+        private const val COST_KEY = "cost"
+        private const val MAX_KEY = "max"
     }
 
     private val titleET by lazy { title_et }
@@ -91,80 +96,74 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         if (dataInfo.type == DataType.EVENTS) {
             eventImageView.let {
                 it.setOnClickListener { pickImage() }
-                it.visibility = View.VISIBLE
+                it.show()
             }
         }
 
         val id = dataInfo.id
         if (id == null) {
-            initValidator()
             title = "New ${dataInfo.type.singular}"
             return
         }
 
-        runOnBackground({ viewModel.getData(dataInfo.type, id) }) { it ->
-            it?.let { data ->
-                fillData(data)
-                initValidatorForUpdate(data)
-                viewModel.data = data
-                title = data.title
+        runOnBackground({ viewModel.getData(dataInfo.type, id) }) { data ->
+            viewModel.data = data!!
+            fillData(data)
+            addListeners(data)
+        }
+    }
+
+    private fun addListeners(data: BaseData) {
+        titleET.addTextValidListener(TITLE_KEY) { data.title = it }
+        equipEt.addTextValidListener(EQUIP_KEY) { data.equip = it }
+        extraEt.addTextValidListener(EXTRA_KEY) { data.extraNotes = it}
+        costEt.addTextValidListener(COST_KEY) {
+            it.toDoubleOrNull()?.let {
+                data.cost = Money(it)
+            }
+        }
+
+        maxPplPicker.setOnValueChangedListener { _, _, value ->
+            if (form.validate().success()) {
+                data.maxParticipants = value
             }
         }
     }
 
-    private lateinit var form: Form
-    private fun initValidator() {
-        form = form {
-            input(titleET, "title") {
-                isNotEmpty().description("Please fill a title")
-                length().atLeast(3).description("Must be at least 3 characters long")
-            }
-            input(costEt, "cost") {
-                isNotEmpty().description("Please fill a cost")
-                isNumber().atLeast(0).description("must be a positive number or 0")
-            }
-            input(equipEt, "equip") {
-                isNotEmpty().description("Please fill a equipment")
-            }
-            picker(maxPplPicker, "max") {
-                MaxNumberPickerAssertion()
-            }
+    private fun EditText.addTextValidListener(key: String, listener: (String) -> Unit) {
+        addTextChangedListener {
+            val res = form.validate()
+            assert(res.success()) { "Not success" }
+            res[key]?.asString()?.let { listener(it) }
         }
     }
 
-    private fun initValidatorForUpdate(data: BaseData) {
-        form = form {
-            input(titleET) {
+    private val form by lazy {
+        form {
+            input(titleET, TITLE_KEY) {
                 isNotEmpty().description("Please fill a title")
                 length().atLeast(3).description("Must be at least 3 characters long")
-                data.title = titleET.txt
             }
-            input(costEt) {
+            input(costEt, COST_KEY) {
                 isNotEmpty().description("Please fill a cost")
-                isNumber().atLeast(0).description("must be a positive number or 0")
-                data.cost = Money(costEt.txt.toDouble())
+                isDecimal().atLeast(0.0).description("must be a positive number or 0")
             }
-            input(equipEt) {
+            input(equipEt, EQUIP_KEY) {
                 isNotEmpty().description("Please fill a equipment")
-                data.equip = equipEt.txt
             }
-            spinner(levelSpinner) {
-                data.level = levelSpinner.enumValue!!
-            }
-            picker(maxPplPicker) {
+            input(extraEt, EXTRA_KEY){}
+            picker(maxPplPicker, MAX_KEY) {
                 MaxNumberPickerAssertion()
-                data.maxParticipants = maxPplPicker.value
             }
         }
     }
 
     private fun fillData(data: BaseData) = with(data) {
+        title = data.title//activity title
+
         titleET.setText(title)
         costEt.setText(cost.amount.toString())
 
-        val address = Address(locationName, countryCode)
-        val loc = Position(location)
-        viewModel.selectedLocation = LocationResult(address, loc)
         locationTV.text = locationName
 
         levelSpinner.enumValue = level
@@ -182,9 +181,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             endDateTV.text = endDate.formatted()
 
             imageUrl?.let {
-                val unsplashUrls = UnsplashUrls(null, it, null, null, null, null, null)
-                viewModel.result = MyImagePicker.Result(urls = unsplashUrls)
-                Glide.with(eventImageView).load(it)
+                Glide.with(eventImageView)
+                    .load(it)
                     .placeholder(R.drawable.img_placeholder)
                     .into(eventImageView)
             }
@@ -228,17 +226,16 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
         menu.findItem(R.id.nav_close_new).setIconTintCompat()
 
+        form.submitWith(menu, R.id.nav_save) { result ->
+            viewModel.data?.let { updateData(it) }
+                ?: save(result)
+        }
+
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.nav_save -> {
-                viewModel.data?.let {
-                    updateData(it, item)
-                } ?: save(item)
-                true
-            }
             R.id.nav_close_new -> {
                 setResult(Activity.RESULT_CANCELED)
                 finish()
@@ -248,8 +245,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         }
     }
 
-    private fun updateData(data: BaseData, item: MenuItem) {
-        item.isEnabled = false
+    private fun updateData(data: BaseData) {
         progressDialog.show()
         try {
             runOnBackground({
@@ -264,15 +260,9 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
 
-    private fun save(item: MenuItem) {
-        val formResult = form.validate()
-        if (!formResult.success()) {
-            toast("make sure everything is filled correctly")
-            return
-        }
-        val data = createData(formResult) ?: return
+    private fun save(result: FormResult) {
+        val data = createData(result) ?: return
 
-        item.isEnabled = false
         progressDialog.show()
         try {
             runOnBackground({
@@ -305,8 +295,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     private fun createData(res: FormResult): BaseData? {
         val uid = viewModel.currentUser!!.id
-        val title = res["title"]!!.asString()
-        val cost = Money(res["cost"]!!.asDouble()!!)
+        val title = res[TITLE_KEY]!!.asString()
+        val cost = Money(res[COST_KEY]!!.asDouble()!!)
 
         val location = viewModel.selectedLocation ?: run {
             toast("Please select a location")
@@ -318,9 +308,9 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val countryCode = address.countryCode
 
         val level = levelSpinner.enumValue!!//TODO can use custom field
-        val equip = res["equip"]!!.asString()
+        val equip = res[EQUIP_KEY]!!.asString()
         val extra = extraEt.txt
-        val maxPpl = res["max"]!!.asInt()!!
+        val maxPpl = res[MAX_KEY]!!.asInt()!!
 
         val startDate = viewModel.selectedStartDate ?: run {
             toast("Please select a start date")

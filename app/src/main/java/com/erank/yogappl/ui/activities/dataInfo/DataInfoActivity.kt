@@ -110,7 +110,7 @@ class DataInfoActivity : AppCompatActivity() {
 
         max_age_tv.text = data.maxAge.toString()
 
-        equip_et.text = data.equip
+        equip_tv.text = data.equip
         val extraNotes = data.extraNotes
         if (extraNotes == null || extraNotes.isEmpty()) {
             extra_notes_title.hide()

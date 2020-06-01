@@ -32,7 +32,6 @@ import com.erank.yogappl.utils.helpers.BaseDataValidator
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
 import com.erank.yogappl.utils.runOnBackground
-import com.unsplash.pickerandroid.photopicker.data.UnsplashUrls
 import kotlinx.android.synthetic.main.activity_new_edit_data.*
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
@@ -53,7 +52,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     private val titleET by lazy { title_et }
     private val costEt by lazy { cost_et }
-    private val equipEt by lazy { equip_et }
+    private val equipEt by lazy { equip_tv }
     private val extraEt by lazy { extra_et }
 
     private val maxPplPicker by lazy {

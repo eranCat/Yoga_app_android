@@ -16,6 +16,8 @@ import androidx.core.widget.addTextChangedListener
 import com.afollestad.vvalidator.form
 import com.afollestad.vvalidator.form.FormResult
 import com.bumptech.glide.Glide
+import com.bumptech.glide.TransitionOptions
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
@@ -82,13 +84,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             viewModel.dataInfo = intent!!.getParcelableExtra("dataInfo")
 
         select_loc_btn.setOnClickListener { startLocationActivity() }
-        location_bar.setOnClickListener { startLocationActivity() }
-
         start_date_btn.setOnClickListener { showStartDatePicker() }
-        start_date_bar.setOnClickListener { showStartDatePicker() }
-
         end_date_btn.setOnClickListener { showEndDatePicker() }
-        end_date_bar.setOnClickListener { showEndDatePicker() }
 
         /*TODO check data info , from main?*/
         val dataInfo = viewModel.dataInfo
@@ -182,6 +179,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             imageUrl?.let {
                 Glide.with(eventImageView)
                     .load(it)
+                    .transform(RoundedCorners(16))
                     .placeholder(R.drawable.img_placeholder)
                     .into(eventImageView)
             }

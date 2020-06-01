@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Spinner
 import androidx.appcompat.widget.AppCompatSpinner
+import androidx.core.content.withStyledAttributes
 import androidx.core.view.setPadding
 import com.erank.yogappl.R
 
@@ -26,6 +28,8 @@ abstract class EnumSpinner<E : Enum<*>> : AppCompatSpinner,
         val scale = resources.displayMetrics.density
         val dpAsPixels = (4 * scale + 0.5f).toInt()
         setPadding(dpAsPixels)
+//        TODO change to dialog
+//        android.R.attr.spinnerMode = Spinner.MODE_DIALOG
     }
 
     constructor(context: Context) : super(context)

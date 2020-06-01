@@ -21,7 +21,10 @@ abstract class EnumSpinner<E : Enum<*>> : AppCompatSpinner,
         }
     protected abstract val values: Array<E>
 
-    var listener: ((position: Int) -> Unit)? = null
+    private var listener: ((position: Int) -> Unit)? = null
+
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)
 
     init {
         setBackgroundResource(R.drawable.rounded_edittext)
@@ -31,9 +34,6 @@ abstract class EnumSpinner<E : Enum<*>> : AppCompatSpinner,
 //        TODO change to dialog
 //        android.R.attr.spinnerMode = Spinner.MODE_DIALOG
     }
-
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)
 
     fun setOnItemSelectedListener(listener: (position: Int) -> Unit) {
         super.setOnItemSelectedListener(this)

@@ -44,8 +44,8 @@ class SharedPrefsHelper @Inject constructor(context: Context) : PreferenceProvid
         prefs.getString(key, defaultValue)
 
     fun getLastLocale() = getString(LAST_LOCALE)
-    fun putLastLocale(): SharedPrefsHelper {
-        put(LAST_LOCALE, Locale.getDefault().country)
+    fun putLastLocale(countryCode: String): SharedPrefsHelper {
+        put(LAST_LOCALE, countryCode)
         return this
     }
 

@@ -16,7 +16,7 @@ class Lesson : BaseData {
 
     constructor(
         title: String,
-        cost: Money,
+        cost: Double,
         location: LatLng,
         locationName: String,
         countryCode: String,

@@ -47,9 +47,7 @@ abstract class BaseData {
     @set:PropertyName("signedUID")
     var signed: SMap<Int> = mutableMapOf()
 
-    @get:Exclude
-    @set:Exclude
-    lateinit var cost: Money
+    var cost: Double = 0.0
 
     @get:Exclude
     @set:Exclude
@@ -80,7 +78,7 @@ abstract class BaseData {
 
     constructor(
         title: String,
-        cost: Money,
+        cost: Double,
         location: LatLng,
         locationName: String,
         countryCode: String,
@@ -160,16 +158,6 @@ abstract class BaseData {
         get() = Timestamp(endDate)
         set(time) {
             endDate = time.toDate()
-        }
-
-    @get:Ignore
-    @set:Ignore
-    @get:PropertyName("cost")
-    @set:PropertyName("cost")
-    var costFB
-        get() = cost.encoded
-        set(value) {
-            cost = Money(value)
         }
 
     @get:Ignore

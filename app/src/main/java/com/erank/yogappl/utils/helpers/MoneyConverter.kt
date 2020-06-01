@@ -1,53 +1,35 @@
 package com.erank.yogappl.utils.helpers
 
-import com.erank.yogappl.data.network.CurrencyLayerApi
+import com.erank.yogappl.data.network.CurrencyApi
 import com.erank.yogappl.data.repository.SharedPrefsHelper
-import com.erank.yogappl.utils.extensions.add
 import java.util.*
-import java.util.Calendar.WEEK_OF_MONTH
 
 class MoneyConverter(
-    val api: CurrencyLayerApi,
-    val sharedPrefs: SharedPrefsHelper,
+    val api: CurrencyApi,
+    val prefs: SharedPrefsHelper,
     val locationHelper: LocationHelper
 ) {
 
-    companion object {
-        private var localeCurrencyMultiplier = 1f//1 dollar * x
+    private val defaultCode = Currency.getInstance(Locale.US).currencyCode
 
-        fun convertFromLocaleToDefault(amount: Double) = amount / localeCurrencyMultiplier
+    suspend fun convertFromLocaleToDefault(amount: Number) =
+        convert(amount, getLocalCode(), defaultCode)
 
-        fun convertFromDefaultToLocale(amount: Double) = amount * localeCurrencyMultiplier
+    suspend fun convertFromDefaultToLocale(amount: Number) =
+        convert(amount, defaultCode, getLocalCode())
+
+    private fun getLocalCode(): String {
+        val countryCode = prefs.getLastLocale()!!
+        val locale = Locale("EN", countryCode)
+        return Currency.getInstance(locale).currencyCode
     }
 
+    private suspend fun convert(amount: Number, from: String, to: String): Double {
+        return api.getCurrency(amount, from, to).await().toAmount
+    }
 
     suspend fun connect() {
-//            get current currency code from location
         val countryCode = locationHelper.getCountryCode()
-//        if locale hasn't changed since last time
-        sharedPrefs.getUpdatedDate()?.let { timestamp ->
-            val weekAfter = Date(timestamp).add(WEEK_OF_MONTH, 1)
-            val today = Date()
-            if (today.before(weekAfter)) {
-                sharedPrefs.getMoney()?.let {
-                    localeCurrencyMultiplier = it
-                    return
-                }
-            }
-        }
-//            get current currency code from location
-        val code = Currency.getInstance(Locale.getDefault()).currencyCode
-        val response = api.getCurrencyCodes(code).await()
-        response.error?.let {
-            throw it.toException()
-        }
-
-        localeCurrencyMultiplier = response.getUSD(code)!!
-        saveMoneyOnSharedPrefs()
+        prefs.putLastLocale(countryCode)
     }
-
-    private fun saveMoneyOnSharedPrefs() = sharedPrefs
-        .putUpdatedDate()
-        .putMoney(localeCurrencyMultiplier)
-
 }

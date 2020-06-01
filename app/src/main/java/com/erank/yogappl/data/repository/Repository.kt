@@ -15,6 +15,7 @@ import com.erank.yogappl.utils.extensions.await
 import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
+import com.erank.yogappl.utils.helpers.MoneyConverter
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
@@ -27,6 +28,7 @@ import javax.inject.Inject
 class Repository @Inject constructor(
     val dataModelHolder: DataModelsHolder,
     val locationHelper: LocationHelper,
+    val moneyConverter: MoneyConverter,
     val authHelper: AuthHelper,
     val storage: StorageManager
 ) {
@@ -63,7 +65,8 @@ class Repository @Inject constructor(
         val otherUsersToFetch = loadAllEvents()
         fetchUsersIfNeeded(usersToFetch + otherUsersToFetch)
     }
-    private suspend fun loadUserUploads(){
+
+    private suspend fun loadUserUploads() {
         val id = currentUser!!.id
         val lessDocs = DBRefs.LESSONS_REF
             .whereEqualTo("uid", id)
@@ -81,11 +84,14 @@ class Repository @Inject constructor(
         dataModelHolder.addLessons(lessons)
         dataModelHolder.addEvents(events)
     }
+
     private suspend fun loadAllLessons(): MutableSet<String> {
         val documents = getAllSnapshotDocs(DBRefs.LESSONS_REF)
         val users = mutableSetOf<String>()
         val lessons = documents.map { doc ->
             doc.toObject<Lesson>()!!.also {
+                val cost = doc.getDouble("cost") ?: 0.0
+                it.cost = moneyConverter.convertFromDefaultToLocale(cost)
                 users.add(it.uid)
             }
         }
@@ -98,6 +104,8 @@ class Repository @Inject constructor(
         val users = mutableSetOf<String>()
         val events = documents.map { doc ->
             doc.toObject<Event>()!!.also {
+                val cost = doc.getDouble("cost") ?: 0.0
+                it.cost = moneyConverter.convertFromDefaultToLocale(cost)
                 users.add(it.uid)
             }
         }
@@ -219,6 +227,7 @@ class Repository @Inject constructor(
 
         data.id = ref.id
 
+        data.cost = moneyConverter.convertFromLocaleToDefault(data.cost)
         ref.set(data).await()
         GeoFirestore(collection).setLocation(data.id, data.location)//uses callback
 

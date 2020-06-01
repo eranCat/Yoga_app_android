@@ -6,18 +6,7 @@ import com.erank.yogappl.utils.helpers.MoneyConverter
 import com.google.firebase.firestore.Exclude
 import java.text.NumberFormat
 
-class Money(var amount: Double) : Parcelable {
-    constructor() : this(0.0)
-
-    constructor(map: Map<String, Double>) : this() {
-        encoded = map
-    }
-
-    var encoded: Map<String, Double>
-        get() = mapOf("amount" to MoneyConverter.convertFromLocaleToDefault(amount))
-        set(value) {
-            amount = MoneyConverter.convertFromDefaultToLocale(value["amount"]!!)
-        }
+class Money(var amount: Double = 0.0) : Parcelable {
 
     @Exclude
     operator fun minus(other: Money) = amount - other.amount

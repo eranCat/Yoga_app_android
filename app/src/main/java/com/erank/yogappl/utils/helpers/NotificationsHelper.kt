@@ -10,8 +10,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.PRIORITY_DEFAULT
-import androidx.core.app.NotificationCompat.PRIORITY_HIGH
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.erank.yogappl.R
@@ -79,6 +77,8 @@ class NotificationsHelper(val context: Context) {
         manager.cancel(pending)
     }
 
+    private val notificationManager = NotificationManagerCompat.from(context)
+
     fun notify(message: RemoteMessage) {
         val channel = context.getString(R.string.default_notification_channel_id)
         val fbNotification = message.notification!!
@@ -90,22 +90,20 @@ class NotificationsHelper(val context: Context) {
             .setColor(color)
             .build()
 
-        NotificationManagerCompat.from(context).notify(0, notification)
+        notificationManager.notify(0, notification)
     }
 
     fun createDefaultChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val id = context.getString(R.string.default_notification_channel_id)
-            val name = context.getString(R.string.default_notification_channel_name)
-            val descriptionText = context.getString(R.string.default_channel_description)
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(id, name, importance).apply {
-                description = descriptionText
-            }
-            // Register the channel with the system
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
+        val id = context.getString(R.string.default_notification_channel_id)
+        val name = context.getString(R.string.default_notification_channel_name)
+        val descriptionText = context.getString(R.string.default_channel_description)
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(id, name, importance).apply {
+            description = descriptionText
         }
+        // Register the channel with the system
+        notificationManager.createNotificationChannel(channel)
     }
 }

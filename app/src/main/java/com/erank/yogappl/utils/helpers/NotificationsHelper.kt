@@ -15,17 +15,15 @@ import com.erank.yogappl.utils.extensions.addMinuets
 
 
 class NotificationsHelper(val context: Context) {
-    companion object {
-        const val CHANNEL_ID = "DefaultChannel"
-    }
 
     fun <T : BaseData> createNotification(data: T) {
 
         val drawable = ContextCompat.getDrawable(context, R.drawable.app_icon_yoga)
         val largeIcon = (drawable as BitmapDrawable).bitmap
         val defaultRingtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val channel = context.getString(R.string.default_notification_channel_id)
         val builder =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat.Builder(context, channel)
                 .setContentTitle(data.title)
                 .setContentText(data.locationName)
                 .setAutoCancel(true)

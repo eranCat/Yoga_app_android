@@ -28,4 +28,5 @@
 
     <string name="signMsg">Sign %s</string>
     <string name="empty">"Empty %s"</string>
+    <string name="default_notification_channel_id">DefaultChannel</string>
 </resources>

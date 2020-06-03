@@ -7,7 +7,8 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import com.afollestad.vvalidator.form
+import com.afollestad.vvalidator.form.Form
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.TextFieldValidStates
@@ -18,6 +19,8 @@ import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.extensions.validator.assertation.BDateAssertion
+import com.erank.yogappl.utils.extensions.validator.birthDatePicker
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.helpers.UserValidator
 import com.erank.yogappl.utils.helpers.UserValidator.Fields
@@ -30,7 +33,7 @@ import javax.inject.Inject
 
 class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
-    private lateinit var userValidator: UserValidator
+    private lateinit var userValidator: Form
     private val myImagePicker by lazy { MyImagePicker(this) }
 
     private val progressDialog by lazy { ProgressDialog(this) }
@@ -91,7 +94,8 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun updateUser() {
-        if (userValidator.isNotDataValid) {
+        val result = userValidator.validate()
+        if (!result.success()) {
             toast("one or more of the fields are incorrectly filled")
             return
         }
@@ -154,47 +158,54 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun initUserValidator() {
-        userValidator = UserValidator().apply {
+        userValidator = form {
 
-            val etName = etName
-            etName.setTextChangedListener {
-                etName.error = validateName(it).errorMsg
+            input(etName,"name") {
+                isNotEmpty()
+                length().atLeast(3).description("Must be at least 3 letters")
             }
 
-            val etEmail = etEmail
-            etEmail.setTextChangedListener {
-                etEmail.error = validateEmail(it).errorMsg
+            input(etEmail,"email") {
+                isNotEmpty()
+                isEmail()
             }
 
-            val etPassword = etPassword
-            etPassword.setTextChangedListener {
-                etPassword.error = validatePassword(it).errorMsg
+            input(etPassword,"pass") {
+                isNotEmpty()
+                length().atLeast(6).description("Must be at least 6 characters")
             }
 
-            etDate.setOnDateSetListener { validateBDate(it) }
+            birthDatePicker(etDate,"date") {
+                BDateAssertion()
+            }
 
-            spinnerUserLevel.setOnItemSelectedListener { validateLevel(it) }
-            spinnerUserType.setOnItemSelectedListener { validateType(it) }
+            spinner(spinnerUserLevel,"level") {
+
+            }
+            spinner(spinnerUserType,"type"){
+
+            }
         }
     }
 
     private fun initUserValidatorForUpdate() {
-        userValidator = UserValidator(
-            TextFieldValidStates.VALID,
-            Fields.NAME, Fields.DATE, Fields.LEVEL
-        )
+        userValidator = form {
+            input(etName,"name") {
+                isNotEmpty()
+                length().atLeast(3).description("Must be at least 3 letters")
+            }
+            birthDatePicker(etDate,"date") {
+                validate()
+            }
+            spinner(spinnerUserLevel,"level") {
 
-        etName.setTextChangedListener {
-            etName.error = userValidator.validateName(it).errorMsg
+            }
         }
-
-        etDate.setOnDateSetListener { userValidator.validateBDate(it) }
-
-        spinnerUserLevel.setOnItemSelectedListener { userValidator.validateLevel(it) }
     }
 
     private fun saveUser() {
-        if (userValidator.isNotDataValid) {
+        val result = userValidator.validate()
+        if (result.success().not()) {
             Log.d(TAG, "Invalid User info when saving")
             toast("Invalid data , please check", Toast.LENGTH_LONG)
             return
@@ -263,3 +274,4 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
     }
 }
+

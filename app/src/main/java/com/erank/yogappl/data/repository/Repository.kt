@@ -11,11 +11,13 @@ import com.erank.yogappl.data.models.*
 import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.utils.SigningErrors
+import com.erank.yogappl.utils.extensions.LatLng
 import com.erank.yogappl.utils.extensions.await
 import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.helpers.MyImagePicker
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -75,8 +77,8 @@ class Repository @Inject constructor(
             .get().await()!!
             .documents
 
-        val lessons = lessDocs.map { it.toObject<Lesson>()!! }
-        val events = eveDocs.map { it.toObject<Event>()!! }
+        val lessons = lessDocs.map { tryConvertLesson(it) }
+        val events = eveDocs.map { tryConvertEvent(it) }
 
         dataModelHolder.addLessons(lessons)
         dataModelHolder.addEvents(events)
@@ -85,7 +87,7 @@ class Repository @Inject constructor(
         val documents = getAllSnapshotDocs(DBRefs.LESSONS_REF)
         val users = mutableSetOf<String>()
         val lessons = documents.map { doc ->
-            doc.toObject<Lesson>()!!.also {
+            tryConvertLesson(doc).also {
                 users.add(it.uid)
             }
         }
@@ -97,13 +99,65 @@ class Repository @Inject constructor(
         val documents = getAllSnapshotDocs(DBRefs.EVENTS_REF)
         val users = mutableSetOf<String>()
         val events = documents.map { doc ->
-            doc.toObject<Event>()!!.also {
+            tryConvertEvent(doc).also {
                 users.add(it.uid)
             }
         }
         dataModelHolder.addEvents(events)
         return users
     }
+
+    private fun tryConvertLesson(doc: DocumentSnapshot):Lesson{
+        return try {
+            doc.toObject<Lesson>()!!
+        } catch (e: RuntimeException) {
+    //            Maybe old version of cost
+            Lesson().apply {
+                applyData(this,doc)
+            }
+        }
+    }
+    private fun tryConvertEvent(doc: DocumentSnapshot):Event{
+        return try {
+            doc.toObject<Event>()!!
+        } catch (e: RuntimeException) {
+    //            Maybe old version of cost
+            Event().apply {
+                applyData(this,doc)
+                imageUrl = doc.getString("imageUrl")
+            }
+        }
+    }
+
+    private fun applyData(baseData: BaseData,doc: DocumentSnapshot) =with(baseData) {
+        id = doc.getString("id")!!
+        title = doc.getString("title")!!
+        locationName = doc.getString("place")!!//check if place or locationName
+        countryCode = doc.getString("countryCode")!!
+        equip = doc.getString("equip")!!
+        extraNotes = doc.getString("xtraNotes")
+        uid = doc.getString("uid")!!
+
+        maxParticipants = doc.getDouble("maxParticipants")!!.toInt()
+        minAge = doc.getDouble("minAge")!!.toInt()
+        maxAge = doc.getDouble("maxAge")!!.toInt()
+
+        signed = doc["signedUID"] as MutableMap<String, Int>
+
+        val locMap = doc["location"] as Map<String, Any>
+        location = LatLng(locMap)
+
+        val map = doc["cost"] as Map<String, Double>
+        cost = map["amount"]!!
+
+        postedDate = doc.getTimestamp("postedDate")!!.toDate()
+        startDate = doc.getTimestamp("startDate")!!.toDate()
+        endDate = doc.getTimestamp("endDate")!!.toDate()
+
+        level = BaseData.Level.values()[doc.getDouble("level")!!.toInt()]
+        status = Status.values()[doc.getDouble("status")!!.toInt()]
+    }
+
 
     private suspend fun getAllSnapshotDocs(ref: CollectionReference): List<DocumentSnapshot> {
 

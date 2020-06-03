@@ -93,7 +93,6 @@ class SplashActivity : AppCompatActivity() {
     private suspend fun fetchData() {
         try {
             viewModel.fetchLoggedUser()
-            viewModel.connectMoneyConverter()
             viewModel.loadData()
             withContext(Main) {
                 logoImg.startZoomAnimation { openMain() }

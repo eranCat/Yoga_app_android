@@ -4,7 +4,6 @@ import androidx.room.TypeConverter
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.data.models.BaseData
-import com.erank.yogappl.data.models.Money
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.SSet
@@ -12,7 +11,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class Converters {
@@ -21,12 +19,6 @@ class Converters {
 
     @TypeConverter
     fun dateToTimestamp(date: Date?) = date?.time
-
-    @TypeConverter
-    fun fromMoney(money: Money?) = money?.amount
-
-    @TypeConverter
-    fun toMoney(amount: Double?) = amount?.let { Money(it) }
 
     @TypeConverter
     fun fromUserLevel(level: User.Level?) = level?.name

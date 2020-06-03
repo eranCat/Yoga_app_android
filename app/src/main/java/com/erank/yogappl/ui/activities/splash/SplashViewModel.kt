@@ -5,14 +5,12 @@ import androidx.lifecycle.ViewModel
 import com.erank.yogappl.data.repository.Repository
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
-import com.erank.yogappl.utils.helpers.MoneyConverter
 import javax.inject.Inject
 
 class SplashViewModel @Inject constructor(
     val repository: Repository,
     val authHelper: AuthHelper,
-    val locationHelper: LocationHelper,
-    val moneyConverter: MoneyConverter
+    val locationHelper: LocationHelper
 ) : ViewModel() {
     val isFbUserConnected: Boolean
         get() = authHelper.isFbUserConnected
@@ -22,10 +20,6 @@ class SplashViewModel @Inject constructor(
 
     fun getLocationPermissionIfNeeded(activity: Activity): Boolean {
         return locationHelper.getLocationPermissionIfNeeded(activity)
-    }
-
-    suspend fun connectMoneyConverter() {
-        moneyConverter.connect()
     }
 
     fun checkAllPermissionResults(

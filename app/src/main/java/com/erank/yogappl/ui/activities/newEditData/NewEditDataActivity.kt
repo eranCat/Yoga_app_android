@@ -115,7 +115,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         extraEt.addTextValidListener(EXTRA_KEY) { data.extraNotes = it}
         costEt.addTextValidListener(COST_KEY) {
             it.toDoubleOrNull()?.let {
-                data.cost = Money(it)
+                data.cost = it
             }
         }
 
@@ -158,7 +158,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         title = data.title//activity title
 
         titleET.setText(title)
-        costEt.setText(cost.amount.toString())
+        costEt.setText(cost.formattedMoney())
 
         locationTV.text = locationName
 
@@ -293,7 +293,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private fun createData(res: FormResult): BaseData? {
         val uid = viewModel.currentUser!!.id
         val title = res[TITLE_KEY]!!.asString()
-        val cost = Money(res[COST_KEY]!!.asDouble()!!)
+        val cost = res[COST_KEY]!!.asDouble()!!
 
         val location = viewModel.selectedLocation ?: run {
             toast("Please select a location")

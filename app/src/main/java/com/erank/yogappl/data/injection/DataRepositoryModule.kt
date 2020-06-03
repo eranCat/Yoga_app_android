@@ -67,15 +67,6 @@ class DataRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideMoneyConverter(
-        api: CurrencyLayerApi,
-        prefs: SharedPrefsHelper,
-        locationHelper: LocationHelper
-    ) =
-        MoneyConverter(api, prefs,locationHelper)
-
-    @Singleton
-    @Provides
     fun provideCalendarAppHelper(context: Context, prefs: SharedPrefsHelper) =
         CalendarAppHelper(context, prefs)
 

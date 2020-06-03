@@ -14,6 +14,7 @@ import com.erank.yogappl.utils.extensions.startZoomAnimation
 import com.erank.yogappl.utils.extensions.toast
 import com.erank.yogappl.utils.helpers.Connectivity
 import com.erank.yogappl.utils.runOnBackground
+import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_splash.*
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.withContext
@@ -47,6 +48,13 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
+        FirebaseInstanceId.getInstance().instanceId
+            .addOnSuccessListener { Log.d(TAG, it.token) }
+            .addOnFailureListener {
+                Log.w(TAG, "getInstanceId failed", it)
+            }
+
 
         (application as App).getAppComponent().inject(this)
 

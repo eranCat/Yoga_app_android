@@ -28,5 +28,7 @@
 
     <string name="signMsg">Sign %s</string>
     <string name="empty">"Empty %s"</string>
-    <string name="default_notification_channel_id">DefaultChannel</string>
+    <string name="default_notification_channel_id">com.erank.yogappl.utils.helpers.DefaultChannel</string>
+    <string name="default_notification_channel_name">Default</string>
+    <string name="default_channel_description">Show general notifications</string>
 </resources>

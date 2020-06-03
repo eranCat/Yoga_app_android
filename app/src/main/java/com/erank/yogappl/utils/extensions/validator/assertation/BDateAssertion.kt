@@ -2,6 +2,8 @@ package com.erank.yogappl.utils.extensions.validator.assertation
 
 import com.afollestad.vvalidator.assertion.Assertion
 import com.erank.yogappl.ui.custom_views.BirthDateTextView
+import com.erank.yogappl.utils.extensions.minusYears
+import java.util.*
 
 class BDateAssertion : Assertion<BirthDateTextView, BDateAssertion>() {
     override fun defaultDescription(): String {
@@ -9,7 +11,9 @@ class BDateAssertion : Assertion<BirthDateTextView, BDateAssertion>() {
     }
 
     override fun isValid(view: BirthDateTextView): Boolean {
-        return view.date != null
+        val date = view.date ?: return false
+        val today = Date()
+        return date >= today.minusYears(120) && date <= today.minusYears(16)
     }
 
 }

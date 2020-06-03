@@ -14,7 +14,7 @@ class BirthDateField(
 
     override fun obtainValue(id: Int, name: String): FieldValue<Date> {
         return FieldValue(
-            id, name, view.date?:Date(), Date::class
+            id, name, view.date ?: Date(), Date::class
         )
     }
 

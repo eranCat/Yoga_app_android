@@ -16,6 +16,7 @@ import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.helpers.MyImagePicker
+import com.erank.yogappl.utils.helpers.NotificationsHelper
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -28,7 +29,8 @@ class Repository @Inject constructor(
     val dataModelHolder: DataModelsHolder,
     val locationHelper: LocationHelper,
     val authHelper: AuthHelper,
-    val storage: StorageManager
+    val storage: StorageManager,
+    val notificationsHelper: NotificationsHelper
 ) {
     companion object {
         const val TAG = "Repository"
@@ -280,9 +282,10 @@ class Repository @Inject constructor(
     }
 
     suspend fun deleteLesson(lesson: Lesson) {
-//        TODO check if signed users
-//        TODO if so, cancel ;else delete
         lessonRef(lesson).delete().await()
+
+        notificationsHelper.sendNotificationDeletedData(lesson)
+
         val teacher = currentUser as Teacher
         teacher.teachingLessonsIDs.remove(lesson.id)
         val uploads = teacher.teachingLessonsIDs.toList()
@@ -293,9 +296,10 @@ class Repository @Inject constructor(
     }
 
     suspend fun deleteEvent(event: Event) {
-//        TODO check if signed users
-//        TODO if so, cancel ;else delete
         eventRef(event).delete().await()
+
+        notificationsHelper.sendNotificationDeletedData(event)
+
         val user = currentUser!!
         user.createdEventsIDs.remove(event.id)
         val uploads = user.createdEventsIDs.toList()

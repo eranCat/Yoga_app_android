@@ -22,13 +22,15 @@ class DataRepositoryModule {
         dataModelHolder: DataModelsHolder,
         locationHelper: LocationHelper,
         authHelper: AuthHelper,
-        storage: StorageManager
+        storage: StorageManager,
+        notificationsHelper: NotificationsHelper
     ): Repository =
         Repository(
             dataModelHolder,
             locationHelper,
             authHelper,
-            storage
+            storage,
+            notificationsHelper
         )
 
     @Singleton

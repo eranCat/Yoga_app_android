@@ -16,6 +16,8 @@ import com.erank.yogappl.R
 import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.ui.activities.splash.SplashActivity
 import com.erank.yogappl.utils.extensions.addMinuets
+import com.erank.yogappl.utils.extensions.formatted
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
 
 
@@ -105,5 +107,31 @@ class NotificationsHelper(val context: Context) {
         }
         // Register the channel with the system
         notificationManager.createNotificationChannel(channel)
+    }
+
+    fun <T : BaseData> sendNotificationDeletedData(data: T) {
+        val title = "Attention! This was deleted"
+        val msg = String.format("%s, at: %s, %s",
+            data.title,
+            data.startDate.formatted(),
+            data.locationName)
+
+        for (id in data.signed.keys) {
+            sendNotificationToUser(data.uid, title, msg,id)
+        }
+    }
+
+    private fun sendNotificationToUser(
+        senderId: String,
+        title: String? = null,
+        msg: String? = null,
+        sendToUserId: String
+    ) {
+//        TODO bound notification only to certain users by sendToUserId
+        val message = RemoteMessage.Builder("$senderId@fcm.googleapis.com")
+            .addData("title", title)
+            .addData("message", msg)
+            .build()
+        FirebaseMessaging.getInstance().send(message)
     }
 }

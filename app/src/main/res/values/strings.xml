@@ -28,4 +28,5 @@
 
     <string name="signMsg">Sign %s</string>
     <string name="empty">"Empty %s"</string>
+    <string name="AdMobId">ca-app-pub-2280152533389019~9796340330</string>
 </resources>

@@ -112,6 +112,6 @@ dependencies {
 
 //    Ads
     implementation ('com.google.android.gms:play-services-ads:19.1.0'){
-
+        exclude module: 'play-services-measurement-sdk-api'
     }
 }

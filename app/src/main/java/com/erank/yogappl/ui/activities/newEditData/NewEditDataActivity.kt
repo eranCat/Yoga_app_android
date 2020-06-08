@@ -16,7 +16,6 @@ import androidx.core.widget.addTextChangedListener
 import com.afollestad.vvalidator.form
 import com.afollestad.vvalidator.form.FormResult
 import com.bumptech.glide.Glide
-import com.bumptech.glide.TransitionOptions
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
@@ -112,7 +111,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private fun addListeners(data: BaseData) {
         titleET.addTextValidListener(TITLE_KEY) { data.title = it }
         equipEt.addTextValidListener(EQUIP_KEY) { data.equip = it }
-        extraEt.addTextValidListener(EXTRA_KEY) { data.extraNotes = it}
+        extraEt.addTextValidListener(EXTRA_KEY) { data.xtraNotes = it}
         costEt.addTextValidListener(COST_KEY) {
             it.toDoubleOrNull()?.let {
                 data.cost = Money(it)
@@ -169,7 +168,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         viewModel.selectedStartDate = startDate
         viewModel.selectedEndDate = endDate
 
-        extraEt.setText(extraNotes)
+        extraEt.setText(xtraNotes)
 
         if (this is Event) {
 

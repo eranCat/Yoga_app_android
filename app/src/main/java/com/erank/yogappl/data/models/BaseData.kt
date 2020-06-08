@@ -20,26 +20,20 @@ abstract class BaseData {
 
     lateinit var title: String
 
-    @PropertyName("place")
     lateinit var locationName: String
 
     lateinit var countryCode: String
 
     lateinit var equip: String
 
-    @get:PropertyName("xtraNotes")
-    @set:PropertyName("xtraNotes")
-    var extraNotes: String? = null
+    var xtraNotes: String? = null
 
     var maxParticipants = 0
 
     //the creators id
     lateinit var uid: String
 
-    @PropertyName("age_min")
     var minAge = 0
-
-    @PropertyName("age_max")
     var maxAge = 0
 
     //user id : age
@@ -102,7 +96,7 @@ abstract class BaseData {
         this.endDate = endDate
         this.level = level
         this.equip = equipment
-        this.extraNotes = xtraNotes
+        this.xtraNotes = xtraNotes
         this.maxParticipants = maxParticipants
         this.uid = uid
         this.status = Status.OPEN
@@ -196,7 +190,7 @@ abstract class BaseData {
                 "locationName='$locationName'," +
                 " countryCode='$countryCode', " +
                 "equipment='$equip'," +
-                " xtraNotes='$extraNotes', " +
+                " xtraNotes='$xtraNotes', " +
                 " maxParticipants=$maxParticipants," +
                 "uid='$uid'," +
                 " minAge=$minAge," +
@@ -224,7 +218,7 @@ abstract class BaseData {
                 locationName == data.locationName &&
                 countryCode == data.countryCode &&
                 equip == data.equip &&
-                extraNotes == data.extraNotes &&
+                xtraNotes == data.xtraNotes &&
                 uid == data.uid &&
                 signed == data.signed &&
                 cost == data.cost &&

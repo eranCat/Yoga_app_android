@@ -23,13 +23,14 @@ import com.erank.yogappl.data.enums.SourceType.*
 import com.erank.yogappl.data.models.DataInfo
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.activities.register.RegisterActivity
-import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.ui.fragments.TabsFragment
 import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.SearchWatcher
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
@@ -51,7 +52,6 @@ class MainActivity : AppCompatActivity(),
     private val navigationView by lazy { nav_view }
     private val toolbar by lazy { main_toolbar }
     private val bottomTabs by lazy { bottom_nav_view }
-    private val addFab by lazy { add_fab }
 
     @Inject
     lateinit var viewModel: MainViewModel
@@ -67,8 +67,12 @@ class MainActivity : AppCompatActivity(),
         bottomTabs.setOnNavigationItemReselectedListener {}
 
         initDrawer()
+        loadAd()
+    }
 
-        addFab.setOnClickListener { openNewDataActivity() }
+    private fun loadAd() {
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
     }
 
     private fun openNewDataActivity() {
@@ -146,12 +150,13 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.menu_add -> {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.menu_add) {
             openNewDataActivity()
-            true
+            return true
         }
-        else -> super.onOptionsItemSelected(item)
+
+        return super.onOptionsItemSelected(item)
     }
 
     private fun loadFragment(type: SourceType): Boolean {

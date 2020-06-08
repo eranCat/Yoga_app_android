@@ -73,14 +73,14 @@ class SplashActivity : AppCompatActivity() {
             return
         }
 
-        if (!viewModel.getLocationPermissionIfNeeded(this)) {
-            toast("needs location permission")
-            return
-        }
-
         if (!viewModel.isFbUserConnected) {
             val intent = Intent(this, LoginActivity::class.java)
             startActivityForResult(intent, RC_LOGIN)
+            return
+        }
+
+        if (!viewModel.getLocationPermissionIfNeeded(this)) {
+            toast("needs location permission")
             return
         }
 

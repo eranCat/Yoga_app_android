@@ -63,7 +63,8 @@ class Repository @Inject constructor(
         val otherUsersToFetch = loadAllEvents()
         fetchUsersIfNeeded(usersToFetch + otherUsersToFetch)
     }
-    private suspend fun loadUserUploads(){
+
+    private suspend fun loadUserUploads() {
         val id = currentUser!!.id
         val lessDocs = DBRefs.LESSONS_REF
             .whereEqualTo("uid", id)
@@ -81,12 +82,18 @@ class Repository @Inject constructor(
         dataModelHolder.addLessons(lessons)
         dataModelHolder.addEvents(events)
     }
+
     private suspend fun loadAllLessons(): MutableSet<String> {
         val documents = getAllSnapshotDocs(DBRefs.LESSONS_REF)
         val users = mutableSetOf<String>()
-        val lessons = documents.map { doc ->
-            doc.toObject<Lesson>()!!.also {
-                users.add(it.uid)
+        val lessons = mutableListOf<Lesson>()
+        val today = Date()
+        for (doc in documents) {
+            val startDate = doc.getTimestamp("startDate")!!.toDate()
+            if (startDate >= today) {
+                val lesson = doc.toObject<Lesson>()!!
+                lessons.add(lesson)
+                users.add(lesson.uid)
             }
         }
         dataModelHolder.addLessons(lessons)
@@ -96,9 +103,14 @@ class Repository @Inject constructor(
     private suspend fun loadAllEvents(): MutableSet<String> {
         val documents = getAllSnapshotDocs(DBRefs.EVENTS_REF)
         val users = mutableSetOf<String>()
-        val events = documents.map { doc ->
-            doc.toObject<Event>()!!.also {
-                users.add(it.uid)
+        val events = mutableListOf<Event>()
+        val today = Date()
+        for (doc in documents) {
+            val startDate = doc.getTimestamp("startDate")!!.toDate()
+            if (startDate >= today) {
+                val event = doc.toObject<Event>()!!
+                events.add(event)
+                users.add(event.uid)
             }
         }
         dataModelHolder.addEvents(events)
@@ -118,7 +130,6 @@ class Repository @Inject constructor(
             val code = locationHelper.getCountryCode()
             ref.whereEqualTo("countryCode", code)
         }
-        query = query.whereGreaterThanOrEqualTo("startDate", Date())
 
         return query.get().await()!!.documents
     }

@@ -29,12 +29,22 @@
             android:id="@+id/section_frame"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="8dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            app:layout_constraintBottom_toTopOf="@+id/bottom_nav_view"
+            app:layout_constraintBottom_toTopOf="@+id/adView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/adView" />
+            app:layout_constraintTop_toBottomOf="@id/main_toolbar" />
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/test_ad_id"
+            app:layout_constraintBottom_toTopOf="@id/bottom_nav_view"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_nav_view"
@@ -49,32 +59,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:menu="@menu/btm_nav_menu" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/add_fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:translationZ="2dp"
-            app:layout_constraintBottom_toBottomOf="@+id/section_frame"
-            app:layout_constraintEnd_toEndOf="@id/constraintLayout"
-            app:srcCompat="@drawable/ic_add" />
-
-        <com.google.android.gms.ads.AdView
-            android:id="@+id/adView"
-            ads:adSize="BANNER"
-            ads:adUnitId="ca-app-pub-2280152533389019/6212318542"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/main_toolbar" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

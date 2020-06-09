@@ -67,12 +67,8 @@ class DataRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideMoneyConverter(
-        api: CurrencyLayerApi,
-        prefs: SharedPrefsHelper,
-        locationHelper: LocationHelper
-    ) =
-        MoneyConverter(api, prefs,locationHelper)
+    fun provideMoneyConverter(api: CurrencyLayerApi, prefs: SharedPrefsHelper) =
+        MoneyConverter(api, prefs)
 
     @Singleton
     @Provides

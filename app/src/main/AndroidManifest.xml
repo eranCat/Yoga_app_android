@@ -66,6 +66,11 @@
             android:resource="@array/preloaded_fonts" />
 
         <receiver android:name=".utils.helpers.NotificationReceiver" />
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/AdMobId"/>
+
     </application>
 
 </manifest>

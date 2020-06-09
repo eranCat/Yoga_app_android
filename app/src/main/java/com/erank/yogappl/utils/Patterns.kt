@@ -3,9 +3,9 @@ package com.erank.yogappl.utils
 import android.util.Patterns
 import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
-import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.utils.extensions.addMinuets
 import com.erank.yogappl.utils.extensions.compareDate
+import com.erank.yogappl.utils.extensions.compareTime
 import java.util.*
 import java.util.regex.Pattern
 
@@ -59,15 +59,6 @@ object Patterns {
         else -> INVALID
     }
 
-    fun isTitleValid(title: String) = when {
-        title.isEmpty() -> EMPTY
-        title.length < 4 -> INVALID
-        else -> VALID
-    }
-
-    fun isLocationValid(location: LocationResult?) =
-        location?.let { VALID } ?: EMPTY
-
     fun isStartDateValid(date: Date?): TextFieldValidStates {
         date ?: return EMPTY
 
@@ -79,7 +70,7 @@ object Patterns {
         if (dateDiff > 0) return VALID//after now
 
         //equal date - check for time diff
-        return if (date > now) VALID else INVALID
+        return if (date.compareTime(now) > 0) VALID else INVALID
     }
 
     fun isEndDateValid(date: Date?, startDate: Date) = when {
@@ -87,22 +78,4 @@ object Patterns {
         date < startDate.addMinuets(30) -> INVALID
         else -> VALID
     }
-
-    fun isMinMaxPPLValid(max: Int) = when {
-        max < 1 -> EMPTY
-        max > 1_000 -> INVALID
-        else -> VALID
-    }
-
-    fun isCostValid(cost: String): TextFieldValidStates {
-        val num = cost.toDoubleOrNull()
-        return when {
-            cost.isEmpty() -> EMPTY
-            num != null && num >= 0 -> VALID
-            else -> VALID
-        }
-    }
-
-    fun isEquipValid(equipment: String) =
-        if (equipment.isEmpty()) EMPTY else VALID
 }

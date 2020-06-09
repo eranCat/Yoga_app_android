@@ -16,7 +16,7 @@ import com.erank.yogappl.utils.extensions.addMinuets
 
 class NotificationsHelper(val context: Context) {
     companion object {
-        const val CHANNEL_ID = "555"
+        const val CHANNEL_ID = "DefaultChannel"
     }
 
     fun <T : BaseData> createNotification(data: T) {

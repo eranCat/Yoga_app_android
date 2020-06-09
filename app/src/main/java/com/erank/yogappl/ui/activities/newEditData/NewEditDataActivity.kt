@@ -8,27 +8,32 @@ import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.DatePicker
+import android.widget.EditText
+import android.widget.TimePicker
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
+import com.afollestad.vvalidator.form
+import com.afollestad.vvalidator.form.FormResult
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
-import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.ui.activities.location.LocationPickerActivity
+import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.DateValidationPredicate
 import com.erank.yogappl.utils.OnDateSet
 import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.extensions.validator.assertation.MaxNumberPickerAssertion
+import com.erank.yogappl.utils.extensions.validator.picker
 import com.erank.yogappl.utils.helpers.BaseDataValidator
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
 import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_new_edit_data.*
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.withContext
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
 import java.util.*
@@ -37,13 +42,18 @@ import javax.inject.Inject
 class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     companion object {
-        const val RC_LOCATION = 11
         private val TAG = NewEditDataActivity::class.java.name
+        const val RC_LOCATION = 11
+        private const val TITLE_KEY = "title"
+        private const val EQUIP_KEY = "equip"
+        private const val EXTRA_KEY = "extra"
+        private const val COST_KEY = "cost"
+        private const val MAX_KEY = "max"
     }
 
     private val titleET by lazy { title_et }
     private val costEt by lazy { cost_et }
-    private val equipEt by lazy { equip_et }
+    private val equipEt by lazy { equip_tv }
     private val extraEt by lazy { extra_et }
 
     private val maxPplPicker by lazy {
@@ -58,9 +68,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private val levelSpinner by lazy { level_spinner }
 
     private val eventImageView by lazy { event_img_view }
-    private val progressLayout by lazy { llProgressBar }
-
-    private lateinit var validator: BaseDataValidator
+    private val progressDialog by lazy { ProgressDialog(this) }
 
     @Inject
     lateinit var viewModel: NewEditDataActivityVM
@@ -75,41 +83,82 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             viewModel.dataInfo = intent!!.getParcelableExtra("dataInfo")
 
         select_loc_btn.setOnClickListener { startLocationActivity() }
-        location_bar.setOnClickListener { startLocationActivity() }
+        start_date_btn.setOnClickListener { showStartDatePicker() }
+        end_date_btn.setOnClickListener { showEndDatePicker() }
 
         /*TODO check data info , from main?*/
         val dataInfo = viewModel.dataInfo
         if (dataInfo.type == DataType.EVENTS) {
             eventImageView.let {
                 it.setOnClickListener { pickImage() }
-                it.visibility = View.VISIBLE
+                it.show()
             }
         }
 
         val id = dataInfo.id
         if (id == null) {
-            initValidator()
             title = "New ${dataInfo.type.singular}"
             return
         }
 
-        runOnBackground({ viewModel.getData(dataInfo.type, id) }) { it ->
-            it?.let {
-                fillData(it)
-                initValidator(VALID)
-                viewModel.data = it
-                title = it.title
+        runOnBackground({ viewModel.getData(dataInfo.type, id) }) { data ->
+            viewModel.data = data!!
+            fillData(data)
+            addListeners(data)
+        }
+    }
+
+    private fun addListeners(data: BaseData) {
+        titleET.addTextValidListener(TITLE_KEY) { data.title = it }
+        equipEt.addTextValidListener(EQUIP_KEY) { data.equip = it }
+        extraEt.addTextValidListener(EXTRA_KEY) { data.xtraNotes = it}
+        costEt.addTextValidListener(COST_KEY) {
+            it.toDoubleOrNull()?.let {
+                data.cost = Money(it)
+            }
+        }
+
+        maxPplPicker.setOnValueChangedListener { _, _, value ->
+            if (form.validate().success()) {
+                data.maxParticipants = value
+            }
+        }
+    }
+
+    private fun EditText.addTextValidListener(key: String, listener: (String) -> Unit) {
+        addTextChangedListener {
+            val res = form.validate()
+            assert(res.success()) { "Not success" }
+            res[key]?.asString()?.let { listener(it) }
+        }
+    }
+
+    private val form by lazy {
+        form {
+            input(titleET, TITLE_KEY) {
+                isNotEmpty().description("Please fill a title")
+                length().atLeast(3).description("Must be at least 3 characters long")
+            }
+            input(costEt, COST_KEY) {
+                isNotEmpty().description("Please fill a cost")
+                isDecimal().atLeast(0.0).description("must be a positive number or 0")
+            }
+            input(equipEt, EQUIP_KEY) {
+                isNotEmpty().description("Please fill a equipment")
+            }
+            input(extraEt, EXTRA_KEY){}
+            picker(maxPplPicker, MAX_KEY) {
+                MaxNumberPickerAssertion()
             }
         }
     }
 
     private fun fillData(data: BaseData) = with(data) {
+        title = data.title//activity title
+
         titleET.setText(title)
         costEt.setText(cost.amount.toString())
 
-        val address = Address(locationName, countryCode)
-        val loc = Position(location)
-        viewModel.selectedLocation = LocationResult(address, loc)
         locationTV.text = locationName
 
         levelSpinner.enumValue = level
@@ -119,7 +168,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         viewModel.selectedStartDate = startDate
         viewModel.selectedEndDate = endDate
 
-        extraEt.setText(extraNotes)
+        extraEt.setText(xtraNotes)
 
         if (this is Event) {
 
@@ -127,8 +176,9 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             endDateTV.text = endDate.formatted()
 
             imageUrl?.let {
-//                viewModel.selectedEventImgUrl = imageUrl
-                Glide.with(eventImageView).load(it)
+                Glide.with(eventImageView)
+                    .load(it)
+                    .transform(RoundedCorners(16))
                     .placeholder(R.drawable.img_placeholder)
                     .into(eventImageView)
             }
@@ -157,58 +207,14 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         when (requestCode) {
             RC_LOCATION -> {
                 if (resultCode == RESULT_OK && data != null) {
-                    viewModel.selectedLocation = data.getParcelableExtra("location")
-
-                    viewModel.selectedLocation?.address?.let {
-                        locationTV.text = it.longName
-                    }
-                }
-                if (validator.validateLocation(viewModel.selectedLocation) != VALID)
-                    toast("no location picked")
-            }
-        }
-    }
-
-    private fun initValidator(state: TextFieldValidStates = INVALID) {
-        validator = BaseDataValidator(state)
-        val v = validator//shorter name
-
-        with(titleET) {
-            setTextChangedListener {
-                error = v.validateTitle(it).errorMsg
-            }
-        }
-
-        with(costEt) {
-            setTextChangedListener {
-                error = v.validateCost(it).errorMsg
-            }
-        }
-
-        with(equipEt) {
-            setTextChangedListener {
-                error = v.validateEquipment(it).errorMsg
-            }
-        }
-
-        with(levelSpinner) {
-            setOnItemSelectedListener {
-                if (v.validateLevel(it) != VALID) {
-                    toast("Select level")
+                    viewModel.selectedLocation =
+                        data.getParcelableExtra<LocationResult>("location")!!
+                            .also {
+                                locationTV.text = it.address.getName()
+                            }
                 }
             }
         }
-
-        maxPplPicker.setOnValueChangedListener { _, _, count ->
-            if (v.validateMinMaxPPL(count) != VALID)
-                toast("Pick a number")
-        }
-
-        start_date_btn.setOnClickListener { showStartDatePicker() }
-        start_date_bar.setOnClickListener { showStartDatePicker() }
-
-        end_date_btn.setOnClickListener { showEndDatePicker() }
-        end_date_bar.setOnClickListener { showEndDatePicker() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -216,15 +222,16 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
         menu.findItem(R.id.nav_close_new).setIconTintCompat()
 
+        form.submitWith(menu, R.id.nav_save) { result ->
+            viewModel.data?.let { updateData(it) }
+                ?: save(result)
+        }
+
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.nav_save -> {
-                save(item)
-                true
-            }
             R.id.nav_close_new -> {
                 setResult(Activity.RESULT_CANCELED)
                 finish()
@@ -234,46 +241,43 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         }
     }
 
-    private fun save(item: MenuItem) {
-        if (validator.isDataValid.not()) {
-            toast("make sure everything is filled correctly")
-            return
-        }
-
-        item.isEnabled = false
-        progressLayout.show()
-
-        viewModel.data?.let {
-            createData(it)
-
+    private fun updateData(data: BaseData) {
+        progressDialog.show()
+        try {
             runOnBackground({
-                try {
-                    when (it) {
-                        is Lesson -> viewModel.updateLesson(it)
-                        is Event -> viewModel.updateEvent(it)
-                    }
-                } catch (e: Exception) {
-                    withContext(Main) { onFailed(e) }
+                when (data) {
+                    is Lesson -> viewModel.updateLesson(data)
+                    is Event -> viewModel.updateEvent(data)
                 }
-            }, this@NewEditDataActivity::onSuccess)
+            }) { onSuccess() }
+        } catch (e: Exception) {
+            onFailed(e)
+        }
+    }
 
-        } ?: runOnBackground({
-            try {
-                viewModel.uploadData(createData())
-            } catch (e: Exception) {
-                withContext(Main) { onFailed(e) }
-            }
-        }, this@NewEditDataActivity::onSuccess)
+
+    private fun save(result: FormResult) {
+        val data = createData(result) ?: return
+
+        progressDialog.show()
+        try {
+            runOnBackground({
+                viewModel.uploadData(data)
+            }) { onSuccess() }
+        } catch (e: Exception) {
+            onFailed(e)
+        }
     }
 
     private fun onFailed(e: Exception) {
-        progressLayout.hide()
+        progressDialog.dismiss()
         alert("Problem found", e.localizedMessage)
-            .setPositiveButton("ok", null)
+            .setPositiveButton("ok") { _, _ ->
+                setResult(Activity.RESULT_CANCELED)
+                finish()
+            }
             .show()
 
-        setResult(Activity.RESULT_CANCELED)
-        finish()
     }
 
     private fun onSuccess() {
@@ -285,44 +289,32 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         finish()
     }
 
-    private fun createData(data: BaseData? = null): BaseData {
+    private fun createData(res: FormResult): BaseData? {
         val uid = viewModel.currentUser!!.id
-        val title = titleET.text.toString()
-        val cost = Money(costEt.text.toString().toDouble())
+        val title = res[TITLE_KEY]!!.asString()
+        val cost = Money(res[COST_KEY]!!.asDouble()!!)
 
-        val selectedLocation = viewModel.selectedLocation!!
-        val coordinate = selectedLocation.location.latLng
-        val address = selectedLocation.address
-        val locationName = address.streetName ?: address.localName
-            ?: address.longName.ifEmpty { "Location" }
+        val location = viewModel.selectedLocation ?: run {
+            toast("Please select a location")
+            return null
+        }
+        val coordinate = location.location.latLng
+        val address = location.address
+        val locationName = address.getName()
         val countryCode = address.countryCode
-        val level = levelSpinner.enumValue!!
-        val equip = equipEt.text.toString()
-        val extra = extraEt.text.toString()
-        val maxPpl = maxPplPicker.value
 
-        val startDate = viewModel.selectedStartDate!!
-        val endDate = viewModel.selectedEndDate!!
+        val level = levelSpinner.enumValue!!//TODO can use custom field
+        val equip = res[EQUIP_KEY]!!.asString()
+        val extra = extraEt.txt
+        val maxPpl = res[MAX_KEY]!!.asInt()!!
 
-        val imageUrl = viewModel.result?.urls?.small
-
-        data?.let {
-
-            it.title = title
-            it.cost = cost
-            it.location = coordinate
-            it.locationName = locationName
-            it.countryCode = countryCode
-            it.level = level
-            it.equip = equip
-            it.extraNotes = extra
-            it.maxParticipants = maxPpl
-            it.startDate = startDate
-            it.endDate = endDate
-
-            (it as? Event)?.imageUrl = imageUrl
-
-            return it
+        val startDate = viewModel.selectedStartDate ?: run {
+            toast("Please select a start date")
+            return null
+        }
+        val endDate = viewModel.selectedEndDate ?: run {
+            toast("Please select an end date")
+            return null
         }
 
         return when (viewModel.dataInfo.type) {
@@ -333,22 +325,23 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             DataType.EVENTS -> Event(
                 title, cost, coordinate, locationName, countryCode,
                 startDate, endDate, level, equip, extra,
-                maxPpl, uid, imageUrl
+                maxPpl, uid
             )
         }
     }
 
     private fun showStartDatePicker() {
+        val minDate = Date().addMinuets(10)
         createDatePickerDialog(
-            viewModel.selectedStartDate, null,
-            validator::validateStartDate,
+            viewModel.selectedStartDate, minDate,
+            BaseDataValidator::validateStartDate,
             {
                 it?.let {
                     viewModel.selectedStartDate = it
-                    startDateTV.text = viewModel.selectedStartDate!!.formatted(MEDIUM, SHORT)
+                    startDateTV.text = it.formatted(MEDIUM, SHORT)
                 }
             },
-            "date can be today or beyond. time needs to be in the future",
+            "date can be later",
             "please select a start date"
         )
     }
@@ -359,81 +352,83 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             return
         }
         val validation: DateValidationPredicate = {
-            validator.validateEndDate(it, startDate)
+            BaseDataValidator.validateEndDate(it, startDate)
         }
+        val type = viewModel.dataInfo.type.singular
+        val endDate = viewModel.selectedEndDate
+        val invalidMsg = "date needs to be same as start date or after.\n" +
+                "and min time of $type is 30 min"
+        val emptyMsg = "please select an end date"
+        val minDate = startDate.addMinuets(30)
         createDatePickerDialog(
-            viewModel.selectedEndDate, startDate, validation, {
+            endDate, minDate, validation,
+            {
                 it?.let {
                     viewModel.selectedEndDate = it
-                    endDateTV.text = viewModel.selectedEndDate!!.formatted(MEDIUM, SHORT)
+                    endDateTV.text = it.formatted(MEDIUM, SHORT)
                 }
-            }, "date needs to be same as start date or after.\n" +
-                    "and min time of ${viewModel.dataInfo.type.singular} is 30 min",
-            "please select an end date"
+            },
+            invalidMsg, emptyMsg
         )
     }
 
     private fun createDatePickerDialog(
-        currentDate: Date?,
-        minDate: Date? = null,
+        currentDate: Date?, minDate: Date,
         validation: DateValidationPredicate,
         listener: OnDateSet,
         invalidMsg: String, emptyMsg: String
     ) {
-        val cal = Calendar.getInstance()
-
-        if (currentDate != null)
-            cal.time = currentDate
+        val cal = currentDate?.cal() ?: minDate.cal()
 
         val onDateSet: (DatePicker, Int, Int, Int) -> Unit = { _, year, month, day ->
             val current = newDate(year, month, day)
-            showTimePicker(current, invalidMsg, emptyMsg, validation, listener)
+            showTimePicker(current, minDate, invalidMsg, emptyMsg, validation, listener)
         }
 
         val year = cal.year
         val month = cal.month
         val day = cal.dayOfMonth
 
-        DatePickerDialog(this, onDateSet, year, month, day)
-            .apply {
-                //                datePicker.spinnersShown = false
-//                datePicker.calendarViewShown = true
-                datePicker.minDate = (minDate ?: Date()).time
-                datePicker.maxDate = Date().addMonths(3).time
-
-            }.show()
+        DatePickerDialog(this, onDateSet, year, month, day).apply {
+            datePicker.minDate = minDate.time
+            datePicker.maxDate = minDate.addMonths(3).time
+            show()
+        }
 
     }
 
     private fun showTimePicker(
-        current: Date,
+        current: Date, minDate: Date,
         invalidMsg: String,
         emptyMsg: String,
         validation: DateValidationPredicate,
         callback: OnDateSet
     ) {
 
-        val cal = Calendar.getInstance().apply { time = current }
+        val cal = (if (current > minDate) current else minDate)
+            .cal()
 
-        val is24HourFormat = DateFormat.is24HourFormat(this)
-        TimePickerDialog(
-            this, { _, hour, min ->
-                cal.setHour(is24HourFormat, hour)
-                cal.minute = min
+        val listener: (TimePicker, Int, Int) -> Unit = { _, hour, minute ->
+            cal.hourOfDay = hour
+            cal.minute = minute
 
-                when (validation.invoke(cal.time)) {
+            val result = validation(cal.time)
+            if (result == VALID)
+                callback(cal.time)
+            else {
+                when (result) {
                     EMPTY -> toast(emptyMsg)
                     INVALID -> toast(invalidMsg)
-                    VALID -> {
-                        callback.invoke(cal.time)
-                        return@TimePickerDialog
-                    }
                 }
-
-                callback.invoke(null)
-
-            }, cal.getHour(is24HourFormat), cal.minute, is24HourFormat
-        ).show()
+                callback(null)
+            }
+        }
+        TimePickerDialog(
+            this, listener,
+            cal.hourOfDay, cal.minute,
+            DateFormat.is24HourFormat(this)
+        )
+            .show()
     }
 
     override fun onRequestPermissionsResult(

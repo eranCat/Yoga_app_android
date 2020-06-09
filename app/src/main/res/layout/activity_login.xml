@@ -79,7 +79,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="16dp"
         android:fontFamily="sans-serif-condensed-medium"
         android:text="@string/signup"
         android:textColor="@android:color/white"
@@ -89,11 +89,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signInBtn"
         app:layout_constraintVertical_bias="0.0" />
-
-    <include
-        android:id="@+id/llProgressBar"
-        layout="@layout/progress_layout"
-        android:visibility="gone"
-        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

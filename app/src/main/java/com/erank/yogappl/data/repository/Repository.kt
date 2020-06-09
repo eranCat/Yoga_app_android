@@ -15,6 +15,7 @@ import com.erank.yogappl.utils.extensions.await
 import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
+import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -35,7 +36,6 @@ class Repository @Inject constructor(
     }
 
     var currentUser: User? = null
-    private val isFilteringByDate = false
 
     object DBRefs {
         val LESSONS_REF get() = ref(TableNames.LESSONS)
@@ -58,17 +58,42 @@ class Repository @Inject constructor(
         dataModelHolder.getEvents(type, currentUser!!.id)
 
     suspend fun loadData() {
+        loadUserUploads()
         val usersToFetch = loadAllLessons()
         val otherUsersToFetch = loadAllEvents()
         fetchUsersIfNeeded(usersToFetch + otherUsersToFetch)
     }
 
+    private suspend fun loadUserUploads() {
+        val id = currentUser!!.id
+        val lessDocs = DBRefs.LESSONS_REF
+            .whereEqualTo("uid", id)
+            .get().await()!!
+            .documents
+
+        val eveDocs = DBRefs.EVENTS_REF
+            .whereEqualTo("uid", id)
+            .get().await()!!
+            .documents
+
+        val lessons = lessDocs.map { it.toObject<Lesson>()!! }
+        val events = eveDocs.map { it.toObject<Event>()!! }
+
+        dataModelHolder.addLessons(lessons)
+        dataModelHolder.addEvents(events)
+    }
+
     private suspend fun loadAllLessons(): MutableSet<String> {
-        val documents = getQuerySnapshot(DBRefs.LESSONS_REF)
+        val documents = getAllSnapshotDocs(DBRefs.LESSONS_REF)
         val users = mutableSetOf<String>()
-        val lessons = documents.map { doc ->
-            doc.toObject<Lesson>()!!.also {
-                users.add(it.uid)
+        val lessons = mutableListOf<Lesson>()
+        val today = Date()
+        for (doc in documents) {
+            val startDate = doc.getTimestamp("startDate")!!.toDate()
+            if (startDate >= today) {
+                val lesson = doc.toObject<Lesson>()!!
+                lessons.add(lesson)
+                users.add(lesson.uid)
             }
         }
         dataModelHolder.addLessons(lessons)
@@ -76,30 +101,34 @@ class Repository @Inject constructor(
     }
 
     private suspend fun loadAllEvents(): MutableSet<String> {
-        val documents = getQuerySnapshot(DBRefs.EVENTS_REF)
+        val documents = getAllSnapshotDocs(DBRefs.EVENTS_REF)
         val users = mutableSetOf<String>()
-        val events = documents.map { doc ->
-            doc.toObject<Event>()!!.also {
-                users.add(it.uid)
+        val events = mutableListOf<Event>()
+        val today = Date()
+        for (doc in documents) {
+            val startDate = doc.getTimestamp("startDate")!!.toDate()
+            if (startDate >= today) {
+                val event = doc.toObject<Event>()!!
+                events.add(event)
+                users.add(event.uid)
             }
         }
         dataModelHolder.addEvents(events)
         return users
     }
 
-    private suspend fun getQuerySnapshot(ref: CollectionReference): List<DocumentSnapshot> {
-        var query = locationHelper.getLastKnownLocation()?.let {
-            val center = GeoPoint(it.latitude, it.longitude)
-            GeoFirestore(ref)
-                .queryAtLocation(center, MAX_KM)
-                .queries[0]
-        } ?: ref
+    private suspend fun getAllSnapshotDocs(ref: CollectionReference): List<DocumentSnapshot> {
 
-        val code = locationHelper.getCountryCode()
-        query = query.whereEqualTo("countryCode", code)
-
-        if (isFilteringByDate) {
-            query = query.whereGreaterThanOrEqualTo("startDate", Date())
+        val location = locationHelper.getLastKnownLocation()
+        var query = if (location != null) {
+            val center = GeoPoint(
+                location.latitude,
+                location.longitude
+            )
+            GeoFirestore(ref).queryAtLocation(center, MAX_KM).queries.first()
+        } else {
+            val code = locationHelper.getCountryCode()
+            ref.whereEqualTo("countryCode", code)
         }
 
         return query.get().await()!!.documents
@@ -114,9 +143,7 @@ class Repository @Inject constructor(
         }
     }
 
-    suspend fun getUsers(ids: Set<String>): Map<String, PreviewUser> {
-        return dataModelHolder.getUsers(ids)
-    }
+    suspend fun getUsers(ids: Set<String>) = dataModelHolder.getUsers(ids)
 
     private suspend fun fetchUsersIfNeeded(users: Set<String>) =
         users.forEach { fetchUserIfNeeded(it) }
@@ -195,8 +222,7 @@ class Repository @Inject constructor(
     suspend fun uploadData(
         dType: DataType,
         data: BaseData,
-        selectedImage: Uri?,
-        selectedBitmap: Bitmap?
+        result: MyImagePicker.Result?
     ) {
 
         val collection = DBRefs.refForType(dType)
@@ -217,21 +243,11 @@ class Repository @Inject constructor(
 
         val event = data as Event
 
-        val uri = when {
-            selectedImage != null -> {
-                storage.saveEventImage(event, selectedImage)
-            }
-            selectedBitmap != null -> {
-                storage.saveEventImage(event, selectedBitmap)
-            }
-            else -> {
-                saveUserEvent(event)
-                return
-            }
+        result?.let {
+            storage.saveEventImage(event, it)
+            dataModelHolder.updateData(event) //update in Local DB
+            ref.set(event).await()
         }
-        event.imageUrl = uri.toString()
-        dataModelHolder.updateData(event) //update in Local DB
-        ref.set(event).await()
         saveUserEvent(event)
     }
 
@@ -264,20 +280,8 @@ class Repository @Inject constructor(
         dataModelHolder.updateData(lesson)
     }
 
-    suspend fun updateEvent(
-        event: Event, localImgPath: Uri?, bitmap: Bitmap?
-    ) {
-
-        when {
-            localImgPath != null -> storage
-                .saveEventImage(event, localImgPath)
-
-            bitmap != null -> storage
-                .saveEventImage(event, bitmap)
-
-
-//            TODO add image From url - upload to server
-        }
+    suspend fun updateEvent(event: Event, result: MyImagePicker.Result?) {
+        result?.let { storage.saveEventImage(event, it) }
         saveInDB(event)
     }
 

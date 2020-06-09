@@ -28,4 +28,10 @@
 
     <string name="signMsg">Sign %s</string>
     <string name="empty">"Empty %s"</string>
+    <string name="AdMobId">ca-app-pub-2280152533389019~9796340330</string>
+
+<!--    Use this when testing . if not admob might suspend you-->
+    <string name="test_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+<!--    TODO Use this on for apk-->
+    <string name="banner_ad_id">ca-app-pub-2280152533389019/6212318542</string>
 </resources>

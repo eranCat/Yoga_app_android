@@ -7,40 +7,33 @@ import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.extensions.LatLng
 import com.erank.yogappl.utils.extensions.mapped
-import com.erank.yogappl.utils.interfaces.Searchable
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import java.util.*
 
-abstract class BaseData : Searchable {
+abstract class BaseData {
 
     @PrimaryKey
     lateinit var id: String
 
     lateinit var title: String
 
-    @PropertyName("place")
     lateinit var locationName: String
 
     lateinit var countryCode: String
 
     lateinit var equip: String
 
-    @get:PropertyName("xtraNotes")
-    @set:PropertyName("xtraNotes")
-    var extraNotes: String? = null
+    var xtraNotes: String? = null
 
     var maxParticipants = 0
 
     //the creators id
     lateinit var uid: String
 
-    @PropertyName("age_min")
     var minAge = 0
-
-    @PropertyName("age_max")
     var maxAge = 0
 
     //user id : age
@@ -103,7 +96,7 @@ abstract class BaseData : Searchable {
         this.endDate = endDate
         this.level = level
         this.equip = equipment
-        this.extraNotes = xtraNotes
+        this.xtraNotes = xtraNotes
         this.maxParticipants = maxParticipants
         this.uid = uid
         this.status = Status.OPEN
@@ -197,7 +190,7 @@ abstract class BaseData : Searchable {
                 "locationName='$locationName'," +
                 " countryCode='$countryCode', " +
                 "equipment='$equip'," +
-                " xtraNotes='$extraNotes', " +
+                " xtraNotes='$xtraNotes', " +
                 " maxParticipants=$maxParticipants," +
                 "uid='$uid'," +
                 " minAge=$minAge," +
@@ -225,7 +218,7 @@ abstract class BaseData : Searchable {
                 locationName == data.locationName &&
                 countryCode == data.countryCode &&
                 equip == data.equip &&
-                extraNotes == data.extraNotes &&
+                xtraNotes == data.xtraNotes &&
                 uid == data.uid &&
                 signed == data.signed &&
                 cost == data.cost &&
@@ -244,13 +237,5 @@ abstract class BaseData : Searchable {
         BEGINNERS,
         INTERMEDIATES,
         ADVANCED;
-    }
-
-    override fun searchApplies(query: String): Boolean {
-        return title.contains(query, true)
-                || locationName.contains(query, true)
-//                || DataSource.getUser(uid)?.name
-//            ?.contains(query, true) ?: false
-//        TODO add search by user name
     }
 }

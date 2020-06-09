@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Spinner
 import androidx.appcompat.widget.AppCompatSpinner
+import androidx.core.content.withStyledAttributes
 import androidx.core.view.setPadding
 import com.erank.yogappl.R
 
@@ -19,17 +21,19 @@ abstract class EnumSpinner<E : Enum<*>> : AppCompatSpinner,
         }
     protected abstract val values: Array<E>
 
-    var listener: ((position: Int) -> Unit)? = null
+    private var listener: ((position: Int) -> Unit)? = null
+
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)
 
     init {
         setBackgroundResource(R.drawable.rounded_edittext)
         val scale = resources.displayMetrics.density
         val dpAsPixels = (4 * scale + 0.5f).toInt()
         setPadding(dpAsPixels)
+//        TODO change to dialog
+//        android.R.attr.spinnerMode = Spinner.MODE_DIALOG
     }
-
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)
 
     fun setOnItemSelectedListener(listener: (position: Int) -> Unit) {
         super.setOnItemSelectedListener(this)

@@ -132,10 +132,10 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     override fun onEditAction(item: T) = openActivity(item.id)
 
     override fun onDeleteAction(item: T) {
-        alert("Are you sure you want to delete?")
-            ?.setPositiveButton("yes") { _, _ ->
+        alert(R.string.confirm_delete_data)
+            ?.setPositiveButton(android.R.string.yes) { _, _ ->
                 onDeleteConfirmed(item)
-            }?.setNegativeButton("no", null)
+            }?.setNegativeButton(android.R.string.no, null)
             ?.show()
     }
 
@@ -165,14 +165,14 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
         if (requestCode == RC_EDIT) {
             if (resultCode == Activity.RESULT_OK) {
-                toast("Edited!")
+                toast(R.string.edited)
             }
         }
     }
 
     fun onFailure(error: Exception) {
-        alert("There was a problem", error.localizedMessage)
-            ?.setPositiveButton("ok", null)
+        alert(R.string.problemFound, error.localizedMessage)
+            ?.setPositiveButton(R.string.ok, null)
             ?.show()
 
         Log.d(TAG, "problem deleting", error)

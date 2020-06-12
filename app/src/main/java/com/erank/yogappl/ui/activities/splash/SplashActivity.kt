@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import com.erank.yogappl.R
 import com.erank.yogappl.ui.activities.login.LoginActivity
@@ -80,7 +81,7 @@ class SplashActivity : AppCompatActivity() {
         }
 
         if (!viewModel.getLocationPermissionIfNeeded(this)) {
-            toast("needs location permission")
+            toast(R.string.location_permission_needed)
             return
         }
 
@@ -100,7 +101,7 @@ class SplashActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             withContext(Main) {
-                notifyError("There was a problem loading", e)
+                notifyError(R.string.problemLoading, e)
             }
             return
         }
@@ -113,23 +114,24 @@ class SplashActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun notifyError(msg: String, e: Exception? = null) {
+    private fun notifyError(@StringRes msg: Int, e: Exception? = null) {
         floatAnimator.cancel()
 
-        Log.d(TAG, msg, e)
+        Log.d(TAG, getString(msg), e)
         e?.localizedMessage?.let {
-            alert(msg, it)
-                .setPositiveButton("ok", null)
+            alert(msg)
+                .setMessage(it)
+                .setPositiveButton(R.string.ok, null)
                 .show()
 
         } ?: alert(msg)
-            .setPositiveButton("ok", null)
+            .setPositiveButton(R.string.ok, null)
             .show()
     }
 
     private fun showInternetDialog() {
-        alert(null, "No internet connection")
-            .setPositiveButton("retry") { _, _ ->
+        alert(null, R.string.no_internet_connection)
+            .setPositiveButton(R.string.retry) { _, _ ->
                 startSetup()
             }.show()
     }
@@ -141,7 +143,7 @@ class SplashActivity : AppCompatActivity() {
         if (viewModel.checkAllPermissionResults(requestCode, permissions, grantResults)) {
             startSetup()
         } else {
-            toast("Can't continue without location permission")
+            toast(R.string.needs_location_permission)
             startSetup()
         }
 

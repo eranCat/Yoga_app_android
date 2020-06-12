@@ -11,19 +11,19 @@ import com.afollestad.vvalidator.form
 import com.afollestad.vvalidator.form.Form
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.models.Teacher
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
-import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.extensions.alert
+import com.erank.yogappl.utils.extensions.hide
+import com.erank.yogappl.utils.extensions.toast
+import com.erank.yogappl.utils.extensions.txt
 import com.erank.yogappl.utils.extensions.validator.assertation.BDateAssertion
 import com.erank.yogappl.utils.extensions.validator.birthDatePicker
 import com.erank.yogappl.utils.helpers.MyImagePicker
-import com.erank.yogappl.utils.helpers.UserValidator
-import com.erank.yogappl.utils.helpers.UserValidator.Fields
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
 import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_register.*
@@ -160,29 +160,29 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     private fun initUserValidator() {
         userValidator = form {
 
-            input(etName,"name") {
+            input(etName, "name") {
                 isNotEmpty()
-                length().atLeast(3).description("Must be at least 3 letters")
+                length().atLeast(3).description(R.string.at_least3)
             }
 
-            input(etEmail,"email") {
+            input(etEmail, "email") {
                 isNotEmpty()
                 isEmail()
             }
 
-            input(etPassword,"pass") {
+            input(etPassword, "pass") {
                 isNotEmpty()
-                length().atLeast(6).description("Must be at least 6 characters")
+                length().atLeast(6).description(R.string.atLeast6)
             }
 
-            birthDatePicker(etDate,"date") {
+            birthDatePicker(etDate, "date") {
                 BDateAssertion()
             }
 
-            spinner(spinnerUserLevel,"level") {
+            spinner(spinnerUserLevel, "level") {
 
             }
-            spinner(spinnerUserType,"type"){
+            spinner(spinnerUserType, "type") {
 
             }
         }
@@ -190,14 +190,14 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
     private fun initUserValidatorForUpdate() {
         userValidator = form {
-            input(etName,"name") {
+            input(etName, "name") {
                 isNotEmpty()
-                length().atLeast(3).description("Must be at least 3 letters")
+                length().atLeast(3).description(R.string.at_least3)
             }
-            birthDatePicker(etDate,"date") {
+            birthDatePicker(etDate, "date") {
                 validate()
             }
-            spinner(spinnerUserLevel,"level") {
+            spinner(spinnerUserLevel, "level") {
 
             }
         }
@@ -207,7 +207,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
         val result = userValidator.validate()
         if (result.success().not()) {
             Log.d(TAG, "Invalid User info when saving")
-            toast("Invalid data , please check", Toast.LENGTH_LONG)
+            toast(R.string.invalid_data_check, Toast.LENGTH_LONG)
             return
         }
 

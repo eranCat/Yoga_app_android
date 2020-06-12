@@ -15,3 +15,10 @@ val Enum<*>.cName
     get() = name[0].toUpperCase() + name.substring(1).toLowerCase()
 
 operator fun Enum<*>.minus(b: Enum<*>) = ordinal - b.ordinal
+
+//TODO use in enums with R.string...
+//@StringRes
+interface LocalizedEnum {
+    val lowerCased: Int
+    val capitalized: Int
+}

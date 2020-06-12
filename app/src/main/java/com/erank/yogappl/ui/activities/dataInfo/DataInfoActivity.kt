@@ -136,7 +136,7 @@ class DataInfoActivity : AppCompatActivity() {
         val uid = viewModel.currentUser!!.id
         currentData?.let {
             if (it.signed.contains(uid)) {
-                toggleSignNav.title = "Sign out"
+                toggleSignNav.setTitle(R.string.sign_out)
             }
 
             if (it.uid == uid) {
@@ -195,7 +195,7 @@ class DataInfoActivity : AppCompatActivity() {
     }
 
     private fun share() {
-        toast("share")
+        toast(R.string.share)
         //TODO share
     }
 
@@ -211,7 +211,8 @@ class DataInfoActivity : AppCompatActivity() {
         progressLayout.hide()
         toggleSignNav.isEnabled = true
 
-        toggleSignNav.title = "Sign ${if (result) "out" else "in"}"
+        val title = if (result) R.string.sign_out else R.string.sign_in
+        toggleSignNav.setTitle(title)
 
         val data = currentData ?: return
 
@@ -230,8 +231,9 @@ class DataInfoActivity : AppCompatActivity() {
         progressLayout.hide()
         toggleSignNav.isEnabled = true
         //in or out
-        alert("Failed signing", error.localizedMessage)
-            .setPositiveButton("ok", null)
+        alert(R.string.failed_signing)
+            .setMessage( error.localizedMessage)
+            .setPositiveButton(R.string.ok, null)
             .show()
     }
 

@@ -54,7 +54,7 @@ class LoginActivity : AppCompatActivity() {
 
             signInBtn.setOnClickListener {
                 if (isNotDataValid)
-                    toast("Invalid details")
+                    toast(R.string.invalid_details)
                 else login()
             }
         }
@@ -82,11 +82,11 @@ class LoginActivity : AppCompatActivity() {
             }
             .addOnFailureListener {
                 Log.w(TAG, "createUserWithEmail:failure", it)
-                val msg = "Authentication failed: ${it.localizedMessage}"
+                val msg = getString(R.string.auth_failed_with, it.localizedMessage)
                 AlertDialog.Builder(this)
-                    .setTitle("login failed")
+                    .setTitle(R.string.login_failed)
                     .setMessage(msg)
-                    .setPositiveButton("OK", null)
+                    .setPositiveButton(R.string.ok, null)
                     .show()
             }
 

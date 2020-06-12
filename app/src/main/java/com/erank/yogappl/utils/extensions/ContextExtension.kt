@@ -17,9 +17,14 @@ fun Context.alert(title: String?, msg: String? = null): AlertDialog.Builder =
         .setMessage(msg)
 
 fun Context.alert(
-    @StringRes title: Int,
-    @StringRes msg: Int
-): AlertDialog.Builder =
-    AlertDialog.Builder(this)
-        .setTitle(title)
-        .setMessage(msg)
+    @StringRes title: Int? = null,
+    @StringRes msg: Int? = null
+): AlertDialog.Builder = AlertDialog.Builder(this)
+    .apply {
+        title?.let { setTitle(it) }
+        msg?.let { setMessage(it) }
+    }
+
+fun Context.alert(
+    @StringRes title: Int? = null, msg: String
+) = alert(title).setMessage(msg)

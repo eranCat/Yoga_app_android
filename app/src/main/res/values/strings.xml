@@ -77,4 +77,21 @@
     <string name="endDate_validation_invalid">date needs to be same as start date or after.\nand min time of %s is 30 min</string>
     <string name="confirm_delete_data">Are you sure you want to delete?</string>
     <string name="edited">Edited!</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="birth_date">Birth Date</string>
+    <string name="about">About</string>
+    <string name="save">Save</string>
+    <string name="try_searching_for_something">Try searching for something</string>
+    <string name="title">title</string>
+    <string name="no_location_selected">no location selected</string>
+    <string name="date">Date</string>
+    <string name="select_the_max_amount_of_people">Select the maximum amount of people</string>
+    <string name="cost">cost</string>
+    <string name="equipment">equipment</string>
+    <string name="extra_notes">Extra notes</string>
+    <string name="no_results">No results.\n try searching for something else</string>
+    <string name="lessons">Lessons</string>
+    <string name="events">Events</string>
 </resources>

@@ -28,7 +28,6 @@ import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.fragment_data_list.*
-import kotlinx.android.synthetic.main.no_search_results.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main

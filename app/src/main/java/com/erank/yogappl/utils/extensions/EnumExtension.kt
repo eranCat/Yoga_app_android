@@ -1,24 +1,26 @@
 package com.erank.yogappl.utils.extensions
 
-import android.annotation.SuppressLint
-
-//lower cased name for printing and showing
-//extension for all enums
-val Enum<*>.lowercaseName
-    @SuppressLint("DefaultLocale")
-    get() = name.toLowerCase()
-
-//capitalized name
-// <Uppercase letter><followed by lower cased letters>
-val Enum<*>.cName
-    @SuppressLint("DefaultLocale")
-    get() = name[0].toUpperCase() + name.substring(1).toLowerCase()
+import android.content.Context
+import androidx.annotation.ArrayRes
+import java.util.*
 
 operator fun Enum<*>.minus(b: Enum<*>) = ordinal - b.ordinal
 
 //TODO use in enums with R.string...
-//@StringRes
-interface LocalizedEnum {
-    val lowerCased: Int
-    val capitalized: Int
+interface LocalizedEnum{
+
+    fun getStringArray(context: Context): Array<String>
+    fun lowerCased(context: Context): String
+    fun capitalized(context: Context):String
+
+    fun lowerCased(context: Context, ordinal: Int): String {
+        val name = getStringArray(context)[ordinal]
+        return name.toLowerCase(Locale.getDefault())
+    }
+
+    fun capitalized(context: Context, ordinal: Int): String {
+        val name = getStringArray(context)[ordinal]
+        return name[0].toUpperCase() + name.substring(1)
+            .toLowerCase(Locale.getDefault())
+    }
 }

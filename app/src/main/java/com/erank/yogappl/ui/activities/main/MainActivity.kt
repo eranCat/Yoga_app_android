@@ -158,7 +158,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun loadFragment(type: SourceType): Boolean {
         sourceType = type
-        title = type.cName
+        title = type.capitalized(this)
 
         val colors = resources.getIntArray(R.array.tabs_colors)
         val color = colors[type.ordinal]

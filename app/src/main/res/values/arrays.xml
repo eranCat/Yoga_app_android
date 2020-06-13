@@ -25,6 +25,24 @@
         <item>Remove image</item>
     </string-array>
 
+    <string-array name="userLevel">
+        <item>Beginner</item>
+        <item>Intermediate</item>
+        <item>Advanced</item>
+    </string-array>
+
+    <string-array name="dataLevel" >
+        <item>Beginner</item>
+        <item>Intermediate</item>
+        <item>Advanced</item>
+        <item>Anyone</item>
+    </string-array>
+
+    <string-array name="userType" >
+        <item>Student</item>
+        <item>Teacher</item>
+    </string-array>
+
     <string-array name="supportedTomTomCodes">
         <item>NGT</item>
         <item>NGT-Latn</item>
@@ -78,5 +96,14 @@
         <item>tr-TR</item>
         <item>uk-UA</item>
         <item>vi-VN</item>
+    </string-array>
+    <string-array name="sourceType" >
+        <item>All</item>
+        <item>Signed</item>
+        <item>Uploads</item>
+    </string-array>
+    <string-array name="dataType" >
+        <item>Lessons</item>
+        <item>Events</item>
     </string-array>
 </resources>

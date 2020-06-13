@@ -1,7 +1,11 @@
 package com.erank.yogappl.data.models
 
+import android.content.Context
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.erank.yogappl.R
+import com.erank.yogappl.utils.extensions.LocalizedEnum
+import com.erank.yogappl.utils.extensions.getStringArray
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
@@ -56,16 +60,36 @@ open class User {
     fun removeEvent(id: String) = createdEventsIDs.remove(id)
 
     @IgnoreExtraProperties
-    enum class Level {
+    enum class Level : LocalizedEnum {
         BEGINNER,
         INTERMEDIATE,
         ADVANCED;
+
+        companion object {
+            const val resValues = R.array.userLevel
+        }
+
+        override fun getStringArray(context: Context): Array<String> {
+            return context.getStringArray(resValues)
+        }
+        override fun lowerCased(context: Context) = lowerCased(context,ordinal)
+        override fun capitalized(context: Context) = capitalized(context,ordinal)
     }
 
     @IgnoreExtraProperties
-    enum class Type {
+    enum class Type : LocalizedEnum {
         STUDENT,
         TEACHER;
+
+        companion object {
+            const val resValues = R.array.userType
+        }
+
+        override fun getStringArray(context: Context) =
+            context.getStringArray(resValues)
+
+        override fun lowerCased(context: Context) = lowerCased(context,ordinal)
+        override fun capitalized(context: Context) = capitalized(context,ordinal)
     }
 
 }

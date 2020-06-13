@@ -94,4 +94,12 @@
     <string name="no_results">No results.\n try searching for something else</string>
     <string name="lessons">Lessons</string>
     <string name="events">Events</string>
+    <string name="added_calender">Added to your calendar</string>
+    <string name="calender_permission_allow">please let us add events to your calendar</string>
+    <string name="alright">alright</string>
+    <string name="calendar_permission_granted">calendar permission granted</string>
+    <string name="no_camera">no camera</string>
+    <string name="select_image">Select image</string>
+    <string name="problem_crop">Problem with cropping: %s</string>
+    <string name="no_camera_permission">camera permission not granted</string>
 </resources>

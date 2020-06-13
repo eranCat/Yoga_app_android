@@ -304,7 +304,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val locationName = address.getName()
         val countryCode = address.countryCode
 
-        val level = levelSpinner.enumValue!!//TODO can use custom field
+        val level = levelSpinner.enumValue!!
         val equip = res[EQUIP_KEY]!!.asString()
         val extra = extraEt.txt
         val maxPpl = res[MAX_KEY]!!.asInt()!!

@@ -68,7 +68,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
         currentSourceType = arguments!!.getSerializable(SOURCE_TYPE) as SourceType
 
-        emptyTV.text = getString(R.string.empty, dataType.lowercaseName)
+        emptyTV.text = getString(R.string.empty, dataType.lowerCased(context!!))
 
         setIsEditable()
 

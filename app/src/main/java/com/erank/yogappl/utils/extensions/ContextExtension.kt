@@ -3,6 +3,7 @@ package com.erank.yogappl.utils.extensions
 import android.app.AlertDialog
 import android.content.Context
 import android.widget.Toast
+import androidx.annotation.ArrayRes
 import androidx.annotation.StringRes
 
 fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) =
@@ -28,3 +29,5 @@ fun Context.alert(
 fun Context.alert(
     @StringRes title: Int? = null, msg: String
 ) = alert(title).setMessage(msg)
+
+fun Context.getStringArray(@ArrayRes res: Int) = resources.getStringArray(res)

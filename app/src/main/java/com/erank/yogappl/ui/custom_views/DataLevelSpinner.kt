@@ -10,7 +10,7 @@ class DataLevelSpinner : EnumSpinner<BaseData.Level>,
 
     public override var enumValue: BaseData.Level? = null
     override val values = BaseData.Level.values()
-    override val valuesArrayRes = BaseData.Level.resArray
+    override val valuesArrayRes get() = BaseData.Level.resArray
 
     constructor(context: Context) : super(context)
 

@@ -10,7 +10,7 @@ enum class SourceType: LocalizedEnum {
     UPLOADS;
 
     companion object {
-        const val resArray = R.array.sourceType
+        val resArray get() = R.array.sourceType
     }
 
     override fun getStringArray(context: Context): Array<String> =

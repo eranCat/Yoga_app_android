@@ -10,7 +10,7 @@ enum class DataType(val singular: Int) : LocalizedEnum {
     EVENTS(R.string.event);
 
     companion object{
-        const val resArray = R.array.dataType
+        val resArray get() = R.array.dataType
     }
 
     override fun getStringArray(context: Context): Array<String> {

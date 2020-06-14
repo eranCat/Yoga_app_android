@@ -10,7 +10,7 @@ class UserTypeSpinner : EnumSpinner<User.Type>, AdapterView.OnItemSelectedListen
 
     public override var enumValue: User.Type? = null
     override val values: Array<User.Type> = User.Type.values()
-    override val valuesArrayRes = User.Type.resValues
+    override val valuesArrayRes get() = User.Type.resValues
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attributeSet: AttributeSet?) : super(context, attributeSet)

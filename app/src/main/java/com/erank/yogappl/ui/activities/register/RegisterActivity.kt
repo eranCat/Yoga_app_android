@@ -35,7 +35,6 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
     private lateinit var userValidator: Form
     private val myImagePicker by lazy { MyImagePicker(this) }
-
     private val progressDialog by lazy { ProgressDialog(this) }
 
     companion object {
@@ -43,7 +42,6 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private var isEditingUser: Boolean = false
-
 
     @Inject
     lateinit var viewModel: RegisterViewModel
@@ -56,21 +54,19 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
         cameraBtn.setOnClickListener { handleCameraBtn() }
 
-        val currentUser = viewModel.currentUser
-        if (currentUser == null) {
+        val currentUser = viewModel.currentUser ?:run {
             saveUser.setOnClickListener { saveUser() }
             initUserValidator()
             return
         }
+
+        initUserValidatorForUpdate()
 
         isEditingUser = true
         fillData(currentUser)
 
         saveUser.also { it.text = "Update information" }
             .setOnClickListener { updateUser() }
-
-        initUserValidatorForUpdate()
-
     }
 
     private fun handleCameraBtn() {

@@ -66,14 +66,15 @@ open class User {
         ADVANCED;
 
         companion object {
-            const val resValues = R.array.userLevel
+            val resValues get() = R.array.userLevel
         }
 
         override fun getStringArray(context: Context): Array<String> {
             return context.getStringArray(resValues)
         }
-        override fun lowerCased(context: Context) = lowerCased(context,ordinal)
-        override fun capitalized(context: Context) = capitalized(context,ordinal)
+
+        override fun lowerCased(context: Context) = lowerCased(context, ordinal)
+        override fun capitalized(context: Context) = capitalized(context, ordinal)
     }
 
     @IgnoreExtraProperties
@@ -82,14 +83,14 @@ open class User {
         TEACHER;
 
         companion object {
-            const val resValues = R.array.userType
+            val resValues get() = R.array.userType
         }
 
         override fun getStringArray(context: Context) =
             context.getStringArray(resValues)
 
-        override fun lowerCased(context: Context) = lowerCased(context,ordinal)
-        override fun capitalized(context: Context) = capitalized(context,ordinal)
+        override fun lowerCased(context: Context) = lowerCased(context, ordinal)
+        override fun capitalized(context: Context) = capitalized(context, ordinal)
     }
 
 }

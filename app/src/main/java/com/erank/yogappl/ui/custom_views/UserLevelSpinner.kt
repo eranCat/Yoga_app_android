@@ -11,7 +11,7 @@ class UserLevelSpinner : EnumSpinner<User.Level> {
 
     public override var enumValue: User.Level? = null
     override val values = User.Level.values()
-    override val valuesArrayRes = User.Level.resValues
+    override val valuesArrayRes get() = User.Level.resValues
 
     init {
         onItemSelectedListener = this

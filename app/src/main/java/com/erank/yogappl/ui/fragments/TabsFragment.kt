@@ -35,7 +35,7 @@ class TabsFragment : Fragment(), SearchUpdateable {
         super.onViewCreated(view, savedInstanceState)
 
         val sourceType = arguments!!.getSerializable("type") as SourceType
-        val tabTitles = resources.getStringArray(R.array.tab_titles)
+        val tabTitles = resources.getStringArray(R.array.dataType)
 
         dataPagerAdapter = DataPagerAdapter(childFragmentManager, tabTitles, sourceType)
 

@@ -65,7 +65,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
         isEditingUser = true
         fillData(currentUser)
 
-        saveUser.also { it.text = "Update information" }
+        saveUser.also { it.setText(R.string.update_info) }
             .setOnClickListener { updateUser() }
     }
 
@@ -82,7 +82,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> if (isEditingUser) {
-                toast("data not saved")
+                toast(R.string.data_not_saved)
             }
         }
 
@@ -92,7 +92,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     private fun updateUser() {
         val result = userValidator.validate()
         if (!result.success()) {
-            toast("one or more of the fields are incorrectly filled")
+            toast(R.string.fields_incorrectly_filled)
             return
         }
 
@@ -122,8 +122,8 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
     private fun onFail(e: Exception) {
         progressDialog.dismiss()
-        alert("Things wasn't going as planned...", e.localizedMessage)
-            .setPositiveButton("ok", null)
+        alert(R.string.things_wasnt_going_as_planned, e.localizedMessage)
+            .setPositiveButton(R.string.ok, null)
             .show()
         Log.d(TAG, e.localizedMessage)
     }
@@ -191,7 +191,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
                 length().atLeast(3).description(R.string.at_least3)
             }
             birthDatePicker(etDate, "date") {
-                validate()
+                BDateAssertion()
             }
             spinner(spinnerUserLevel, "level") {
 

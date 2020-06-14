@@ -98,4 +98,8 @@
     <string name="add">הוספה</string>
     <string name="edit_profile">עריכת פרטים</string>
     <string name="Save">שמירה</string>
+    <string name="update_info">עדכון מידע</string>
+    <string name="things_wasnt_going_as_planned">משהו התחרבש</string>
+    <string name="data_not_saved">מידע לא נשמר</string>
+    <string name="fields_incorrectly_filled">"אחד או יותר מהשדות לא מלאים נכון "</string>
 </resources>

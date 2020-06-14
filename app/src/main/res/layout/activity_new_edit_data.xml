@@ -41,15 +41,16 @@
         <Button
             android:id="@+id/select_loc_btn"
             style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:layout_marginTop="16dp"
             android:fontFamily="@font/archivo_narrow"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
-            android:layout_marginTop="16dp"
             android:text="@string/select_location"
+            android:textAlignment="textStart"
             android:textAllCaps="false"
             android:textColor="@android:color/black"
             android:textSize="18sp"
@@ -57,19 +58,20 @@
 
         <TextView
             android:id="@+id/location_tv"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:fontFamily="@font/archivo_narrow"
             android:gravity="center_vertical"
             android:text="@string/no_location_selected"
+            android:textAlignment="textStart"
             android:textColor="@android:color/darker_gray"
             android:textSize="18sp" />
 
         <Button
             android:id="@+id/start_date_btn"
             style="@style/Widget.AppCompat.Light.ActionButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginTop="16dp"
@@ -77,6 +79,7 @@
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
             android:text="@string/select_start_date"
+            android:textAlignment="textStart"
             android:textAllCaps="false"
             android:textColor="@android:color/black"
             android:textSize="18sp"
@@ -90,19 +93,21 @@
             android:fontFamily="@font/archivo_narrow"
             android:gravity="center_vertical"
             android:text="@string/date"
+            android:textAlignment="textStart"
             android:textColor="@android:color/darker_gray"
             android:textSize="18sp" />
 
         <Button
             android:id="@+id/end_date_btn"
             style="@style/Widget.AppCompat.Light.ActionButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:fontFamily="@font/archivo_narrow"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
             android:text="@string/select_end_date"
+            android:textAlignment="textStart"
             android:textAllCaps="false"
             android:textColor="@android:color/black"
             android:textSize="18sp"
@@ -116,6 +121,7 @@
             android:fontFamily="@font/archivo_narrow"
             android:gravity="center_vertical"
             android:text="@string/date"
+            android:textAlignment="textStart"
             android:textColor="@android:color/darker_gray"
             android:textSize="18sp" />
 

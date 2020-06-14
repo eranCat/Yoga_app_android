@@ -115,4 +115,10 @@
     <string name="add">add</string>
     <string name="edit_profile">Edit profile</string>
     <string name="Save">Save</string>
+    <string name="update_info">Update information</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="fields_incorrectly_filled">one or more of the fields are incorrectly filled</string>
+    <string name="things_wasnt_going_as_planned">Things wasn\'t going as planned...</string>
+    <string name="data_not_saved">data not saved</string>
 </resources>

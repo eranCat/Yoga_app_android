@@ -1,37 +1,124 @@
 <resources>
-    <string name="app_name">Yoga lessons</string>
+    <string name="app_name" translatable="false">Yogive</string>
 
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_login">Sign in</string>
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in</string>
-    <string name="action_sign_in_short">Sign in</string>
+    <string name="sign_in">Sign in</string>
     <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Invalid username</string>
-    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="invalid_password">Password must be at least 5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="signup">No account yet ? Create one</string>
     <string name="open">open</string>
     <string name="close">close</string>
 
-    <string name="unsplash_api_key">cdff0b192a884316d78d68efd2bb178f18560be9def00c26808e0b4d1cf6f4ed</string>
-    <string name="unsplash_secret">54360fcc45c013fd877316353afdd41f749f0e01c4a3bbcab61a8ac3561593fe</string>
+    <string name="unsplash_api_key" translatable="false">cdff0b192a884316d78d68efd2bb178f18560be9def00c26808e0b4d1cf6f4ed</string>
+    <string name="unsplash_secret" translatable="false">54360fcc45c013fd877316353afdd41f749f0e01c4a3bbcab61a8ac3561593fe</string>
 
-    <string name="currency_layer_api_key">ceb2a9d4119b6738d3fa4b8340d94adb</string>
-    <string name="currency_base_api">http://apilayer.net/api</string>
+    <string name="currency_layer_api_key" translatable="false">ceb2a9d4119b6738d3fa4b8340d94adb</string>
+    <string name="currency_base_api" translatable="false">http://apilayer.net/api</string>
 
-    <string name="tomtom_api_key">hEhWkGvw4i8xlpLfIfY6P3AA1cOBGutJ</string>
-    <string name="tomtom_base_api">api.tomtom.com</string>
+    <string name="tomtom_api_key" translatable="false">hEhWkGvw4i8xlpLfIfY6P3AA1cOBGutJ</string>
+    <string name="tomtom_base_api" translatable="false">api.tomtom.com</string>
 
-    <string name="range">%s - %s</string>
+    <string name="range" translatable="false">%s - %s</string>
 
     <string name="signMsg">Sign %s</string>
     <string name="empty">"Empty %s"</string>
-    <string name="AdMobId">ca-app-pub-2280152533389019~9796340330</string>
+    <string name="AdMobId" translatable="false">ca-app-pub-2280152533389019~9796340330</string>
 
 <!--    Use this when testing . if not admob might suspend you-->
-    <string name="test_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="test_ad_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
 <!--    TODO Use this on for apk-->
-    <string name="banner_ad_id">ca-app-pub-2280152533389019/6212318542</string>
+    <string name="banner_ad_id" translatable="false">ca-app-pub-2280152533389019/6212318542</string>
+    <string name="all">All</string>
+    <string name="signed">Signed</string>
+    <string name="uploads">Uploads</string>
+    <string name="add_new">Add new lesson or event</string>
+    <string name="cancel">Cancel</string>
+    <string name="lesson">lesson</string>
+    <string name="event">event</string>
+    <string name="create_new_data">Create new %s</string>
+    <string name="added">Added!</string>
+    <string name="discarded">Discarded</string>
+    <string name="confirm_signout">Are you sure you want to sign out?</string>
+    <string name="yep">Yep</string>
+    <string name="nope">Nope</string>
+    <string name="at_least3">Must be at least 3 characters</string>
+    <string name="atLeast6">Must be at least 6 characters</string>
+    <string name="invalid_data_check">Invalid data , please check</string>
+    <string name="location_permission_needed">needs location permission</string>
+    <string name="problemLoading">There was a problem loading</string>
+    <string name="ok">OK</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="retry">retry</string>
+    <string name="needs_location_permission">Can\'t continue without location permission</string>
+    <string name="sign_out">Sign out</string>
+    <string name="share">share</string>
+    <string name="failed_signing">Failed signing</string>
+    <string name="invalid_details">Invalid details</string>
+    <string name="auth_failed_with">Authentication failed: %s</string>
+    <string name="find_your_place">Find your place</string>
+    <string name="newData">New %s</string>
+    <string name="fill_title">Please fill a title</string>
+    <string name="fill_cost">Please fill a cost</string>
+    <string name="must_be_zero_or_more">must be a positive number or 0</string>
+    <string name="fill_equipment">Please fill a equipment</string>
+    <string name="problemFound">Problem found</string>
+    <string name="success">success!</string>
+    <string name="select_location">Please select a location</string>
+    <string name="select_start_date">Please select a start date</string>
+    <string name="select_end_date">Please select an end date</string>
+    <string name="date_can_be_later">date can be later</string>
+    <string name="endDate_validation_invalid">date needs to be same as start date or after.\nand min time of %s is 30 min.</string>
+    <string name="confirm_delete_data">Are you sure you want to delete?</string>
+    <string name="edited">Edited!</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="birth_date">Birth Date</string>
+    <string name="about">About</string>
+    <string name="save">Save</string>
+    <string name="try_searching_for_something">Try searching for something</string>
+    <string name="title">title</string>
+    <string name="no_location_selected">no location selected</string>
+    <string name="date">Date</string>
+    <string name="select_the_max_amount_of_people">Select the maximum amount of people</string>
+    <string name="cost">cost</string>
+    <string name="equipment">equipment</string>
+    <string name="extra_notes">Extra notes</string>
+    <string name="no_results">No results.\n try searching for something else</string>
+    <string name="lessons">Lessons</string>
+    <string name="events">Events</string>
+    <string name="added_calender">Added to your calendar</string>
+    <string name="calender_permission_allow">please let us add events to your calendar</string>
+    <string name="alright">alright</string>
+    <string name="calendar_permission_granted">calendar permission granted</string>
+    <string name="no_camera">no camera</string>
+    <string name="select_image">Select image</string>
+    <string name="problem_crop">Problem with cropping: %s</string>
+    <string name="no_camera_permission">camera permission not granted</string>
+    <string name="notify_on_time">Notify me when it\'s time</string>
+    <string name="add_to_calendar">Add to calendar</string>
+    <string name="select_from_gallery">select from gallery</string>
+    <string name="select_from_the_internet">select from the internet</string>
+    <string name="take_a_photo">take a photo</string>
+    <string name="remove_image">Remove image</string>
+    <string name="Beginner">Beginner</string>
+    <string name="Intermediate">Intermediate</string>
+    <string name="Advanced">Advanced</string>
+    <string name="Anyone">Anyone</string>
+    <string name="Student">Student</string>
+    <string name="Teacher">Teacher</string>
+    <string name="All">All</string>
+    <string name="Signed">Signed</string>
+    <string name="Uploads">Uploads</string>
+    <string name="search">Search</string>
+    <string name="add">add</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="Save">Save</string>
+    <string name="update_info">Update information</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="fields_incorrectly_filled">one or more of the fields are incorrectly filled</string>
+    <string name="things_wasnt_going_as_planned">Things wasn\'t going as planned...</string>
+    <string name="data_not_saved">data not saved</string>
 </resources>

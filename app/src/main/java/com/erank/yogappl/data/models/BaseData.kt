@@ -1,11 +1,15 @@
 package com.erank.yogappl.data.models
 
+import android.content.Context
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.extensions.LatLng
+import com.erank.yogappl.utils.extensions.LocalizedEnum
+import com.erank.yogappl.utils.extensions.getStringArray
 import com.erank.yogappl.utils.extensions.mapped
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Timestamp
@@ -232,10 +236,21 @@ abstract class BaseData {
 
     override fun hashCode() = Objects.hash(id)
 
-    enum class Level {
+    enum class Level: LocalizedEnum {
         ANYONE,
         BEGINNERS,
         INTERMEDIATES,
         ADVANCED;
+
+        companion object {
+             const val resArray = R.array.dataLevel
+        }
+
+        override fun getStringArray(context: Context): Array<String> {
+            return context.getStringArray(resArray)
+        }
+
+        override fun lowerCased(context: Context) = lowerCased(context,ordinal)
+        override fun capitalized(context: Context) = capitalized(context,ordinal)
     }
 }

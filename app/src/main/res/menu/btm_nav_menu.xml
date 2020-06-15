@@ -6,19 +6,19 @@
         android:id="@+id/action_all"
         android:enabled="true"
         android:icon="@drawable/home"
-        android:title="All"
+        android:title="@string/all"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_signed"
         android:enabled="true"
         android:icon="@drawable/starred_list"
-        android:title="Signed"
+        android:title="@string/signed"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_uploads"
         android:enabled="true"
         android:icon="@drawable/edit_list"
-        android:title="Uploads"
+        android:title="@string/uploads"
         app:showAsAction="ifRoom" />
 
 </menu>

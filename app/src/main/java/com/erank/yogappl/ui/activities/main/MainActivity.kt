@@ -29,7 +29,6 @@ import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.SearchWatcher
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
-import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
@@ -90,10 +89,10 @@ class MainActivity : AppCompatActivity(),
         val dataTypes = DataType.values()
 
         val items = dataTypes.map {
-            "Create new ${it.singular}"
+            getString(R.string.create_new_data, getString(it.singular))
         }.toTypedArray()
 
-        alert("Add new lesson or event")
+        alert(R.string.add_new)
             .setItems(items) { _, i ->
 
                 val dataInfo = DataInfo(dataTypes[i])
@@ -105,7 +104,7 @@ class MainActivity : AppCompatActivity(),
                     RC_NEW
                 )
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
 
     }
@@ -114,11 +113,9 @@ class MainActivity : AppCompatActivity(),
         super.onActivityResult(rc, result, data)
 
         when (rc) {
-            RC_NEW -> {
-                when (result) {
-                    RESULT_OK -> toast("Added!")
-                    RESULT_CANCELED -> toast("Discarded")
-                }
+            RC_NEW -> when (result) {
+                RESULT_OK -> toast(R.string.added)
+                RESULT_CANCELED -> toast(R.string.discarded)
             }
         }
     }
@@ -161,7 +158,6 @@ class MainActivity : AppCompatActivity(),
 
     private fun loadFragment(type: SourceType): Boolean {
         sourceType = type
-        title = type.cName
 
         val colors = resources.getIntArray(R.array.tabs_colors)
         val color = colors[type.ordinal]
@@ -269,12 +265,12 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun showSignOutDialog() {
-        alert(null, "Are you sure you want to sign out?")
-            .setPositiveButton("Yep") { _, _ ->
+        alert(null, R.string.confirm_signout)
+            .setPositiveButton(R.string.yep) { _, _ ->
                 viewModel.signOut()
                 finish()
             }
-            .setNegativeButton("Nope", null)
+            .setNegativeButton(R.string.nope, null)
             .show()
     }
 

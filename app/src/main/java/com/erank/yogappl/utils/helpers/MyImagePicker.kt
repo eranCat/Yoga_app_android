@@ -48,17 +48,17 @@ class MyImagePicker(val callback: ImagePickerCallback) {
             { callback.onImageRemove() }
         )
 
-        activity.alert("Select image")
+        activity.alert(R.string.select_image)
             .setItems(items) { _, i ->
                 actions[i]()
-            }.setNegativeButton("Cancel", null)
+            }.setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
     private fun takePhoto(activity: Activity) {
         if (checkCameraHardware(activity).not()) {
-            activity.alert("no camera")
-                .setPositiveButton("ok", null)
+            activity.alert(R.string.no_camera)
+                .setPositiveButton(android.R.string.ok, null)
                 .show()
             return
         }
@@ -115,7 +115,8 @@ class MyImagePicker(val callback: ImagePickerCallback) {
                 }
                 if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE)
                     result.error.let {
-                        activity.toast("Problem with cropping: ${it.localizedMessage}")
+                        val message = activity.getString(R.string.problem_crop, it.localizedMessage)
+                        activity.toast(message)
 
                         Log.d(
                             RegisterActivity::class.java.name,
@@ -157,7 +158,7 @@ class MyImagePicker(val callback: ImagePickerCallback) {
 
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto(activity)
-            } else activity.toast("camera permission not granted")
+            } else activity.toast(R.string.no_camera_permission)
         }
     }
 

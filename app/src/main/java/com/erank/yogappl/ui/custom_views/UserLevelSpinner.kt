@@ -1,22 +1,19 @@
 package com.erank.yogappl.ui.custom_views
 
-import android.R.layout.simple_spinner_item
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
+import com.erank.yogappl.R
 import com.erank.yogappl.data.models.User
-import com.erank.yogappl.utils.extensions.cName
 
 
-class UserLevelSpinner : EnumSpinner<User.Level>, AdapterView.OnItemSelectedListener {
+class UserLevelSpinner : EnumSpinner<User.Level> {
 
     public override var enumValue: User.Level? = null
     override val values = User.Level.values()
+    override val valuesArrayRes get() = User.Level.resValues
 
     init {
-        val levelNames = values.map { it.cName }
-        adapter = ArrayAdapter(context, simple_spinner_item, levelNames)
         onItemSelectedListener = this
     }
 

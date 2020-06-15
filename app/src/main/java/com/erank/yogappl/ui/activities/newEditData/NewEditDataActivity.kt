@@ -97,7 +97,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
         val id = dataInfo.id
         if (id == null) {
-            title = "New ${dataInfo.type.singular}"
+            val type = getString(dataInfo.type.singular)
+            title = getString(R.string.newData, type)
             return
         }
 
@@ -128,7 +129,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private fun EditText.addTextValidListener(key: String, listener: (String) -> Unit) {
         addTextChangedListener {
             val res = form.validate()
-            assert(res.success()) { "Not success" }
+            assert(res.success()) { "No success" }
             res[key]?.asString()?.let { listener(it) }
         }
     }
@@ -136,15 +137,15 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private val form by lazy {
         form {
             input(titleET, TITLE_KEY) {
-                isNotEmpty().description("Please fill a title")
-                length().atLeast(3).description("Must be at least 3 characters long")
+                isNotEmpty().description(R.string.fill_title)
+                length().atLeast(3).description(R.string.at_least3)
             }
             input(costEt, COST_KEY) {
-                isNotEmpty().description("Please fill a cost")
-                isDecimal().atLeast(0.0).description("must be a positive number or 0")
+                isNotEmpty().description(R.string.fill_cost)
+                isDecimal().atLeast(0.0).description(R.string.must_be_zero_or_more)
             }
             input(equipEt, EQUIP_KEY) {
-                isNotEmpty().description("Please fill a equipment")
+                isNotEmpty().description(R.string.fill_equipment)
             }
             input(extraEt, EXTRA_KEY){}
             picker(maxPplPicker, MAX_KEY) {
@@ -271,8 +272,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     private fun onFailed(e: Exception) {
         progressDialog.dismiss()
-        alert("Problem found", e.localizedMessage)
-            .setPositiveButton("ok") { _, _ ->
+        alert(R.string.problemFound, e.localizedMessage)
+            .setPositiveButton(R.string.ok) { _, _ ->
                 setResult(Activity.RESULT_CANCELED)
                 finish()
             }
@@ -281,7 +282,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun onSuccess() {
-        toast("success!")
+        toast(R.string.success)
 
         val info = Intent().putExtra("dataInfo", viewModel.dataInfo)
 
@@ -295,7 +296,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val cost = Money(res[COST_KEY]!!.asDouble()!!)
 
         val location = viewModel.selectedLocation ?: run {
-            toast("Please select a location")
+            toast(R.string.select_location)
             return null
         }
         val coordinate = location.location.latLng
@@ -303,17 +304,17 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val locationName = address.getName()
         val countryCode = address.countryCode
 
-        val level = levelSpinner.enumValue!!//TODO can use custom field
+        val level = levelSpinner.enumValue!!
         val equip = res[EQUIP_KEY]!!.asString()
         val extra = extraEt.txt
         val maxPpl = res[MAX_KEY]!!.asInt()!!
 
         val startDate = viewModel.selectedStartDate ?: run {
-            toast("Please select a start date")
+            toast(R.string.select_start_date)
             return null
         }
         val endDate = viewModel.selectedEndDate ?: run {
-            toast("Please select an end date")
+            toast(R.string.select_end_date)
             return null
         }
 
@@ -341,8 +342,8 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
                     startDateTV.text = it.formatted(MEDIUM, SHORT)
                 }
             },
-            "date can be later",
-            "please select a start date"
+            getString(R.string.date_can_be_later),
+            getString(R.string.select_start_date)
         )
     }
 
@@ -354,11 +355,10 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val validation: DateValidationPredicate = {
             BaseDataValidator.validateEndDate(it, startDate)
         }
-        val type = viewModel.dataInfo.type.singular
+        val type = getString(viewModel.dataInfo.type.singular)
         val endDate = viewModel.selectedEndDate
-        val invalidMsg = "date needs to be same as start date or after.\n" +
-                "and min time of $type is 30 min"
-        val emptyMsg = "please select an end date"
+        val invalidMsg = getString(R.string.endDate_validation_invalid,type)
+        val emptyMsg = getString(R.string.select_end_date)
         val minDate = startDate.addMinuets(30)
         createDatePickerDialog(
             endDate, minDate, validation,

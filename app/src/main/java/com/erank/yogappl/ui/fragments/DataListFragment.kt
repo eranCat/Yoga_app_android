@@ -28,7 +28,6 @@ import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.fragment_data_list.*
-import kotlinx.android.synthetic.main.no_search_results.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -69,7 +68,7 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
         currentSourceType = arguments!!.getSerializable(SOURCE_TYPE) as SourceType
 
-        emptyTV.text = getString(R.string.empty, dataType.lowercaseName)
+        emptyTV.text = getString(R.string.empty, dataType.lowerCased(context!!))
 
         setIsEditable()
 
@@ -132,10 +131,10 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     override fun onEditAction(item: T) = openActivity(item.id)
 
     override fun onDeleteAction(item: T) {
-        alert("Are you sure you want to delete?")
-            ?.setPositiveButton("yes") { _, _ ->
+        alert(R.string.confirm_delete_data)
+            ?.setPositiveButton(android.R.string.yes) { _, _ ->
                 onDeleteConfirmed(item)
-            }?.setNegativeButton("no", null)
+            }?.setNegativeButton(android.R.string.no, null)
             ?.show()
     }
 
@@ -165,14 +164,14 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
         if (requestCode == RC_EDIT) {
             if (resultCode == Activity.RESULT_OK) {
-                toast("Edited!")
+                toast(R.string.edited)
             }
         }
     }
 
     fun onFailure(error: Exception) {
-        alert("There was a problem", error.localizedMessage)
-            ?.setPositiveButton("ok", null)
+        alert(R.string.problemFound, error.localizedMessage)
+            ?.setPositiveButton(R.string.ok, null)
             ?.show()
 
         Log.d(TAG, "problem deleting", error)

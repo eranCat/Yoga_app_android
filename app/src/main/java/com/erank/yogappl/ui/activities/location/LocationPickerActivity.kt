@@ -48,7 +48,7 @@ class LocationPickerActivity : AppCompatActivity(),
         searchView.isIconified = false
         searchView.requestFocus()
 
-        searchView.queryHint = "Find your place"
+        searchView.queryHint = getString(R.string.find_your_place)
         searchView.setOnQueryTextListener(this)
 
         return true

@@ -25,7 +25,6 @@ import com.erank.yogappl.ui.activities.location.LocationPickerActivity
 import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.*
 import com.erank.yogappl.utils.extensions.*
-import com.erank.yogappl.utils.extensions.validator.assertation.MaxNumberPickerAssertion
 import com.erank.yogappl.utils.extensions.validator.picker
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
@@ -108,7 +107,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private fun addListeners(data: BaseData) {
         titleET.addTextValidListener(TITLE_KEY) { data.title = it }
         equipEt.addTextValidListener(EQUIP_KEY) { data.equip = it }
-        extraEt.addTextValidListener(EXTRA_KEY) { data.xtraNotes = it}
+        extraEt.addTextValidListener(EXTRA_KEY) { data.xtraNotes = it }
         costEt.addTextValidListener(COST_KEY) {
             it.toDoubleOrNull()?.let {
                 data.cost = Money(it)
@@ -143,9 +142,9 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             input(equipEt, EQUIP_KEY) {
                 isNotEmpty().description(R.string.fill_equipment)
             }
-            input(extraEt, EXTRA_KEY){}
+            input(extraEt, EXTRA_KEY) {}
             picker(maxPplPicker, MAX_KEY) {
-                isValid()
+                isValid().description(R.string.must_be_positive)
             }
         }
     }
@@ -353,7 +352,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         }
         val type = getString(viewModel.dataInfo.type.singular)
         val endDate = viewModel.selectedEndDate
-        val invalidMsg = getString(R.string.endDate_validation_invalid,type)
+        val invalidMsg = getString(R.string.endDate_validation_invalid, type)
         val emptyMsg = getString(R.string.select_end_date)
         val minDate = startDate.addMinuets(30)
         createDatePickerDialog(

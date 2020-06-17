@@ -145,7 +145,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             }
             input(extraEt, EXTRA_KEY){}
             picker(maxPplPicker, MAX_KEY) {
-                MaxNumberPickerAssertion()
+                isValid()
             }
         }
     }

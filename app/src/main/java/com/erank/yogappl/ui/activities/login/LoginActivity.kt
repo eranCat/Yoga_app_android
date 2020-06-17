@@ -5,16 +5,13 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.afollestad.vvalidator.form
+import com.afollestad.vvalidator.form.Form
 import com.erank.yogappl.R
-import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.ui.activities.register.RegisterActivity
 import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
-import com.erank.yogappl.utils.extensions.setTextChangedListener
-import com.erank.yogappl.utils.extensions.toast
-import com.erank.yogappl.utils.helpers.UserValidator
-import com.erank.yogappl.utils.helpers.UserValidator.Fields.EMAIL
-import com.erank.yogappl.utils.helpers.UserValidator.Fields.PASS
+import com.erank.yogappl.utils.extensions.txt
 import kotlinx.android.synthetic.main.activity_login.*
 import javax.inject.Inject
 
@@ -30,35 +27,15 @@ class LoginActivity : AppCompatActivity() {
     @Inject
     lateinit var viewModel: LoginViewModel
 
+    private lateinit var validationForm : Form
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
         (application as App).getAppComponent().inject(this)
 
-        UserValidator(TextFieldValidStates.EMPTY, EMAIL, PASS).apply {
-
-            login_email.apply {
-                setTextChangedListener {
-                    error = validateEmail(it).errorMsg
-                }
-            }
-
-
-            login_password.apply {
-                setTextChangedListener {
-                    error = validatePassword(it).errorMsg
-                }
-            }
-
-
-            signInBtn.setOnClickListener {
-                if (isNotDataValid)
-                    toast(R.string.invalid_details)
-                else login()
-            }
-        }
-
+        initValidator()
 
         signUpBtn.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
@@ -67,10 +44,27 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
+    private fun initValidator() {
+        validationForm = form {
+            input(login_email) {
+                isNotEmpty().description(R.string.fill)
+                isEmail().description(R.string.invalid_email)
+            }
+            input(login_password) {
+                isNotEmpty().description(R.string.fill)
+                length().atLeast(6)
+                    .description(R.string.atLeast6)
+            }
+            submitWith(signInBtn) {
+                login()
+            }
+        }
+    }
+
     private fun login() {
 
-        val username = login_email.text.toString()
-        val password = login_password.text.toString()
+        val username = login_email.txt
+        val password = login_password.txt
 
         progressDialog.show()
         viewModel.signIn(username, password)

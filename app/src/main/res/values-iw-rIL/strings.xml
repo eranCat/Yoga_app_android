@@ -4,7 +4,7 @@
     <string name="prompt_email">אימייל</string>
     <string name="prompt_password">סיסמא</string>
     <string name="welcome">ברוכים הבאים!</string>
-    <string name="invalid_username">משתמש לא תקין</string>
+    <string name="invalid_email">אימייל לא תקין</string>
     <string name="invalid_password">סיסמא חייבת להיות לפחות 5 תווים</string>
     <string name="login_failed">כניסה נכשלה</string>
     <string name="signup">אין חשבון,צור חדש</string>
@@ -102,4 +102,5 @@
     <string name="things_wasnt_going_as_planned">משהו התחרבש</string>
     <string name="data_not_saved">מידע לא נשמר</string>
     <string name="fields_incorrectly_filled">"אחד או יותר מהשדות לא מלאים נכון "</string>
+    <string name="fill">נא למלא</string>
 </resources>

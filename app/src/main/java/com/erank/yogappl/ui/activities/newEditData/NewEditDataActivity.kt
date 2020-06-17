@@ -23,16 +23,12 @@ import com.erank.yogappl.data.enums.TextFieldValidStates.*
 import com.erank.yogappl.data.models.*
 import com.erank.yogappl.ui.activities.location.LocationPickerActivity
 import com.erank.yogappl.ui.custom_views.ProgressDialog
-import com.erank.yogappl.utils.App
-import com.erank.yogappl.utils.DateValidationPredicate
-import com.erank.yogappl.utils.OnDateSet
+import com.erank.yogappl.utils.*
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.extensions.validator.assertation.MaxNumberPickerAssertion
 import com.erank.yogappl.utils.extensions.validator.picker
-import com.erank.yogappl.utils.helpers.BaseDataValidator
 import com.erank.yogappl.utils.helpers.MyImagePicker
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
-import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_new_edit_data.*
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
@@ -335,7 +331,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val minDate = Date().addMinuets(10)
         createDatePickerDialog(
             viewModel.selectedStartDate, minDate,
-            BaseDataValidator::validateStartDate,
+            Patterns::isStartDateValid,
             {
                 it?.let {
                     viewModel.selectedStartDate = it
@@ -353,7 +349,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
             return
         }
         val validation: DateValidationPredicate = {
-            BaseDataValidator.validateEndDate(it, startDate)
+            Patterns.isEndDateValid(it, startDate)
         }
         val type = getString(viewModel.dataInfo.type.singular)
         val endDate = viewModel.selectedEndDate

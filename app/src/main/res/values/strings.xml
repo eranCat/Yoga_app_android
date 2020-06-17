@@ -3,7 +3,7 @@
 
     <string name="sign_in">Sign in</string>
     <string name="welcome">"Welcome !"</string>
-    <string name="invalid_username">Invalid username</string>
+    <string name="invalid_email">Invalid email</string>
     <string name="invalid_password">Password must be at least 5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="signup">No account yet ? Create one</string>
@@ -121,4 +121,5 @@
     <string name="fields_incorrectly_filled">one or more of the fields are incorrectly filled</string>
     <string name="things_wasnt_going_as_planned">Things wasn\'t going as planned...</string>
     <string name="data_not_saved">data not saved</string>
+    <string name="fill">fill</string>
 </resources>

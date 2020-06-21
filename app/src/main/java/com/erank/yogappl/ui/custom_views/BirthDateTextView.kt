@@ -18,7 +18,7 @@ class BirthDateTextView : AppCompatTextView,
 
     private val maxAge = 120
     private val minAge = 16
-    var date: Date?
+    var date: Date? = null
 
     private val datePickerDialog: DatePickerDialog
     private var onDateSetListener: OnDateSetListener?
@@ -36,7 +36,6 @@ class BirthDateTextView : AppCompatTextView,
             setOnDateSetListener(this@BirthDateTextView)
         }
         setOnClickListener { datePickerDialog.show() }
-        date = null
         onDateSetListener = null
     }
 

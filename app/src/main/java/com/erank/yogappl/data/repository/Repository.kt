@@ -65,7 +65,8 @@ class Repository @Inject constructor(
         val otherUsersToFetch = loadAllEvents()
         fetchUsersIfNeeded(usersToFetch + otherUsersToFetch)
     }
-    private suspend fun loadUserUploads(){
+
+    private suspend fun loadUserUploads() {
         val id = currentUser!!.id
         val lessDocs = DBRefs.LESSONS_REF
             .whereEqualTo("uid", id)
@@ -77,18 +78,24 @@ class Repository @Inject constructor(
             .get().await()!!
             .documents
 
-        val lessons = lessDocs.map { tryConvertLesson(it) }
-        val events = eveDocs.map { tryConvertEvent(it) }
+        val lessons = lessDocs.map { it.toObject<Lesson>()!! }
+        val events = eveDocs.map { it.toObject<Event>()!! }
 
         dataModelHolder.addLessons(lessons)
         dataModelHolder.addEvents(events)
     }
+
     private suspend fun loadAllLessons(): MutableSet<String> {
         val documents = getAllSnapshotDocs(DBRefs.LESSONS_REF)
         val users = mutableSetOf<String>()
-        val lessons = documents.map { doc ->
-            tryConvertLesson(doc).also {
-                users.add(it.uid)
+        val lessons = mutableListOf<Lesson>()
+        val today = Date()
+        for (doc in documents) {
+            val startDate = doc.getTimestamp("startDate")!!.toDate()
+            if (startDate >= today) {
+                val lesson = doc.toObject<Lesson>()!!
+                lessons.add(lesson)
+                users.add(lesson.uid)
             }
         }
         dataModelHolder.addLessons(lessons)
@@ -98,66 +105,19 @@ class Repository @Inject constructor(
     private suspend fun loadAllEvents(): MutableSet<String> {
         val documents = getAllSnapshotDocs(DBRefs.EVENTS_REF)
         val users = mutableSetOf<String>()
-        val events = documents.map { doc ->
-            tryConvertEvent(doc).also {
-                users.add(it.uid)
+        val events = mutableListOf<Event>()
+        val today = Date()
+        for (doc in documents) {
+            val startDate = doc.getTimestamp("startDate")!!.toDate()
+            if (startDate >= today) {
+                val event = doc.toObject<Event>()!!
+                events.add(event)
+                users.add(event.uid)
             }
         }
         dataModelHolder.addEvents(events)
         return users
     }
-
-    private fun tryConvertLesson(doc: DocumentSnapshot):Lesson{
-        return try {
-            doc.toObject<Lesson>()!!
-        } catch (e: RuntimeException) {
-    //            Maybe old version of cost
-            Lesson().apply {
-                applyData(this,doc)
-            }
-        }
-    }
-    private fun tryConvertEvent(doc: DocumentSnapshot):Event{
-        return try {
-            doc.toObject<Event>()!!
-        } catch (e: RuntimeException) {
-    //            Maybe old version of cost
-            Event().apply {
-                applyData(this,doc)
-                imageUrl = doc.getString("imageUrl")
-            }
-        }
-    }
-
-    private fun applyData(baseData: BaseData,doc: DocumentSnapshot) =with(baseData) {
-        id = doc.getString("id")!!
-        title = doc.getString("title")!!
-        locationName = doc.getString("place")!!//check if place or locationName
-        countryCode = doc.getString("countryCode")!!
-        equip = doc.getString("equip")!!
-        extraNotes = doc.getString("xtraNotes")
-        uid = doc.getString("uid")!!
-
-        maxParticipants = doc.getDouble("maxParticipants")!!.toInt()
-        minAge = doc.getDouble("minAge")!!.toInt()
-        maxAge = doc.getDouble("maxAge")!!.toInt()
-
-        signed = doc["signedUID"] as MutableMap<String, Int>
-
-        val locMap = doc["location"] as Map<String, Any>
-        location = LatLng(locMap)
-
-        val map = doc["cost"] as Map<String, Double>
-        cost = map["amount"]!!
-
-        postedDate = doc.getTimestamp("postedDate")!!.toDate()
-        startDate = doc.getTimestamp("startDate")!!.toDate()
-        endDate = doc.getTimestamp("endDate")!!.toDate()
-
-        level = BaseData.Level.values()[doc.getDouble("level")!!.toInt()]
-        status = Status.values()[doc.getDouble("status")!!.toInt()]
-    }
-
 
     private suspend fun getAllSnapshotDocs(ref: CollectionReference): List<DocumentSnapshot> {
 
@@ -172,7 +132,6 @@ class Repository @Inject constructor(
             val code = locationHelper.getCountryCode()
             ref.whereEqualTo("countryCode", code)
         }
-        query = query.whereGreaterThanOrEqualTo("startDate", Date())
 
         return query.get().await()!!.documents
     }

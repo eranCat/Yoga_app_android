@@ -19,7 +19,7 @@ class PickerField(
     }
 
     // Your first custom assertion
-    fun myAssertion() = assert(MaxNumberPickerAssertion())
+    fun isValid() = assert(MaxNumberPickerAssertion())
 
     override fun obtainValue(id: Int, name: String): FieldValue<Int> {
         return IntFieldValue(

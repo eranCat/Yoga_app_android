@@ -14,7 +14,7 @@ import com.erank.yogappl.data.room.dao.UserDao
 
 @Database(
     entities = [User::class, Lesson::class, Event::class],
-    exportSchema = false, version = 1
+    exportSchema = false, version = 2
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -37,6 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                 context.applicationContext,
                 AppDatabase::class.java, "yoga_db"
             )
+                .fallbackToDestructiveMigration()
                 .build()
         }
 

@@ -1,11 +1,15 @@
 package com.erank.yogappl.data.models
 
+import android.content.Context
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.Status
 import com.erank.yogappl.utils.SMap
 import com.erank.yogappl.utils.extensions.LatLng
+import com.erank.yogappl.utils.extensions.LocalizedEnum
+import com.erank.yogappl.utils.extensions.getStringArray
 import com.erank.yogappl.utils.extensions.mapped
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Timestamp
@@ -20,16 +24,13 @@ abstract class BaseData {
 
     lateinit var title: String
 
-    @PropertyName("place")
     lateinit var locationName: String
 
     lateinit var countryCode: String
 
     lateinit var equip: String
 
-    @get:PropertyName("xtraNotes")
-    @set:PropertyName("xtraNotes")
-    var extraNotes: String? = null
+    var xtraNotes: String? = null
 
     var maxParticipants = 0
 
@@ -97,7 +98,7 @@ abstract class BaseData {
         this.endDate = endDate
         this.level = level
         this.equip = equipment
-        this.extraNotes = xtraNotes
+        this.xtraNotes = xtraNotes
         this.maxParticipants = maxParticipants
         this.uid = uid
         this.status = Status.OPEN
@@ -181,7 +182,7 @@ abstract class BaseData {
                 "locationName='$locationName'," +
                 " countryCode='$countryCode', " +
                 "equipment='$equip'," +
-                " xtraNotes='$extraNotes', " +
+                " xtraNotes='$xtraNotes', " +
                 " maxParticipants=$maxParticipants," +
                 "uid='$uid'," +
                 " minAge=$minAge," +
@@ -209,7 +210,7 @@ abstract class BaseData {
                 locationName == data.locationName &&
                 countryCode == data.countryCode &&
                 equip == data.equip &&
-                extraNotes == data.extraNotes &&
+                xtraNotes == data.xtraNotes &&
                 uid == data.uid &&
                 signed == data.signed &&
                 cost == data.cost &&
@@ -223,10 +224,21 @@ abstract class BaseData {
 
     override fun hashCode() = Objects.hash(id)
 
-    enum class Level {
+    enum class Level: LocalizedEnum {
         ANYONE,
         BEGINNERS,
         INTERMEDIATES,
         ADVANCED;
+
+        companion object {
+             const val resArray = R.array.dataLevel
+        }
+
+        override fun getStringArray(context: Context): Array<String> {
+            return context.getStringArray(resArray)
+        }
+
+        override fun lowerCased(context: Context) = lowerCased(context,ordinal)
+        override fun capitalized(context: Context) = capitalized(context,ordinal)
     }
 }

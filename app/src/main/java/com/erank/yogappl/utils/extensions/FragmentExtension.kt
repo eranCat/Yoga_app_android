@@ -11,9 +11,11 @@ fun Fragment.toast(@StringRes message: Int, duration: Int = Toast.LENGTH_SHORT) 
     context?.toast(message, duration)
 
 fun Fragment.alert(
-    @StringRes title: Int,
-    @StringRes msg: Int
+    @StringRes title: Int? = null,
+    @StringRes msg: Int? = null
 ) = context?.alert(title, msg)
 
 
 fun Fragment.alert(title: String?, msg: String? = null) = context?.alert(title, msg)
+
+fun Fragment.alert(@StringRes title: Int, msg: String) = context?.alert(title, msg)

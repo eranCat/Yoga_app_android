@@ -7,20 +7,23 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import com.afollestad.vvalidator.form
+import com.afollestad.vvalidator.form.Form
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
-import com.erank.yogappl.data.enums.TextFieldValidStates
 import com.erank.yogappl.data.models.Teacher
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.App
-import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.extensions.alert
+import com.erank.yogappl.utils.extensions.hide
+import com.erank.yogappl.utils.extensions.toast
+import com.erank.yogappl.utils.extensions.txt
+import com.erank.yogappl.utils.extensions.validator.assertation.BDateAssertion
+import com.erank.yogappl.utils.extensions.validator.birthDatePicker
 import com.erank.yogappl.utils.helpers.MyImagePicker
-import com.erank.yogappl.utils.helpers.UserValidator
-import com.erank.yogappl.utils.helpers.UserValidator.Fields
 import com.erank.yogappl.utils.interfaces.ImagePickerCallback
 import com.erank.yogappl.utils.runOnBackground
 import kotlinx.android.synthetic.main.activity_register.*
@@ -30,9 +33,8 @@ import javax.inject.Inject
 
 class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
-    private lateinit var userValidator: UserValidator
+    private lateinit var userValidator: Form
     private val myImagePicker by lazy { MyImagePicker(this) }
-
     private val progressDialog by lazy { ProgressDialog(this) }
 
     companion object {
@@ -40,7 +42,6 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private var isEditingUser: Boolean = false
-
 
     @Inject
     lateinit var viewModel: RegisterViewModel
@@ -53,21 +54,19 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
         cameraBtn.setOnClickListener { handleCameraBtn() }
 
-        val currentUser = viewModel.currentUser
-        if (currentUser == null) {
+        val currentUser = viewModel.currentUser ?:run {
             saveUser.setOnClickListener { saveUser() }
             initUserValidator()
             return
         }
 
+        initUserValidatorForUpdate()
+
         isEditingUser = true
         fillData(currentUser)
 
-        saveUser.also { it.text = "Update information" }
+        saveUser.also { it.setText(R.string.update_info) }
             .setOnClickListener { updateUser() }
-
-        initUserValidatorForUpdate()
-
     }
 
     private fun handleCameraBtn() {
@@ -83,7 +82,7 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> if (isEditingUser) {
-                toast("data not saved")
+                toast(R.string.data_not_saved)
             }
         }
 
@@ -91,8 +90,9 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun updateUser() {
-        if (userValidator.isNotDataValid) {
-            toast("one or more of the fields are incorrectly filled")
+        val result = userValidator.validate()
+        if (!result.success()) {
+            toast(R.string.fields_incorrectly_filled)
             return
         }
 
@@ -122,8 +122,8 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
     private fun onFail(e: Exception) {
         progressDialog.dismiss()
-        alert("Things wasn't going as planned...", e.localizedMessage)
-            .setPositiveButton("ok", null)
+        alert(R.string.things_wasnt_going_as_planned, e.localizedMessage)
+            .setPositiveButton(R.string.ok, null)
             .show()
         Log.d(TAG, e.localizedMessage)
     }
@@ -154,49 +154,56 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun initUserValidator() {
-        userValidator = UserValidator().apply {
+        userValidator = form {
 
-            val etName = etName
-            etName.setTextChangedListener {
-                etName.error = validateName(it).errorMsg
+            input(etName, "name") {
+                isNotEmpty()
+                length().atLeast(3).description(R.string.at_least3)
             }
 
-            val etEmail = etEmail
-            etEmail.setTextChangedListener {
-                etEmail.error = validateEmail(it).errorMsg
+            input(etEmail, "email") {
+                isNotEmpty()
+                isEmail()
             }
 
-            val etPassword = etPassword
-            etPassword.setTextChangedListener {
-                etPassword.error = validatePassword(it).errorMsg
+            input(etPassword, "pass") {
+                isNotEmpty()
+                length().atLeast(6).description(R.string.atLeast6)
             }
 
-            etDate.setOnDateSetListener { validateBDate(it) }
+            birthDatePicker(etDate, "date") {
+                BDateAssertion()
+            }
 
-            spinnerUserLevel.setOnItemSelectedListener { validateLevel(it) }
-            spinnerUserType.setOnItemSelectedListener { validateType(it) }
+            spinner(spinnerUserLevel, "level") {
+
+            }
+            spinner(spinnerUserType, "type") {
+
+            }
         }
     }
 
     private fun initUserValidatorForUpdate() {
-        userValidator = UserValidator(
-            TextFieldValidStates.VALID,
-            Fields.NAME, Fields.DATE, Fields.LEVEL
-        )
+        userValidator = form {
+            input(etName, "name") {
+                isNotEmpty()
+                length().atLeast(3).description(R.string.at_least3)
+            }
+            birthDatePicker(etDate, "date") {
+                BDateAssertion()
+            }
+            spinner(spinnerUserLevel, "level") {
 
-        etName.setTextChangedListener {
-            etName.error = userValidator.validateName(it).errorMsg
+            }
         }
-
-        etDate.setOnDateSetListener { userValidator.validateBDate(it) }
-
-        spinnerUserLevel.setOnItemSelectedListener { userValidator.validateLevel(it) }
     }
 
     private fun saveUser() {
-        if (userValidator.isNotDataValid) {
+        val result = userValidator.validate()
+        if (result.success().not()) {
             Log.d(TAG, "Invalid User info when saving")
-            toast("Invalid data , please check", Toast.LENGTH_LONG)
+            toast(R.string.invalid_data_check, Toast.LENGTH_LONG)
             return
         }
 
@@ -263,3 +270,4 @@ class RegisterActivity : AppCompatActivity(), ImagePickerCallback {
 
     }
 }
+

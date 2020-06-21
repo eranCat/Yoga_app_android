@@ -1,28 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="tab_titles">
-        <item>Lessons</item>
-        <item>Events</item>
+    <string-array name="dataType">
+        <item>@string/lessons</item>
+        <item>@string/events</item>
     </string-array>
 
     <string-array name="reminders_items">
-        <item>Notify me when it\'s time</item>
-        <item>Add to calendar</item>
+        <item>@string/notify_on_time</item>
+        <item>@string/add_to_calendar</item>
     </string-array>
 
     <string-array name="photoOptions">
-        <item>select from gallery</item>
-        <item>select from the internet</item>
-        <item>take a photo</item>
+        <item>@string/select_from_gallery</item>
+        <item>@string/select_from_the_internet</item>
+        <item>@string/take_a_photo</item>
     </string-array>
 
-    <!--    todo reuse array @photoOptions -->
-
     <string-array name="photoOptionsRemovable">
-        <item>select from gallery</item>
-        <item>select from the internet</item>
-        <item>take a photo</item>
-        <item>Remove image</item>
+        <item>@string/select_from_gallery</item>
+        <item>@string/select_from_the_internet</item>
+        <item>@string/take_a_photo</item>
+        <item>@string/remove_image</item>
+    </string-array>
+
+    <string-array name="userLevel">
+        <item>@string/Beginner</item>
+        <item>@string/Intermediate</item>
+        <item>@string/Advanced</item>
+    </string-array>
+
+    <string-array name="dataLevel" >
+        <item>@string/Beginner</item>
+        <item>@string/Intermediate</item>
+        <item>@string/Advanced</item>
+        <item>@string/Anyone</item>
+    </string-array>
+
+    <string-array name="userType" >
+        <item>@string/Student</item>
+        <item>@string/Teacher</item>
     </string-array>
 
     <string-array name="supportedTomTomCodes">
@@ -78,5 +94,11 @@
         <item>tr-TR</item>
         <item>uk-UA</item>
         <item>vi-VN</item>
+    </string-array>
+
+    <string-array name="sourceType" >
+        <item>@string/All</item>
+        <item>@string/Signed</item>
+        <item>@string/Uploads</item>
     </string-array>
 </resources>

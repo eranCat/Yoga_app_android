@@ -56,12 +56,6 @@ class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.
         return viewModel.getFilteredEvents(currentSourceType, query)
     }
 
-    override fun onDeleteConfirmed(item: Event) {
-        runOnBackground({
-            viewModel.deleteEvent(item)
-        })
-    }
-
     override suspend fun toggleSign(item: Event) =
         viewModel.toggleSignToEvent(item)
 }

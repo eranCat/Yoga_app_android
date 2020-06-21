@@ -23,13 +23,13 @@ import com.erank.yogappl.data.enums.SourceType.*
 import com.erank.yogappl.data.models.DataInfo
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.activities.register.RegisterActivity
-import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.ui.fragments.TabsFragment
 import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.SearchWatcher
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
+import com.google.android.gms.ads.AdRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity(),
     private val navigationView by lazy { nav_view }
     private val toolbar by lazy { main_toolbar }
     private val bottomTabs by lazy { bottom_nav_view }
-    private val addFab by lazy { add_fab }
 
     @Inject
     lateinit var viewModel: MainViewModel
@@ -67,8 +66,12 @@ class MainActivity : AppCompatActivity(),
         bottomTabs.setOnNavigationItemReselectedListener {}
 
         initDrawer()
+        loadAd()
+    }
 
-        addFab.setOnClickListener { openNewDataActivity() }
+    private fun loadAd() {
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
     }
 
     private fun openNewDataActivity() {
@@ -86,10 +89,10 @@ class MainActivity : AppCompatActivity(),
         val dataTypes = DataType.values()
 
         val items = dataTypes.map {
-            "Create new ${it.singular}"
+            getString(R.string.create_new_data, getString(it.singular))
         }.toTypedArray()
 
-        alert("Add new lesson or event")
+        alert(R.string.add_new)
             .setItems(items) { _, i ->
 
                 val dataInfo = DataInfo(dataTypes[i])
@@ -101,7 +104,7 @@ class MainActivity : AppCompatActivity(),
                     RC_NEW
                 )
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
 
     }
@@ -110,11 +113,9 @@ class MainActivity : AppCompatActivity(),
         super.onActivityResult(rc, result, data)
 
         when (rc) {
-            RC_NEW -> {
-                when (result) {
-                    RESULT_OK -> toast("Added!")
-                    RESULT_CANCELED -> toast("Discarded")
-                }
+            RC_NEW -> when (result) {
+                RESULT_OK -> toast(R.string.added)
+                RESULT_CANCELED -> toast(R.string.discarded)
             }
         }
     }
@@ -146,17 +147,17 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.menu_add -> {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.menu_add) {
             openNewDataActivity()
-            true
+            return true
         }
-        else -> super.onOptionsItemSelected(item)
+
+        return super.onOptionsItemSelected(item)
     }
 
     private fun loadFragment(type: SourceType): Boolean {
         sourceType = type
-        title = type.cName
 
         val colors = resources.getIntArray(R.array.tabs_colors)
         val color = colors[type.ordinal]
@@ -264,12 +265,12 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun showSignOutDialog() {
-        alert(null, "Are you sure you want to sign out?")
-            .setPositiveButton("Yep") { _, _ ->
+        alert(null, R.string.confirm_signout)
+            .setPositiveButton(R.string.yep) { _, _ ->
                 viewModel.signOut()
                 finish()
             }
-            .setNegativeButton("Nope", null)
+            .setNegativeButton(R.string.nope, null)
             .show()
     }
 

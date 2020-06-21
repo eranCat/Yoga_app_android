@@ -7,6 +7,7 @@ import com.erank.yogappl.data.injection.AppComponent
 import com.erank.yogappl.data.injection.DaggerAppComponent
 import com.erank.yogappl.data.room.AppDatabase
 import com.facebook.stetho.Stetho
+import com.google.android.gms.ads.MobileAds
 import com.unsplash.pickerandroid.photopicker.UnsplashPhotoPicker
 import javax.inject.Inject
 
@@ -33,6 +34,8 @@ class App : Application() {
         runOnBackground({appDB.clearAllTables()}){
             Log.d("App", "onTerminate: cleared tables")
         }
+
+        MobileAds.initialize(this)
     }
 
     fun getAppComponent(): AppComponent = appComponent

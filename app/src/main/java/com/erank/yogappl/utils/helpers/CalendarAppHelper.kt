@@ -10,10 +10,10 @@ import android.provider.CalendarContract.Events
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.erank.yogappl.R
 import com.erank.yogappl.data.models.BaseData
 import com.erank.yogappl.data.repository.SharedPrefsHelper
 import com.erank.yogappl.utils.extensions.alert
-import com.erank.yogappl.utils.extensions.lowercaseName
 import com.erank.yogappl.utils.extensions.toast
 import java.util.*
 
@@ -34,7 +34,7 @@ class CalendarAppHelper(
 
         val calID: Long = 3
 
-        val description = "${data.dataType.singular} ${data.level.lowercaseName}"
+        val description = "${data.dataType.singular} ${data.level.lowerCased(activity)}"
 
         val values = ContentValues().apply {
             put(Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
@@ -50,7 +50,7 @@ class CalendarAppHelper(
         uri?.lastPathSegment?.toLong()?.let {
             prefs.put(data.id, it)
         }
-        activity.toast("Added to your calendar")
+        activity.toast(R.string.added_calender)
     }
 
     private fun requestPermission(activity: Activity) {
@@ -70,10 +70,10 @@ class CalendarAppHelper(
             // Show an explanation to the user *asynchronously* -- don't block
             // this thread waiting for the user's response! After the user
             // sees the explanation, try again to request the permission.
-            activity.alert("please let us add events to your calendar")
-                .setPositiveButton("alright") { _, _ ->
+            activity.alert(R.string.calender_permission_allow)
+                .setPositiveButton(R.string.alright) { _, _ ->
                     requestPermission(activity)
-                }.setNegativeButton("nah", null)
+                }.setNegativeButton(android.R.string.no, null)
                 .show()
         } else {
             // No explanation needed, we can request the permission.
@@ -95,7 +95,7 @@ class CalendarAppHelper(
             return false
 
         if (grantResults[indexOfWriteCalPer] == PERMISSION_GRANTED) {
-            activity.toast("calendar permission granted")
+            activity.toast(R.string.calendar_permission_granted)
             return true
         }
 

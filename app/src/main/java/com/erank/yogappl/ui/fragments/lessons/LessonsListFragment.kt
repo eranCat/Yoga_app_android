@@ -43,13 +43,6 @@ class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdap
         return initAdapter(adapter)
     }
 
-    //    TODO add index for delete
-    override fun onDeleteConfirmed(item: Lesson) {
-        runOnBackground({ viewModel.deleteLesson(item) }) {
-            data_recycler_view.adapter?.notifyDataSetChanged()
-        }
-    }
-
     override suspend fun toggleSign(item: Lesson) =
         viewModel.toggleSignToLesson(item)
 

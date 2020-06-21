@@ -4,6 +4,5 @@ interface OnItemActionCallback<T> {
     //    TODO maybe delete pos params and use just id
     fun onItemSelected(item: T)
     fun onEditAction(item: T)
-    fun onDeleteAction(item: T)
     fun onSignAction(item: T)
 }

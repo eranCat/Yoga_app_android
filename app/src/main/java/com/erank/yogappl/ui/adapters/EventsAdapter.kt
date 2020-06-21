@@ -1,17 +1,12 @@
 package com.erank.yogappl.ui.adapters
 
 
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.Event
-import com.erank.yogappl.utils.extensions.equalDate
-import com.erank.yogappl.utils.extensions.equalTime
-import com.erank.yogappl.utils.extensions.toggleRotation
-import com.erank.yogappl.utils.extensions.toggleSlide
+import com.erank.yogappl.utils.extensions.*
 import kotlinx.android.synthetic.main.drop_down_btn.view.*
 import kotlinx.android.synthetic.main.dropdown_menu.view.*
 import kotlinx.android.synthetic.main.event_item.view.*
@@ -40,21 +35,22 @@ class EventsAdapter(
         private val dropDownBtn by lazy { itemView.dropdown_btn }
         private val dropDownSection by lazy { itemView.drop_down }
         private val editBtn by lazy { itemView.edit_btn }
-        private val deleteBtn by lazy { itemView.delete_btn }
         private val signBtn by lazy { itemView.sign_btn }
 
         init {
-            val visibility = if (isEditable) VISIBLE else GONE
-            editBtn.visibility = visibility
-            deleteBtn.visibility = visibility
-
-            signBtn.visibility = if (isEditable) GONE else VISIBLE
+            if (isEditable) {
+                editBtn.show()
+                signBtn.hide()
+            } else {
+                editBtn.hide()
+                signBtn.show()
+            }
         }
 
         override fun bind(item: Event) {
             if (item.imageUrl != null) {
 
-                eventImage.visibility = VISIBLE
+                eventImage.show()
 
                 Glide.with(eventImage)
                     .load(item.imageUrl)
@@ -62,7 +58,7 @@ class EventsAdapter(
                     .fitCenter()
                     .into(eventImage)
             } else
-                eventImage.visibility = GONE
+                eventImage.hide()
 
 
             if (!isEditable) {
@@ -71,7 +67,7 @@ class EventsAdapter(
 
             eventName.text = item.title
 
-            val ctx = eventDate.context
+            val ctx = itemView.context
 
             val dateFormatter = SimpleDateFormat.getDateInstance(MEDIUM)
             val start = item.startDate
@@ -113,14 +109,16 @@ class EventsAdapter(
 
             if (isEditable) {
                 editBtn.setOnClickListener { callback?.onEditAction(event) }
-                deleteBtn.setOnClickListener { callback?.onDeleteAction(event) }
-            } else {
-                val isSigned = signed.contains(event.id)
-                val action = if (isSigned) "out" else "in"
-                signBtn.text = "Sign $action"
-                signBtn.setOnClickListener {
-                    callback?.onSignAction(event)
-                }
+                return
+            }
+
+            val isSigned = signed.contains(event.id)
+            val action =
+                if (isSigned) R.string.sign_out
+                else R.string.sign_out
+            signBtn.text = itemView.context.getString(action)
+            signBtn.setOnClickListener {
+                callback?.onSignAction(event)
             }
         }
 

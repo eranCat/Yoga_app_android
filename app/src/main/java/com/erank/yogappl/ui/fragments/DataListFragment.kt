@@ -130,15 +130,6 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
 
     override fun onEditAction(item: T) = openActivity(item.id)
 
-    override fun onDeleteAction(item: T) {
-        alert(R.string.confirm_delete_data)
-            ?.setPositiveButton(android.R.string.yes) { _, _ ->
-                onDeleteConfirmed(item)
-            }?.setNegativeButton(android.R.string.no, null)
-            ?.show()
-    }
-
-    abstract fun onDeleteConfirmed(item: T)
     abstract val dataType: DataType
 
     private fun openActivity(id: String) {

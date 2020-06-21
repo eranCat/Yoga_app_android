@@ -1,15 +1,12 @@
 package com.erank.yogappl.ui.adapters
 
-import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.data.models.PreviewUser
-import com.erank.yogappl.utils.extensions.relativeTimeString
-import com.erank.yogappl.utils.extensions.toggleRotation
-import com.erank.yogappl.utils.extensions.toggleSlide
+import com.erank.yogappl.utils.extensions.*
 import kotlinx.android.synthetic.main.drop_down_btn.view.*
 import kotlinx.android.synthetic.main.dropdown_menu.view.*
 import kotlinx.android.synthetic.main.lesson_item.view.*
@@ -46,15 +43,16 @@ class LessonsAdapter(
         private val dropDownSection by lazy { itemView.drop_down }
         private val dropDownBtn by lazy { itemView.dropdown_btn }
         private val editBtn by lazy { itemView.edit_btn }
-        private val deleteBtn by lazy { itemView.delete_btn }
         private val signBtn by lazy { itemView.sign_btn }
 
         init {
-            val visibility = if (isEditable) View.VISIBLE else View.GONE
-            editBtn.visibility = visibility
-            deleteBtn.visibility = visibility
-
-            signBtn.visibility = if (isEditable) View.GONE else View.VISIBLE
+            if (isEditable) {
+                editBtn.show()
+                signBtn.hide()
+            } else {
+                editBtn.hide()
+                signBtn.show()
+            }
         }
 
         override fun bind(item: Lesson) {
@@ -104,17 +102,14 @@ class LessonsAdapter(
                 editBtn.setOnClickListener {
                     callback?.onEditAction(item)
                 }
-                deleteBtn.setOnClickListener {
-                    callback?.onDeleteAction(item)
-                }
                 return
             }
 
-            val state =
-                if (signed.contains(item.id)) "out"
-                else "in"
+            val action =
+                if (signed.contains(item.id)) R.string.sign_out
+                else R.string.sign_in
 
-            signBtn.text = itemView.resources.getString(R.string.signMsg, state)
+            signBtn.text = itemView.context.getString(action)
 
             signBtn.setOnClickListener {
                 callback?.onSignAction(item)

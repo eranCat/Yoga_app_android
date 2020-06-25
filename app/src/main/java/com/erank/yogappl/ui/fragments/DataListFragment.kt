@@ -33,7 +33,6 @@ import com.erank.yogappl.utils.helpers.RemindersAdapter
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.erank.yogappl.utils.runOnBackground
-import com.google.android.gms.ads.formats.UnifiedNativeAd
 import kotlinx.android.synthetic.main.fragment_data_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
@@ -80,14 +79,17 @@ abstract class DataListFragment<T : BaseData,
         emptyTV.text = getString(R.string.empty, dataType.lowerCased(context!!))
 
         setIsEditable()
-
         createAdapter()
-        loadAds()
-        observeData(getLiveData())
 
         val mergeAdapter = MergeAdapter(dataAdapter, adsAdapter)
         recyclerView.adapter = mergeAdapter
 //        TODO set position of ads
+
+        val liveData = getLiveData()
+        observeData(liveData)
+        if (liveData.value?.isNotEmpty() == true) {
+            AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
+        }
     }
 
     private fun loadAds() {
@@ -133,13 +135,15 @@ abstract class DataListFragment<T : BaseData,
 
     private fun observeData(liveData: LiveData<List<T>>) {
 
-        AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
-
         liveData.observe(viewLifecycleOwner, Observer {
+
             dataAdapter.submitList(it)
             dataAdapter.notifyDataSetChanged()
             onListUpdated(it)
             setEmptyView(it.isEmpty())
+            if (it.isNotEmpty()) {
+                AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
+            }
         })
     }
 

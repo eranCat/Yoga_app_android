@@ -7,7 +7,7 @@ import com.google.android.gms.ads.formats.UnifiedNativeAd
 
 object AdsManager {
     private const val IS_AD_TESTING = true
-    private const val NUMBER_OF_ADS = 1
+    private const val NUMBER_OF_ADS = 5
 
     fun loadBannerAd(context: Context): AdView {
         val unitId = context.getString(

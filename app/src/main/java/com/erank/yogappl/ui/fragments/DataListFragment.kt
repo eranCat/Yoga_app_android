@@ -91,7 +91,7 @@ abstract class DataListFragment<T : BaseData,
     }
 
     private fun loadAds() {
-        AdsManager.loadNativeAds(context!!,adsAdapter::updateAds)
+        AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
     }
 
     abstract fun createAdapter(): AT
@@ -133,10 +133,7 @@ abstract class DataListFragment<T : BaseData,
 
     private fun observeData(liveData: LiveData<List<T>>) {
 
-        AdsManager.loadNativeAds(
-            context!!,
-            this@DataListFragment::updateAdapterWithAds
-        )
+        AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
 
         liveData.observe(viewLifecycleOwner, Observer {
             dataAdapter.submitList(it)
@@ -144,10 +141,6 @@ abstract class DataListFragment<T : BaseData,
             onListUpdated(it)
             setEmptyView(it.isEmpty())
         })
-    }
-
-    private fun updateAdapterWithAds(ads: List<UnifiedNativeAd>) {
-
     }
 
     protected open fun onListUpdated(list: List<T>) {}

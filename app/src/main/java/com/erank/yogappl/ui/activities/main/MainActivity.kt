@@ -30,7 +30,6 @@ import com.erank.yogappl.utils.SearchWatcher
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.helpers.AdsManager
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
-import com.google.android.gms.ads.AdRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.activity_main.*
@@ -67,7 +66,8 @@ class MainActivity : AppCompatActivity(),
         bottomTabs.setOnNavigationItemReselectedListener {}
 
         initDrawer()
-        AdsManager.loadBannerAd(bannnerAdView)
+        val adView = AdsManager.loadBannerAd(this)
+        bannnerAdViewHolder.addView(adView)
     }
 
     private fun openNewDataActivity() {

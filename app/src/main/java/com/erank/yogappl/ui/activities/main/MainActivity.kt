@@ -28,7 +28,6 @@ import com.erank.yogappl.ui.fragments.events.EventsListFragment
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.SearchWatcher
 import com.erank.yogappl.utils.extensions.*
-import com.erank.yogappl.utils.helpers.AdsManager
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
@@ -66,7 +65,7 @@ class MainActivity : AppCompatActivity(),
         bottomTabs.setOnNavigationItemReselectedListener {}
 
         initDrawer()
-        val adView = AdsManager.loadBannerAd(this)
+        val adView = viewModel.loadBannerAd(this)
         bannnerAdViewHolder.addView(adView)
     }
 

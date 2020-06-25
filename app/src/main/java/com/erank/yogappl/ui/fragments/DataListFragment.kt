@@ -1,6 +1,7 @@
 package com.erank.yogappl.ui.fragments
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -41,8 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 abstract class DataListFragment<T : BaseData,
-        AT : DataListAdapter<T, out DataVH<T>>>
-    : Fragment(),
+        AT : DataListAdapter<T, out DataVH<T>>> : Fragment(),
     SearchUpdateable, OnItemActionCallback<T> {
 
     companion object {
@@ -71,6 +71,13 @@ abstract class DataListFragment<T : BaseData,
         container, false
     )!!
 
+    private lateinit var adsManager:AdsManager
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        adsManager = AdsManager(context)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -87,13 +94,6 @@ abstract class DataListFragment<T : BaseData,
 
         val liveData = getLiveData()
         observeData(liveData)
-        if (liveData.value?.isNotEmpty() == true) {
-            AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
-        }
-    }
-
-    private fun loadAds() {
-        AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
     }
 
     abstract fun createAdapter(): AT
@@ -136,13 +136,14 @@ abstract class DataListFragment<T : BaseData,
     private fun observeData(liveData: LiveData<List<T>>) {
 
         liveData.observe(viewLifecycleOwner, Observer {
-
             dataAdapter.submitList(it)
             dataAdapter.notifyDataSetChanged()
             onListUpdated(it)
             setEmptyView(it.isEmpty())
             if (it.isNotEmpty()) {
-                AdsManager.loadNativeAds(context!!, adsAdapter::updateAds)
+                adsManager.loadNativeAds()
+                    .observe(viewLifecycleOwner, Observer(adsAdapter::updateAds))
+
             }
         })
     }

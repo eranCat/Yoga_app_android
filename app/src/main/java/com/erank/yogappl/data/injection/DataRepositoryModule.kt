@@ -78,4 +78,8 @@ class DataRepositoryModule {
     @Provides
     fun provideNotificationHelper(context: Context) = NotificationsHelper(context)
 
+    @Singleton
+    @Provides
+    fun provideAdsManager(context: Context) = AdsManager(context)
+
 }

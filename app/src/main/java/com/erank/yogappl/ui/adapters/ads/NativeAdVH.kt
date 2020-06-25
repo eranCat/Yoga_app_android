@@ -3,7 +3,6 @@ package com.erank.yogappl.ui.adapters.ads
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.erank.yogappl.R
 import com.erank.yogappl.ui.adapters.DataVH
 import com.erank.yogappl.utils.extensions.hide
@@ -30,7 +29,6 @@ class NativeAdVH(parent: ViewGroup) :
     }
 
     override fun bind(ad: UnifiedNativeAd) = with(ad) {
-
         headlineView.text = headline
         bodyView.text = body
 
@@ -46,13 +44,8 @@ class NativeAdVH(parent: ViewGroup) :
         mediaContent?.let {
             mediaView.show()
             mediaView.setMediaContent(it)
-        }?: mediaView.hide()
+        } ?: mediaView.hide()
 
-        root.setNativeAd(ad)
+        root.setNativeAd(this)
     }
-
-    override fun setOnClickListeners(ad: UnifiedNativeAd) {
-
-    }
-
 }

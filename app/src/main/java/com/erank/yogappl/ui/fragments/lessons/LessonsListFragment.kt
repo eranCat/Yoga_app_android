@@ -10,11 +10,10 @@ import com.erank.yogappl.ui.adapters.LessonsAdapter
 import com.erank.yogappl.ui.fragments.DataListFragment
 import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.runOnBackground
-import kotlinx.android.synthetic.main.fragment_data_list.*
 import javax.inject.Inject
 
 
-class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter, LessonsAdapter.LessonVH>() {
+class LessonsListFragment : DataListFragment<Lesson, LessonsAdapter>() {
 
     companion object {
         val TAG = LessonsListFragment::class.java.name

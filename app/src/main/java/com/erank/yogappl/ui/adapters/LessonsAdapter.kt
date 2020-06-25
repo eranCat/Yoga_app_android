@@ -7,6 +7,7 @@ import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.data.models.PreviewUser
 import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import kotlinx.android.synthetic.main.drop_down_btn.view.*
 import kotlinx.android.synthetic.main.dropdown_menu.view.*
 import kotlinx.android.synthetic.main.lesson_item.view.*
@@ -23,8 +24,7 @@ class LessonsAdapter(
     private var users: Map<String, PreviewUser> = emptyMap()
     override val dataType = DataType.LESSONS
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-        LessonVH(parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = LessonVH(parent)
 
     fun setUsers(users: Map<String, PreviewUser>) {
         this.users = users
@@ -56,7 +56,6 @@ class LessonsAdapter(
         }
 
         override fun bind(item: Lesson) {
-
             users[item.uid]?.let {
                 Glide.with(teacherImgView)
                     .load(it.profileImageUrl)
@@ -82,7 +81,6 @@ class LessonsAdapter(
         }
 
         override fun setOnClickListeners(item: Lesson) {
-
             val id = item.id
 
             itemView.setOnClickListener {

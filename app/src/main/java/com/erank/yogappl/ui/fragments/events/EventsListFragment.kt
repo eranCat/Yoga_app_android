@@ -16,7 +16,7 @@ import com.erank.yogappl.utils.App
 import com.erank.yogappl.utils.runOnBackground
 import javax.inject.Inject
 
-class EventsListFragment : DataListFragment<Event, EventsAdapter, EventsAdapter.EventVH>() {
+class EventsListFragment : DataListFragment<Event, EventsAdapter>() {
     companion object {
         fun newInstance(type: SourceType) =
             EventsListFragment().apply {

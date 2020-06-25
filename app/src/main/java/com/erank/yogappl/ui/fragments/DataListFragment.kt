@@ -6,10 +6,13 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.MergeAdapter
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.SearchState
@@ -21,12 +24,16 @@ import com.erank.yogappl.ui.activities.dataInfo.DataInfoActivity
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.adapters.DataListAdapter
 import com.erank.yogappl.ui.adapters.DataVH
+import com.erank.yogappl.ui.adapters.ads.AdsAdapter
 import com.erank.yogappl.ui.custom_views.ProgressDialog
-import com.erank.yogappl.utils.extensions.*
+import com.erank.yogappl.utils.extensions.alert
+import com.erank.yogappl.utils.extensions.toast
+import com.erank.yogappl.utils.helpers.AdsManager
 import com.erank.yogappl.utils.helpers.RemindersAdapter
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.erank.yogappl.utils.runOnBackground
+import com.google.android.gms.ads.formats.UnifiedNativeAd
 import kotlinx.android.synthetic.main.fragment_data_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
@@ -34,27 +41,29 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
-    SearchUpdateable,
-    OnItemActionCallback<T>
-        where X : DataVH<T>, AT : DataListAdapter<T, X> {
+abstract class DataListFragment<T : BaseData,
+        AT : DataListAdapter<T, out DataVH<T>>>
+    : Fragment(),
+    SearchUpdateable, OnItemActionCallback<T> {
 
     companion object {
         val TAG: String = DataListFragment::class.java.name
         internal const val SOURCE_TYPE = "sourceType"
+        private const val RC_EDIT = 1
     }
 
-    private val RC_EDIT = 1
     internal var isEditable: Boolean = false
     protected val dataAdapter by lazy { createAdapter() }
-    protected lateinit var currentSourceType: SourceType
-    private var remindersAdapter: RemindersAdapter<T>? = null
+    protected val adsAdapter by lazy { AdsAdapter() }
 
+    protected lateinit var currentSourceType: SourceType
+
+    private var remindersAdapter: RemindersAdapter<T>? = null
     private val emptyTV by lazy { empty_tv }
+
     private val recyclerView by lazy { data_recycler_view }
     private val progressDialog by lazy { ProgressDialog(requireContext()) }
     private val emptySearchTV by lazy { no_results_tv }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -73,7 +82,16 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
         setIsEditable()
 
         createAdapter()
+        loadAds()
         observeData(getLiveData())
+
+        val mergeAdapter = MergeAdapter(dataAdapter, adsAdapter)
+        recyclerView.adapter = mergeAdapter
+//        TODO set position of ads
+    }
+
+    private fun loadAds() {
+        AdsManager.loadNativeAds(context!!,adsAdapter::updateAds)
     }
 
     abstract fun createAdapter(): AT
@@ -81,7 +99,6 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     protected fun initAdapter(adapter: AT) = adapter.also {
 
         adapter.callback = this
-        recyclerView.adapter = adapter
 
 //        TODO fix swipe
         /*val swipeHandler = object : SwipeToDeleteCallback(context!!) {
@@ -111,10 +128,15 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
     abstract suspend fun getFilteredData(query: String): List<T>
 
     private fun setEmptyView(isEmpty: Boolean) {
-        emptyTV.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        emptyTV.visibility = if (isEmpty) VISIBLE else GONE
     }
 
     private fun observeData(liveData: LiveData<List<T>>) {
+
+        AdsManager.loadNativeAds(
+            context!!,
+            this@DataListFragment::updateAdapterWithAds
+        )
 
         liveData.observe(viewLifecycleOwner, Observer {
             dataAdapter.submitList(it)
@@ -122,6 +144,10 @@ abstract class DataListFragment<T : BaseData, AT, X> : Fragment(),
             onListUpdated(it)
             setEmptyView(it.isEmpty())
         })
+    }
+
+    private fun updateAdapterWithAds(ads: List<UnifiedNativeAd>) {
+
     }
 
     protected open fun onListUpdated(list: List<T>) {}

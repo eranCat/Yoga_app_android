@@ -57,8 +57,9 @@ class EventsAdapter(
                     .placeholder(R.drawable.img_placeholder)
                     .fitCenter()
                     .into(eventImage)
-            } else
-                eventImage.hide()
+            } else {
+            }
+            eventImage.hide()
 
 
             if (!isEditable) {

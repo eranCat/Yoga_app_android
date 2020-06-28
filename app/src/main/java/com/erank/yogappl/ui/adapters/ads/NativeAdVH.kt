@@ -28,7 +28,8 @@ class NativeAdVH(parent: ViewGroup) :
         root.iconView = iconView
     }
 
-    override fun bind(ad: UnifiedNativeAd) = with(ad) {
+    override fun bind(ad: Any) = with(ad as UnifiedNativeAd) {
+
         headlineView.text = headline
         bodyView.text = body
 

@@ -6,6 +6,7 @@ import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.data.models.PreviewUser
+import com.erank.yogappl.ui.adapters.ads.NativeAdVH
 import com.erank.yogappl.utils.extensions.*
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import kotlinx.android.synthetic.main.drop_down_btn.view.*
@@ -19,12 +20,17 @@ class LessonsAdapter(
     private val userUploads: List<String>,
     private val signed: MutableList<String>
 ) :
-    DataListAdapter<Lesson, LessonsAdapter.LessonVH>(isEditable) {
+    DataListAdapter<Lesson>(isEditable) {
 
     private var users: Map<String, PreviewUser> = emptyMap()
     override val dataType = DataType.LESSONS
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = LessonVH(parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataVH<*> {
+        return when (viewType) {
+            AD_TYPE -> NativeAdVH(parent)
+            else -> LessonVH(parent)
+        }
+    }
 
     fun setUsers(users: Map<String, PreviewUser>) {
         this.users = users
@@ -55,7 +61,9 @@ class LessonsAdapter(
             }
         }
 
-        override fun bind(item: Lesson) {
+        override fun bind(item: Any) {
+            item as Lesson
+
             users[item.uid]?.let {
                 Glide.with(teacherImgView)
                     .load(it.profileImageUrl)

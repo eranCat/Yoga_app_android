@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.MergeAdapter
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.SearchState
@@ -24,8 +23,6 @@ import com.erank.yogappl.data.models.DataInfo
 import com.erank.yogappl.ui.activities.dataInfo.DataInfoActivity
 import com.erank.yogappl.ui.activities.newEditData.NewEditDataActivity
 import com.erank.yogappl.ui.adapters.DataListAdapter
-import com.erank.yogappl.ui.adapters.DataVH
-import com.erank.yogappl.ui.adapters.ads.AdsAdapter
 import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.extensions.alert
 import com.erank.yogappl.utils.extensions.toast
@@ -41,8 +38,7 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-abstract class DataListFragment<T : BaseData,
-        AT : DataListAdapter<T, out DataVH<T>>> : Fragment(),
+abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragment(),
     SearchUpdateable, OnItemActionCallback<T> {
 
     companion object {
@@ -53,7 +49,6 @@ abstract class DataListFragment<T : BaseData,
 
     internal var isEditable: Boolean = false
     protected val dataAdapter by lazy { createAdapter() }
-    protected val adsAdapter by lazy { AdsAdapter() }
 
     protected lateinit var currentSourceType: SourceType
 
@@ -88,8 +83,7 @@ abstract class DataListFragment<T : BaseData,
         setIsEditable()
         createAdapter()
 
-        val mergeAdapter = MergeAdapter(dataAdapter, adsAdapter)
-        recyclerView.adapter = mergeAdapter
+        recyclerView.adapter = dataAdapter
 //        TODO set position of ads
 
         val liveData = getLiveData()
@@ -111,7 +105,7 @@ abstract class DataListFragment<T : BaseData,
         }
         ItemTouchHelper(swipeHandler).attachToRecyclerView(recyclerView)*/
 
-        setEmptyView(adapter.currentList.isEmpty())
+        setEmptyView(adapter.dataList.isEmpty())
     }
 
     override fun updateSearch(state: SearchState, query: String) {
@@ -135,14 +129,17 @@ abstract class DataListFragment<T : BaseData,
 
     private fun observeData(liveData: LiveData<List<T>>) {
 
-        liveData.observe(viewLifecycleOwner, Observer {
-            dataAdapter.submitList(it)
+        liveData.observe(viewLifecycleOwner, Observer { list ->
+            dataAdapter.submitList(list)
             dataAdapter.notifyDataSetChanged()
-            onListUpdated(it)
-            setEmptyView(it.isEmpty())
-            if (it.isNotEmpty()) {
+            onListUpdated(list)
+            setEmptyView(list.isEmpty())
+            if ( list.isNotEmpty()) {
                 adsManager.loadNativeAds()
-                    .observe(viewLifecycleOwner, Observer(adsAdapter::updateAds))
+                    .observe(viewLifecycleOwner, Observer {
+                        dataAdapter.submitAdsList(it)
+                        dataAdapter.notifyDataSetChanged()
+                    })
 
             }
         })

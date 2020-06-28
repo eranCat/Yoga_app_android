@@ -6,6 +6,7 @@ import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.Event
+import com.erank.yogappl.ui.adapters.ads.NativeAdVH
 import com.erank.yogappl.utils.extensions.*
 import kotlinx.android.synthetic.main.drop_down_btn.view.*
 import kotlinx.android.synthetic.main.dropdown_menu.view.*
@@ -20,11 +21,16 @@ class EventsAdapter(
     private val userUploads: MutableList<String>,
     private val signed: MutableList<String>
 ) :
-    DataListAdapter<Event, EventsAdapter.EventVH>(isEditable) {
+    DataListAdapter<Event>(isEditable) {
 
     override val dataType = DataType.EVENTS
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = EventVH(parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataVH<*> {
+        return when (viewType) {
+            AD_TYPE -> NativeAdVH(parent)
+            else -> EventVH(parent)
+        }
+    }
 
     inner class EventVH(parent: ViewGroup) : DataVH<Event>(parent, R.layout.event_item) {
 
@@ -47,7 +53,8 @@ class EventsAdapter(
             }
         }
 
-        override fun bind(item: Event) {
+        override fun bind(item: Any) {
+            item as Event
             if (item.imageUrl != null) {
 
                 eventImage.show()
@@ -58,8 +65,8 @@ class EventsAdapter(
                     .fitCenter()
                     .into(eventImage)
             } else {
+                eventImage.hide()
             }
-            eventImage.hide()
 
 
             if (!isEditable) {

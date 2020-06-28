@@ -10,6 +10,7 @@ abstract class DataListAdapter<T : BaseData>(
     protected val isEditable: Boolean
 ) : RecyclerView.Adapter<DataVH<*>>() {
 
+    private var hasAd: Boolean = false
     internal var list: MutableList<Any> = mutableListOf()
 
     var callback: OnItemActionCallback<T>? = null
@@ -28,8 +29,9 @@ abstract class DataListAdapter<T : BaseData>(
     }
 
     fun submitAd(ad: UnifiedNativeAd) {
-        val size = list.size
-        for (i in (NUM_ITEMS_BEFORE_AD-1)..size step NUM_ITEMS_BEFORE_AD) {
+        hasAd = true
+        val first = NUM_ITEMS_BEFORE_AD - 1
+        for (i in first..list.size step NUM_ITEMS_BEFORE_AD) {
             list.add(i,ad)
         }
         notifyDataSetChanged()
@@ -38,6 +40,8 @@ abstract class DataListAdapter<T : BaseData>(
     override fun getItemCount(): Int = list.size
 
     override fun getItemViewType(pos: Int): Int {
+        if (!hasAd)return DATA_TYPE
+
         return if (pos % NUM_ITEMS_BEFORE_AD == 0) AD_TYPE
         else DATA_TYPE
     }

@@ -18,13 +18,12 @@ class AdsManager( context: Context) {
     }
 
     private var adLoader: AdLoader
-    private var nativeAds = MutableLiveData<MutableList<UnifiedNativeAd>>()
+    private var nativeAd = MutableLiveData<UnifiedNativeAd?>()
 
     private val bannerAdId: String
     private val adUnitId: String
 
     init {
-        nativeAds.value = mutableListOf()
 
         bannerAdId = context.getString(
             if (IS_AD_TESTING) R.string.test_ad_banner_id
@@ -36,8 +35,7 @@ class AdsManager( context: Context) {
         )
         adLoader = AdLoader.Builder(context, adUnitId)
             .forUnifiedNativeAd {
-                nativeAds.value?.add(it)
-                nativeAds.value = nativeAds.value
+                nativeAd.value = it
             }
             .withAdListener(object : AdListener() {
                 override fun onAdFailedToLoad(errorCode: Int) {
@@ -55,10 +53,9 @@ class AdsManager( context: Context) {
         loadAd(adRequest)
     }
 
-    fun loadNativeAds(): LiveData<MutableList<UnifiedNativeAd>> {
-        nativeAds.value = mutableListOf()
+    fun loadNativeAds(): LiveData<UnifiedNativeAd?> {
         val adRequest = AdRequest.Builder().build()
         adLoader.loadAds(adRequest, NUMBER_OF_ADS)
-        return nativeAds
+        return nativeAd
     }
 }

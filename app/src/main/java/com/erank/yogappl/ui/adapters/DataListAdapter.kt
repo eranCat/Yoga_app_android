@@ -10,9 +10,8 @@ abstract class DataListAdapter<T : BaseData>(
     protected val isEditable: Boolean
 ) : RecyclerView.Adapter<DataVH<*>>() {
 
+    internal var list: List<Any> = emptyList()
 
-    internal var dataList = emptyList<T>()
-    protected var adsList = emptyList<UnifiedNativeAd>()
     var callback: OnItemActionCallback<T>? = null
 
     protected var toggles = mutableMapOf<String, Boolean>()
@@ -20,36 +19,30 @@ abstract class DataListAdapter<T : BaseData>(
     abstract val dataType: DataType
 
     override fun onBindViewHolder(holder: DataVH<*>, pos: Int) {
-        when (getItemViewType(pos)) {
-            DATA_TYPE -> if (dataList.isNotEmpty()) {
-                val diff = pos / NUM_ITEMS_BEFORE_AD
-                holder.bind(dataList[pos-diff])
-            }
-            AD_TYPE -> if (adsList.isNotEmpty()) {
-                val i = pos % adsList.size
-                holder.bind(adsList[i])
-            }
-        }
+        holder.bind(list[pos])
     }
 
     fun submitList(list: List<T>) {
-        this.dataList = list
+        this.list = list
         notifyDataSetChanged()
     }
 
-    fun submitAdsList(list: List<UnifiedNativeAd>) {
-        this.adsList = list
+    fun submitAd(ad: UnifiedNativeAd) {
+        val combinedList = mutableListOf<Any>()
+        for ((i, item) in list.withIndex()) {
+            combinedList.add(item)
+            if (i % NUM_ITEMS_BEFORE_AD == 0) {
+                combinedList.add(ad)
+            }
+        }
+        notifyDataSetChanged()
     }
 
-    override fun getItemCount(): Int {
-        val size = dataList.size
-        return size + size % NUM_ITEMS_BEFORE_AD
-    }
+    override fun getItemCount(): Int = list.size
 
     override fun getItemViewType(pos: Int): Int {
         return when {
-            adsList.isEmpty() -> DATA_TYPE
-            pos % NUM_ITEMS_BEFORE_AD != 0 -> DATA_TYPE
+            pos % NUM_ITEMS_BEFORE_AD == 0 -> DATA_TYPE
             else -> AD_TYPE
         }
     }

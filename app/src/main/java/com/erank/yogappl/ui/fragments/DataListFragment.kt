@@ -105,7 +105,7 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
         }
         ItemTouchHelper(swipeHandler).attachToRecyclerView(recyclerView)*/
 
-        setEmptyView(adapter.dataList.isEmpty())
+        setEmptyView(adapter.list.isEmpty())
     }
 
     override fun updateSearch(state: SearchState, query: String) {
@@ -134,14 +134,13 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
             dataAdapter.notifyDataSetChanged()
             onListUpdated(list)
             setEmptyView(list.isEmpty())
-            if ( list.isNotEmpty()) {
-                adsManager.loadNativeAds()
-                    .observe(viewLifecycleOwner, Observer {
-                        dataAdapter.submitAdsList(it)
-                        dataAdapter.notifyDataSetChanged()
-                    })
+            if (list.isEmpty()) return@Observer
 
-            }
+            adsManager.loadNativeAds()
+                .observe(viewLifecycleOwner, Observer { ad ->
+                    ad?.let { dataAdapter.submitAd(it) }
+                })
+
         })
     }
 

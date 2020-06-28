@@ -31,6 +31,7 @@ import com.erank.yogappl.utils.helpers.RemindersAdapter
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.erank.yogappl.utils.interfaces.SearchUpdateable
 import com.erank.yogappl.utils.runOnBackground
+import com.google.android.gms.ads.formats.UnifiedNativeAd
 import kotlinx.android.synthetic.main.fragment_data_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
@@ -136,11 +137,15 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
             setEmptyView(list.isEmpty())
             if (list.isEmpty()) return@Observer
 
-            adsManager.loadNativeAds()
-                .observe(viewLifecycleOwner, Observer { ad ->
-                    ad?.let { dataAdapter.submitAd(it) }
-                })
-
+            val nativeAds = adsManager.loadNativeAds()
+            nativeAds.observe(viewLifecycleOwner, object : Observer<UnifiedNativeAd?> {
+                override fun onChanged(ad: UnifiedNativeAd?) {
+                    ad?.let {
+                        dataAdapter.submitAd(it)
+                        nativeAds.removeObserver(this)
+                    }
+                }
+            })
         })
     }
 

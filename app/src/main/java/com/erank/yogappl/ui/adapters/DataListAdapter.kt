@@ -30,9 +30,9 @@ abstract class DataListAdapter<T : BaseData>(
 
     fun submitAd(ad: UnifiedNativeAd) {
         hasAd = true
-        val first = NUM_ITEMS_BEFORE_AD - 1
-        for (i in first..list.size step NUM_ITEMS_BEFORE_AD) {
-            list.add(i,ad)
+        val first = NUM_ITEMS_BEFORE_AD
+        for (i in first..list.size step first) {
+            list.add(i, ad)
         }
         notifyDataSetChanged()
     }
@@ -40,13 +40,16 @@ abstract class DataListAdapter<T : BaseData>(
     override fun getItemCount(): Int = list.size
 
     override fun getItemViewType(pos: Int): Int {
-        if (!hasAd)return DATA_TYPE
 
-        return if (pos % NUM_ITEMS_BEFORE_AD == 0) AD_TYPE
-        else DATA_TYPE
+        return when {
+            !hasAd -> DATA_TYPE
+            pos < NUM_ITEMS_BEFORE_AD -> DATA_TYPE
+            pos % NUM_ITEMS_BEFORE_AD == 0 -> AD_TYPE
+            else -> DATA_TYPE
+        }
     }
 
     protected val DATA_TYPE = 0
     protected val AD_TYPE = 1
-    private val NUM_ITEMS_BEFORE_AD = 3
+    private val NUM_ITEMS_BEFORE_AD = 2
 }

@@ -11,13 +11,11 @@ import com.erank.yogappl.data.models.*
 import com.erank.yogappl.data.models.User.Type.STUDENT
 import com.erank.yogappl.data.models.User.Type.TEACHER
 import com.erank.yogappl.utils.SigningErrors
-import com.erank.yogappl.utils.extensions.LatLng
 import com.erank.yogappl.utils.extensions.await
 import com.erank.yogappl.utils.extensions.setLocation
 import com.erank.yogappl.utils.helpers.AuthHelper
 import com.erank.yogappl.utils.helpers.LocationHelper
 import com.erank.yogappl.utils.helpers.MyImagePicker
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject

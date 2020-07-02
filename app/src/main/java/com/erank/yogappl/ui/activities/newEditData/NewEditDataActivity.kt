@@ -254,8 +254,9 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     private fun save(result: FormResult) {
         val data = createData(result) ?: return
+        if (!isFinishing)
+            progressDialog.show()
 
-        progressDialog.show()
         try {
             runOnBackground({
                 viewModel.uploadData(data)

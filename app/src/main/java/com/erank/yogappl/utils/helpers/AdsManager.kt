@@ -12,7 +12,7 @@ import javax.inject.Singleton
 class AdsManager(val context: Context) {
 
     companion object {
-        private const val IS_AD_TESTING = true
+        private const val IS_AD_TESTING = false
         private const val NUMBER_OF_ADS = 3
     }
 

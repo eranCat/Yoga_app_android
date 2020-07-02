@@ -11,6 +11,7 @@ abstract class DataListAdapter<T : BaseData>(
 ) : RecyclerView.Adapter<DataVH<*>>() {
 
     private var hasAd: Boolean = false
+    private var dataCount: Int = 0
     internal var list: MutableList<Any> = mutableListOf()
 
     var callback: OnItemActionCallback<T>? = null
@@ -25,13 +26,17 @@ abstract class DataListAdapter<T : BaseData>(
 
     fun submitList(list: List<T>) {
         this.list = list.toMutableList()
+        this.dataCount = list.size
+        hasAd = false
         notifyDataSetChanged()
     }
 
     fun submitAd(ad: UnifiedNativeAd) {
+        if (hasAd)return
+
         hasAd = true
         val first = NUM_ITEMS_BEFORE_AD
-        for (i in first..list.size step first) {
+        for (i in first..dataCount step first) {
             list.add(i, ad)
         }
         notifyDataSetChanged()
@@ -48,6 +53,7 @@ abstract class DataListAdapter<T : BaseData>(
             else -> DATA_TYPE
         }
     }
+
 
     protected val DATA_TYPE = 0
     protected val AD_TYPE = 1

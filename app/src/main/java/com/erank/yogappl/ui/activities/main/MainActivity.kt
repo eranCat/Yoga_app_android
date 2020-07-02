@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(),
         bottomTabs.setOnNavigationItemReselectedListener {}
 
         initDrawer()
-        val adView = viewModel.loadBannerAd(this)
+        val adView = viewModel.loadBannerAd()
         bannnerAdViewHolder.addView(adView)
     }
 

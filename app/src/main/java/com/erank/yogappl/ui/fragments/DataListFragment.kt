@@ -59,6 +59,7 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
     private val recyclerView by lazy { data_recycler_view }
     private val progressDialog by lazy { ProgressDialog(requireContext()) }
     private val emptySearchTV by lazy { no_results_tv }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -85,10 +86,8 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
         createAdapter()
 
         recyclerView.adapter = dataAdapter
-//        TODO set position of ads
 
-        val liveData = getLiveData()
-        observeData(liveData)
+        observeData(getLiveData())
     }
 
     abstract fun createAdapter(): AT
@@ -129,23 +128,13 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
     }
 
     private fun observeData(liveData: LiveData<List<T>>) {
-
         liveData.observe(viewLifecycleOwner, Observer { list ->
             dataAdapter.submitList(list)
             dataAdapter.notifyDataSetChanged()
             onListUpdated(list)
             setEmptyView(list.isEmpty())
-            if (list.isEmpty()) return@Observer
-
-            val nativeAds = adsManager.loadNativeAds()
-            nativeAds.observe(viewLifecycleOwner, object : Observer<UnifiedNativeAd?> {
-                override fun onChanged(ad: UnifiedNativeAd?) {
-                    ad?.let {
-                        dataAdapter.submitAd(it)
-                        nativeAds.removeObserver(this)
-                    }
-                }
-            })
+            if (list.isNotEmpty())
+                adsManager.loadNativeAds(dataAdapter::submitAd)
         })
     }
 

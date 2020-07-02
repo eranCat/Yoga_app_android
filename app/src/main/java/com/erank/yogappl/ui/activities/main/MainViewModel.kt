@@ -1,6 +1,5 @@
 package com.erank.yogappl.ui.activities.main
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.erank.yogappl.data.models.User
 import com.erank.yogappl.data.models.User.Type
@@ -20,7 +19,7 @@ class MainViewModel @Inject constructor(
         repository.clearCurrentUser()
     }
 
-    fun loadBannerAd(context: Context) = adsManager.loadBannerAd(context)
+    fun loadBannerAd() = adsManager.loadBannerAd()
 
     val user: User? = repository.currentUser
 

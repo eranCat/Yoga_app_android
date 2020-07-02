@@ -20,7 +20,10 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.enums.TextFieldValidStates.*
-import com.erank.yogappl.data.models.*
+import com.erank.yogappl.data.models.BaseData
+import com.erank.yogappl.data.models.Event
+import com.erank.yogappl.data.models.Lesson
+import com.erank.yogappl.data.models.LocationResult
 import com.erank.yogappl.ui.activities.location.LocationPickerActivity
 import com.erank.yogappl.ui.custom_views.ProgressDialog
 import com.erank.yogappl.utils.*
@@ -345,7 +348,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     private fun showEndDatePicker() {
         val startDate = viewModel.selectedStartDate ?: run {
-            toast("Please select a start date")
+            toast(R.string.select_end_date)
             return
         }
         val validation: DateValidationPredicate = {
@@ -357,8 +360,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         val emptyMsg = getString(R.string.select_end_date)
         val minDate = startDate.addMinuets(30)
         createDatePickerDialog(
-            endDate, minDate, validation,
-            {
+            endDate, minDate, validation, {
                 it?.let {
                     viewModel.selectedEndDate = it
                     endDateTV.text = it.formatted(MEDIUM, SHORT)
@@ -401,8 +403,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         callback: OnDateSet
     ) {
 
-        val cal = (if (current > minDate) current else minDate)
-            .cal()
+        val cal = (if (current > minDate) current else minDate).cal()
 
         val listener: (TimePicker, Int, Int) -> Unit = { _, hour, minute ->
             cal.hourOfDay = hour

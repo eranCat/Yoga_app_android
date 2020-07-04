@@ -6,9 +6,7 @@ import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.Lesson
 import com.erank.yogappl.data.models.PreviewUser
-import com.erank.yogappl.ui.adapters.ads.NativeAdVH
 import com.erank.yogappl.utils.extensions.*
-import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import kotlinx.android.synthetic.main.drop_down_btn.view.*
 import kotlinx.android.synthetic.main.dropdown_menu.view.*
 import kotlinx.android.synthetic.main.lesson_item.view.*
@@ -25,12 +23,7 @@ class LessonsAdapter(
     private var users: Map<String, PreviewUser> = emptyMap()
     override val dataType = DataType.LESSONS
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataVH<*> {
-        return when (viewType) {
-            AD_TYPE -> NativeAdVH(parent)
-            else -> LessonVH(parent)
-        }
-    }
+    override fun createDataViewHolder(parent: ViewGroup) = LessonVH(parent)
 
     fun setUsers(users: Map<String, PreviewUser>) {
         this.users = users

@@ -6,7 +6,6 @@ import com.bumptech.glide.Glide
 import com.erank.yogappl.R
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.Event
-import com.erank.yogappl.ui.adapters.ads.NativeAdVH
 import com.erank.yogappl.utils.extensions.*
 import kotlinx.android.synthetic.main.drop_down_btn.view.*
 import kotlinx.android.synthetic.main.dropdown_menu.view.*
@@ -25,12 +24,7 @@ class EventsAdapter(
 
     override val dataType = DataType.EVENTS
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataVH<*> {
-        return when (viewType) {
-            AD_TYPE -> NativeAdVH(parent)
-            else -> EventVH(parent)
-        }
-    }
+    override fun createDataViewHolder(parent: ViewGroup) = EventVH(parent)
 
     inner class EventVH(parent: ViewGroup) : DataVH<Event>(parent, R.layout.event_item) {
 

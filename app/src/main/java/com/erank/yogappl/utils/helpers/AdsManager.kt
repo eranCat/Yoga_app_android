@@ -1,10 +1,11 @@
 package com.erank.yogappl.utils.helpers
 
 import android.content.Context
-import android.util.Log
 import com.erank.yogappl.R
-import com.erank.yogappl.utils.extensions.toast
-import com.google.android.gms.ads.*
+import com.google.android.gms.ads.AdLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.formats.UnifiedNativeAd
 import javax.inject.Singleton
 
@@ -12,8 +13,7 @@ import javax.inject.Singleton
 class AdsManager(val context: Context) {
 
     companion object {
-        private const val IS_AD_TESTING = false
-        private const val NUMBER_OF_ADS = 3
+        private const val IS_TESTING = false
     }
 
     private val bannerAdId: String
@@ -21,14 +21,13 @@ class AdsManager(val context: Context) {
 
     init {
 
-        bannerAdId = context.getString(
-            if (IS_AD_TESTING) R.string.test_ad_banner_id
-            else R.string.list_ad_id
-        )
-        adUnitId = context.getString(
-            if (IS_AD_TESTING) R.string.test_list_ad_id
-            else R.string.list_ad_id
-        )
+        val bannerRes = if (!IS_TESTING) R.string.banner_ad_id
+        else R.string.test_ad_banner_id
+        bannerAdId = context.getString(bannerRes)
+
+        val adUnitRes = if (!IS_TESTING) R.string.list_ad_id
+        else R.string.test_list_ad_id
+        adUnitId = context.getString(adUnitRes)
 
     }
 
@@ -40,18 +39,9 @@ class AdsManager(val context: Context) {
 
     fun loadNativeAds(callback: (UnifiedNativeAd) -> Unit) {
         AdLoader.Builder(context, adUnitId)
-            .forUnifiedNativeAd {
-                callback(it)
-            }
-            .withAdListener(object : AdListener() {
-                override fun onAdFailedToLoad(errorCode: Int) {
-                    // Handle the failure by logging, altering the UI, and so on.
-                    Log.d("Ad", "Failed loading ad - $errorCode")
-                    context.toast("Failed loading ad")
-                }
-            })
+            .forUnifiedNativeAd { callback(it) }
             .build()
-            .loadAds(adRequest(), NUMBER_OF_ADS)
+            .loadAds(adRequest(), 1)
     }
 
     private fun adRequest() = AdRequest.Builder().build()

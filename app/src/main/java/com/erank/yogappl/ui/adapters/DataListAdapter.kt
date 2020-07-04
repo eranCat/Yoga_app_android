@@ -1,8 +1,10 @@
 package com.erank.yogappl.ui.adapters
 
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.erank.yogappl.data.enums.DataType
 import com.erank.yogappl.data.models.BaseData
+import com.erank.yogappl.ui.adapters.ads.NativeAdVH
 import com.erank.yogappl.utils.interfaces.OnItemActionCallback
 import com.google.android.gms.ads.formats.UnifiedNativeAd
 
@@ -20,9 +22,7 @@ abstract class DataListAdapter<T : BaseData>(
 
     abstract val dataType: DataType
 
-    override fun onBindViewHolder(holder: DataVH<*>, pos: Int) {
-        holder.bind(list[pos])
-    }
+    override fun onBindViewHolder(holder: DataVH<*>, pos: Int) = holder.bind(list[pos])
 
     fun submitList(list: List<T>) {
         this.list = list.toMutableList()
@@ -32,8 +32,6 @@ abstract class DataListAdapter<T : BaseData>(
     }
 
     fun submitAd(ad: UnifiedNativeAd) {
-        if (hasAd)return
-
         hasAd = true
         val first = NUM_ITEMS_BEFORE_AD
         for (i in first..dataCount step first) {
@@ -44,18 +42,21 @@ abstract class DataListAdapter<T : BaseData>(
 
     override fun getItemCount(): Int = list.size
 
-    override fun getItemViewType(pos: Int): Int {
-
-        return when {
-            !hasAd -> DATA_TYPE
-            pos < NUM_ITEMS_BEFORE_AD -> DATA_TYPE
-            pos % NUM_ITEMS_BEFORE_AD == 0 -> AD_TYPE
-            else -> DATA_TYPE
-        }
+    override fun getItemViewType(pos: Int): Int = when {
+        !hasAd -> DATA_TYPE
+        pos < NUM_ITEMS_BEFORE_AD -> DATA_TYPE
+        pos % NUM_ITEMS_BEFORE_AD == 0 -> AD_TYPE
+        else -> DATA_TYPE
     }
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = when (viewType) {
+        AD_TYPE -> NativeAdVH(parent)
+        else -> createDataViewHolder(parent)
+    }
 
-    protected val DATA_TYPE = 0
-    protected val AD_TYPE = 1
+    abstract fun createDataViewHolder(parent: ViewGroup): DataVH<*>
+
+    private val DATA_TYPE = 0
+    private val AD_TYPE = 1
     private val NUM_ITEMS_BEFORE_AD = 2
 }

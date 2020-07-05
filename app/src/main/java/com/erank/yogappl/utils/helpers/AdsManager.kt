@@ -13,7 +13,7 @@ import javax.inject.Singleton
 class AdsManager(val context: Context) {
 
     companion object {
-        private const val IS_TESTING = false
+        private const val IS_TESTING = true
     }
 
     private val bannerAdId: String

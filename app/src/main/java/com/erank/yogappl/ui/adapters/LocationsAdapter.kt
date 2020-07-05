@@ -39,14 +39,11 @@ class LocationsAdapter :
         LayoutInflater.from(parent.context)
             .inflate(R.layout.location_item, parent, false)
     ) {
-        private val localNameTV = itemView.location_item_name_tv
-        private val locStreetTv = itemView.location_item_street
-        private val locationDistanceTV = itemView.location_item_distance_tv
 
         fun fill(loc: LocationResult) = with(loc) {
 
             with(address) {
-                localNameTV.text = POI?.name ?: localName
+                itemView.locationName.text = POI?.name ?: localName
 
                 var name = streetName ?: longName
 
@@ -54,10 +51,10 @@ class LocationsAdapter :
                     name += " $streetNumber"
                 }
 
-                locStreetTv.text = name
+                itemView.locationStreet.text = name
             }
 
-            locationDistanceTV.text = distance.formattedDistance()
+            itemView.locationDistance.text = distance.formattedDistance()
         }
 
         fun setOnClickListener(

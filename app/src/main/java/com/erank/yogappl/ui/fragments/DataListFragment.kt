@@ -54,11 +54,8 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
     protected lateinit var currentSourceType: SourceType
 
     private var remindersAdapter: RemindersAdapter<T>? = null
-    private val emptyTV by lazy { empty_tv }
 
-    private val recyclerView by lazy { data_recycler_view }
     private val progressDialog by lazy { ProgressDialog(requireContext()) }
-    private val emptySearchTV by lazy { no_results_tv }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,12 +77,12 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
 
         currentSourceType = arguments!!.getSerializable(SOURCE_TYPE) as SourceType
 
-        emptyTV.text = getString(R.string.empty, dataType.lowerCased(context!!))
+        empty_tv.text = getString(R.string.empty, dataType.lowerCased(context!!))
 
         setIsEditable()
         createAdapter()
 
-        recyclerView.adapter = dataAdapter
+        data_recycler_view.adapter = dataAdapter
 
         observeData(getLiveData())
     }
@@ -98,12 +95,12 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
 
 //        TODO fix swipe
         /*val swipeHandler = object : SwipeToDeleteCallback(context!!) {
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            override fun onSwiped(viewHolder: data_recycler_view.ViewHolder, direction: Int) {
                 adapter.removeAt(viewHolder.adapterPosition)
 //                TODO handle deletion + edit + sign
             }
         }
-        ItemTouchHelper(swipeHandler).attachToRecyclerView(recyclerView)*/
+        ItemTouchHelper(swipeHandler).attachTodata_recycler_view(data_recycler_view)*/
 
         setEmptyView(adapter.list.isEmpty())
     }
@@ -124,7 +121,7 @@ abstract class DataListFragment<T : BaseData, AT : DataListAdapter<T>> : Fragmen
     abstract suspend fun getFilteredData(query: String): List<T>
 
     private fun setEmptyView(isEmpty: Boolean) {
-        emptyTV.visibility = if (isEmpty) VISIBLE else GONE
+        empty_tv.visibility = if (isEmpty) VISIBLE else GONE
     }
 
     private fun observeData(liveData: LiveData<List<T>>) {

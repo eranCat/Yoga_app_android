@@ -32,50 +32,40 @@ class LessonsAdapter(
     inner class LessonVH(parent: ViewGroup) :
         DataVH<Lesson>(parent, R.layout.lesson_item) {
 
-        private val teacherImgView by lazy { itemView.profile_Img }
-        private val teacherNameTv by lazy { itemView.teacherNameTV }
-
-        private val kindTv by lazy { itemView.kindTV }
-        private val placeTv by lazy { itemView.placeTV }
-        private val timeTv by lazy { itemView.timeTV }
-
-        private val dropDownSection by lazy { itemView.drop_down }
-        private val dropDownBtn by lazy { itemView.dropdown_btn }
-        private val editBtn by lazy { itemView.edit_btn }
-        private val signBtn by lazy { itemView.sign_btn }
-
         init {
-            if (isEditable) {
-                editBtn.show()
-                signBtn.hide()
-            } else {
-                editBtn.hide()
-                signBtn.show()
+            with(itemView) {
+                if (isEditable) {
+                    edit_btn.show()
+                    sign_btn.hide()
+                } else {
+                    edit_btn.hide()
+                    sign_btn.show()
+                }
             }
         }
 
-        override fun bind(item: Any) {
+        override fun bind(item: Any) =with(itemView) {
             item as Lesson
 
             users[item.uid]?.let {
-                Glide.with(teacherImgView)
+                Glide.with(profile_Img)
                     .load(it.profileImageUrl)
                     .placeholder(R.drawable.yoga_model)
                     .fallback(R.drawable.yoga_model)
                     .circleCrop()
-                    .into(teacherImgView)
+                    .into(profile_Img)
 
-                teacherNameTv.text = it.name
+                teacherNameTV.text = it.name
             }
 
             if (!isEditable) {
-                signBtn.isEnabled = !userUploads.contains(item.id)
+                sign_btn.isEnabled = !userUploads.contains(item.id)
             }
 
             with(item) {
-                kindTv.text = title
-                placeTv.text = locationName
-                timeTv.text = startDate.relativeTimeString(itemView.context)
+                kindTV.text = title
+                placeTV.text = locationName
+                timeTV.text = startDate.relativeTimeString(itemView.context)
             }
 
             setOnClickListeners(item)
@@ -88,17 +78,17 @@ class LessonsAdapter(
                 callback?.onItemSelected(item)
             }
 
-            dropDownBtn.setOnClickListener {
+            itemView.dropdown_btn.setOnClickListener {
 
                 val isVisible = toggles[id] ?: false
                 it.toggleRotation(isVisible)
-                dropDownSection.toggleSlide(isVisible)
+                itemView.drop_down.toggleSlide(isVisible)
 
                 toggles[id] = !isVisible
             }
 
             if (isEditable) {
-                editBtn.setOnClickListener {
+                itemView.edit_btn.setOnClickListener {
                     callback?.onEditAction(item)
                 }
                 return
@@ -108,12 +98,12 @@ class LessonsAdapter(
                 if (signed.contains(item.id)) R.string.sign_out
                 else R.string.sign_in
 
-            signBtn.text = itemView.context.getString(action)
-
-            signBtn.setOnClickListener {
-                callback?.onSignAction(item)
+            with(itemView.sign_btn) {
+                text = context.getString(action)
+                setOnClickListener {
+                    callback?.onSignAction(item)
+                }
             }
-
         }
     }
 

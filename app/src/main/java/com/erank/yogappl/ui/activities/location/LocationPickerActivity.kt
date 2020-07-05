@@ -21,8 +21,6 @@ import javax.inject.Inject
 class LocationPickerActivity : AppCompatActivity(),
     SearchView.OnQueryTextListener, OnLocationSelectedCallback {
 
-    private val resultsRV by lazy { results_recycler }
-    private val locationsEmptyTv by lazy { locations_empty_tv }
     private val locationsAdapter by lazy { LocationsAdapter(this) }
 
     @Inject
@@ -34,7 +32,7 @@ class LocationPickerActivity : AppCompatActivity(),
 
         (application as App).getAppComponent().inject(this)
 
-        resultsRV.adapter = locationsAdapter
+        results_recycler.adapter = locationsAdapter
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -66,7 +64,7 @@ class LocationPickerActivity : AppCompatActivity(),
             viewModel.getLocationResults(query)
         }) { results ->
             locationsAdapter.submitList(results)
-            with(locationsEmptyTv) {
+            with(locations_empty_tv) {
                 if (results.isEmpty()) show()
                 else hide()
             }

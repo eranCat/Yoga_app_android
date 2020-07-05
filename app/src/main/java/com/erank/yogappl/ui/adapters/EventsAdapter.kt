@@ -28,46 +28,39 @@ class EventsAdapter(
 
     inner class EventVH(parent: ViewGroup) : DataVH<Event>(parent, R.layout.event_item) {
 
-        private val eventImage by lazy { itemView.event_img_view }
-        private val eventName by lazy { itemView.nameTv }
-        private val eventDate by lazy { itemView.dateTV }
-        private val eventTime by lazy { itemView.timeTV }
-        private val dropDownBtn by lazy { itemView.dropdown_btn }
-        private val dropDownSection by lazy { itemView.drop_down }
-        private val editBtn by lazy { itemView.edit_btn }
-        private val signBtn by lazy { itemView.sign_btn }
-
         init {
-            if (isEditable) {
-                editBtn.show()
-                signBtn.hide()
-            } else {
-                editBtn.hide()
-                signBtn.show()
+            with(itemView) {
+                if (isEditable) {
+                    edit_btn.show()
+                    sign_btn.hide()
+                } else {
+                    edit_btn.hide()
+                    sign_btn.show()
+                }
             }
         }
 
-        override fun bind(item: Any) {
+        override fun bind(item: Any) =with(itemView){
             item as Event
             if (item.imageUrl != null) {
 
-                eventImage.show()
+                event_img_view.show()
 
-                Glide.with(eventImage)
+                Glide.with(event_img_view)
                     .load(item.imageUrl)
                     .placeholder(R.drawable.img_placeholder)
                     .fitCenter()
-                    .into(eventImage)
+                    .into(event_img_view)
             } else {
-                eventImage.hide()
+                event_img_view.hide()
             }
 
 
             if (!isEditable) {
-                signBtn.isEnabled = !userUploads.contains(item.id)
+                sign_btn.isEnabled = !userUploads.contains(item.id)
             }
 
-            eventName.text = item.title
+            nameTv.text = item.title
 
             val ctx = itemView.context
 
@@ -76,20 +69,20 @@ class EventsAdapter(
             val end = item.endDate
 
             if (start.equalDate(end)) {
-                eventDate.text = dateFormatter.format(start)
+                timeTV.text = dateFormatter.format(start)
             } else {
                 val startDate = dateFormatter.format(start)
                 val endDate = dateFormatter.format(end)
-                eventDate.text = ctx.getString(R.string.range, startDate, endDate)
+                dateTV.text = ctx.getString(R.string.range, startDate, endDate)
             }
 
             val timeFormatter = SimpleDateFormat.getTimeInstance(SHORT)
             if (start.equalTime(end)) {
-                eventTime.text = timeFormatter.format(start)
+                timeTV.text = timeFormatter.format(start)
             } else {
                 val startTime = timeFormatter.format(start)
                 val endTime = timeFormatter.format(end)
-                eventTime.text = ctx.getString(R.string.range, startTime, endTime)
+                timeTV.text = ctx.getString(R.string.range, startTime, endTime)
             }
             setOnClickListeners(item)
         }
@@ -101,16 +94,16 @@ class EventsAdapter(
                 callback?.onItemSelected(event)
             }
 
-            dropDownBtn.setOnClickListener {
+            itemView.dropdown_btn.setOnClickListener {
                 val isVisible = toggles[id] ?: false
                 it.toggleRotation(isVisible)
-                dropDownSection.toggleSlide(isVisible)
+                itemView.drop_down.toggleSlide(isVisible)
 
                 toggles[id] = !isVisible
             }
 
             if (isEditable) {
-                editBtn.setOnClickListener { callback?.onEditAction(event) }
+                itemView.edit_btn.setOnClickListener { callback?.onEditAction(event) }
                 return
             }
 
@@ -118,9 +111,11 @@ class EventsAdapter(
             val action =
                 if (isSigned) R.string.sign_out
                 else R.string.sign_out
-            signBtn.text = itemView.context.getString(action)
-            signBtn.setOnClickListener {
-                callback?.onSignAction(event)
+            with(itemView.sign_btn) {
+                text = context.getString(action)
+                setOnClickListener {
+                    callback?.onSignAction(event)
+                }
             }
         }
 

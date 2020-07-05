@@ -34,8 +34,6 @@ class DataInfoActivity : AppCompatActivity() {
     private var currentData: BaseData? = null
     private lateinit var dataInfo: DataInfo
 
-    private val progressLayout by lazy { progress_layout }
-
     @Inject
     lateinit var viewModel: DataInfoViewModel
 
@@ -178,7 +176,7 @@ class DataInfoActivity : AppCompatActivity() {
     }
 
     private fun toggleSign() {
-        progressLayout.show()
+        progress_layout.show()
 
         GlobalScope.launch(IO) {
             try {
@@ -208,7 +206,7 @@ class DataInfoActivity : AppCompatActivity() {
     private var remindersAdapter: RemindersAdapter<BaseData>? = null
 
     private fun onSignToggled(result: Boolean) {
-        progressLayout.hide()
+        progress_layout.hide()
         toggleSignNav.isEnabled = true
 
         val title = if (result) R.string.sign_out else R.string.sign_in
@@ -228,7 +226,7 @@ class DataInfoActivity : AppCompatActivity() {
     }
 
     fun onFailedSign(error: Exception) {
-        progressLayout.hide()
+        progress_layout.hide()
         toggleSignNav.isEnabled = true
         //in or out
         alert(R.string.failed_signing)

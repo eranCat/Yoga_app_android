@@ -49,11 +49,6 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
         private const val MAX_KEY = "max"
     }
 
-    private val titleET by lazy { title_et }
-    private val costEt by lazy { cost_et }
-    private val equipEt by lazy { equip_tv }
-    private val extraEt by lazy { extra_et }
-
     private val maxPplPicker by lazy {
         max_ppl_picker.apply {
             minValue = 0; maxValue = 1_000
@@ -108,10 +103,10 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     }
 
     private fun addListeners(data: BaseData) {
-        titleET.addTextValidListener(TITLE_KEY) { data.title = it }
-        equipEt.addTextValidListener(EQUIP_KEY) { data.equip = it }
-        extraEt.addTextValidListener(EXTRA_KEY) { data.xtraNotes = it }
-        costEt.addTextValidListener(COST_KEY) {
+        title_et.addTextValidListener(TITLE_KEY) { data.title = it }
+        equip_tv.addTextValidListener(EQUIP_KEY) { data.equip = it }
+        extra_et.addTextValidListener(EXTRA_KEY) { data.xtraNotes = it }
+        cost_et.addTextValidListener(COST_KEY) {
             it.toDoubleOrNull()?.let {
                 data.cost = it
             }
@@ -134,18 +129,18 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
     private val form by lazy {
         form {
-            input(titleET, TITLE_KEY) {
+            input(title_et, TITLE_KEY) {
                 isNotEmpty().description(R.string.fill_title)
                 length().atLeast(3).description(R.string.at_least3)
             }
-            input(costEt, COST_KEY) {
+            input(cost_et, COST_KEY) {
                 isNotEmpty().description(R.string.fill_cost)
                 isDecimal().atLeast(0.0).description(R.string.must_be_zero_or_more)
             }
-            input(equipEt, EQUIP_KEY) {
+            input(equip_tv, EQUIP_KEY) {
                 isNotEmpty().description(R.string.fill_equipment)
             }
-            input(extraEt, EXTRA_KEY) {}
+            input(extra_et, EXTRA_KEY) {}
             picker(maxPplPicker, MAX_KEY) {
                 isValid().description(R.string.must_be_positive)
             }
@@ -155,19 +150,19 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
     private fun fillData(data: BaseData) = with(data) {
         title = data.title//activity title
 
-        titleET.setText(title)
-        costEt.setText(cost.formattedMoney())
+        title_et.setText(title)
+        cost_et.setText(cost.formattedMoney())
 
         locationTV.text = locationName
 
         levelSpinner.enumValue = level
-        equipEt.setText(equip)
+        equip_tv.setText(equip)
         maxPplPicker.value = maxParticipants
 
         viewModel.selectedStartDate = startDate
         viewModel.selectedEndDate = endDate
 
-        extraEt.setText(xtraNotes)
+        extra_et.setText(xtraNotes)
 
         if (this is Event) {
 
@@ -305,7 +300,7 @@ class NewEditDataActivity : AppCompatActivity(), ImagePickerCallback {
 
         val level = levelSpinner.enumValue!!
         val equip = res[EQUIP_KEY]!!.asString()
-        val extra = extraEt.txt
+        val extra = extra_et.txt
         val maxPpl = res[MAX_KEY]!!.asInt()!!
 
         val startDate = viewModel.selectedStartDate ?: run {

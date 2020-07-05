@@ -46,10 +46,6 @@ class MainActivity : AppCompatActivity(),
     }
 
     private lateinit var sourceType: SourceType
-    private val drawerLayout by lazy { drawer_layout }
-    private val navigationView by lazy { nav_view }
-    private val toolbar by lazy { main_toolbar }
-    private val bottomTabs by lazy { bottom_nav_view }
 
     @Inject
     lateinit var viewModel: MainViewModel
@@ -60,9 +56,9 @@ class MainActivity : AppCompatActivity(),
 
         (application as App).getAppComponent().inject(this)
 
-        bottomTabs.setOnNavigationItemSelectedListener(this)
-        bottomTabs.selectedItemId = R.id.action_all
-        bottomTabs.setOnNavigationItemReselectedListener {}
+        bottom_nav_view.setOnNavigationItemSelectedListener(this)
+        bottom_nav_view.selectedItemId = R.id.action_all
+        bottom_nav_view.setOnNavigationItemReselectedListener {}
 
         initDrawer()
         val adView = viewModel.loadBannerAd()
@@ -157,9 +153,9 @@ class MainActivity : AppCompatActivity(),
         val colors = resources.getIntArray(R.array.tabs_colors)
         val color = colors[type.ordinal]
 
-        toolbar.animateColor(color)
+        main_toolbar.animateColor(color)
 
-        navigationView.getHeaderView(0).setBackgroundColor(color)
+        nav_view.getHeaderView(0).setBackgroundColor(color)
 
         changeWindowBarColor(color)
 
@@ -198,26 +194,26 @@ class MainActivity : AppCompatActivity(),
 
     private fun initDrawer() {
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(main_toolbar)
 
         ActionBarDrawerToggle(
-            this, drawerLayout, toolbar,
+            this, drawer_layout, main_toolbar,
             R.string.open, R.string.close
         ).let {
-            drawerLayout.addDrawerListener(it)
+            drawer_layout.addDrawerListener(it)
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             it.syncState()
         }
 
-        navigationView.setNavigationItemSelectedListener(this)
+        nav_view.setNavigationItemSelectedListener(this)
     }
 
     private fun fillDrawer() {
         val currentUser = viewModel.user ?: return
 
-        navigationView.setNavigationItemSelectedListener(this)
+        nav_view.setNavigationItemSelectedListener(this)
 
-        val headerView = navigationView.getHeaderView(0)
+        val headerView = nav_view.getHeaderView(0)
 
         val profileIV: ImageView = headerView.findViewById(R.id.profile_Img)
         profileIV.setOnClickListener { openUserData() }
@@ -270,8 +266,8 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun closeDrawer() {
-        drawerLayout.closeDrawer(START)
-        drawerLayout.isSelected = false
+        drawer_layout.closeDrawer(START)
+        drawer_layout.isSelected = false
     }
 
     private fun openUserData() = startActivity(
@@ -279,8 +275,8 @@ class MainActivity : AppCompatActivity(),
     )
 
     override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(START)) {
-            drawerLayout.closeDrawer(START)
+        if (drawer_layout.isDrawerOpen(START)) {
+            drawer_layout.closeDrawer(START)
         } else {
             super.onBackPressed()
         }

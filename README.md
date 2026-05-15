@@ -1,96 +1,150 @@
-# Yoga App - Android
+# Yoga App Android
 
-Android application for yoga lessons, events, and community meetups with location-based discovery.
+A comprehensive Android application for yoga teachers and students to discover, schedule, and manage yoga classes and wellness events. Built with Kotlin and Firebase, featuring real-time updates, location-based search, and community engagement tools.
 
-## Features
+## 🧘 Features
 
-- **Class Discovery**: Find yoga classes and events near you
-- **Community Meetups**: Discover local yoga groups and events
-- **Real-time Booking**: Reserve spots in classes instantly
-- **Event Calendar**: View and manage your yoga schedule
-- **Teacher Profiles**: Browse instructors and their specialties
-- **Ratings & Reviews**: Community feedback system
-- **Social Features**: Connect with other yoga practitioners
-- **Push Notifications**: Never miss a class or event
+- **Class Discovery** - Browse yoga classes by location, style, and instructor
+- **Real-time Scheduling** - Sign up for classes with real-time availability updates
+- **Location-based Search** - Find nearby yoga studios and instructors
+- **Event Management** - Create and manage yoga events, workshops, and retreats
+- **User Profiles** - Instructor and student profiles with ratings and reviews
+- **Messaging System** - Direct messaging between instructors and students
+- **Payment Integration** - Secure payment processing for class bookings
+- **Calendar View** - Personal calendar with booked classes and reminders
+- **Push Notifications** - Real-time updates about classes and bookings
+- **Community Feed** - Share experiences and connect with other practitioners
 
-## Tech Stack
+## 🛠 Tech Stack
 
 - **Language**: Kotlin
-- **Architecture**: MVVM + Clean Architecture
-- **UI**: Jetpack Compose / Material Design 3
-- **Backend**: Firebase Realtime Database
+- **Architecture**: MVVM + Repository Pattern
+- **UI Framework**: Android Material Design, Jetpack Compose (partial)
+- **Database**: Firebase Firestore, Room (local cache)
+- **Authentication**: Firebase Auth
 - **Maps**: Google Maps API
-- **Location**: Google Play Services
-- **Networking**: Retrofit + OkHttp
+- **Payments**: Stripe / PayPal SDK
+- **Networking**: Retrofit, OkHttp
+- **Real-time**: Firebase Realtime Database / Cloud Messaging
+- **Build Tool**: Gradle
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-├── app/
-│   ├── data/
-│   │   ├── repository/      # Data repositories
-│   │   └── remote/          # Firebase services
-│   ├── domain/
-│   │   ├── model/           # Domain models
-│   │   └── usecase/         # Business logic
-│   ├── presentation/
-│   │   ├── ui/              # Compose screens
-│   │   ├── viewmodel/       # MVVM ViewModels
-│   │   └── navigation/      # Navigation graph
-│   └── di/                  # Dependency injection
-└── AndroidManifest.xml
+app/
+├── ui/
+│   ├── screens/                # Compose / Activity screens
+│   ├── fragments/              # Fragment-based UI
+│   ├── adapter/                # RecyclerView adapters
+│   └── theme/                  # Material Design themes
+├── data/
+│   ├── repository/             # Data repositories
+│   ├── datasource/
+│   │   ├── local/              # Room database
+│   │   └── remote/             # Firebase services
+│   └── model/                  # Data models / DTOs
+├── domain/
+│   ├── usecase/                # Business logic
+│   └── repository/             # Repository interfaces
+├── viewmodel/                  # MVVM ViewModels
+├── di/                         # Dependency injection (Hilt)
+├── utils/                      # Utility functions
+└── notification/               # Firebase FCM handlers
 ```
 
-## Getting Started
+## 🚀 Getting Started
 
-### Requirements
+### Prerequisites
 
-- Android Studio Hedgehog+
-- Android SDK 24+
-- Kotlin 1.9+
+- Android Studio 2021.1+
+- Android SDK 21+ (minimum API level)
+- Kotlin 1.8+
+- Firebase account
 
 ### Installation
 
+1. Clone the repository:
 ```bash
-# Clone and open in Android Studio
 git clone https://github.com/eranCat/Yoga_app_android.git
-
-# Sync gradle files
-# File > Sync Now
-
-# Create emulator or connect device
-# Run the app
+cd Yoga_app_android
 ```
 
-### Firebase Setup
+2. Set up Firebase:
+   - Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+   - Download `google-services.json` and place it in the `app/` directory
+   - Enable Firestore, Authentication, Storage, and Cloud Messaging
 
-1. Create Firebase project
-2. Download `google-services.json`
-3. Place in `app/` directory
-4. Enable Realtime Database and Cloud Storage
+3. Add API keys to `local.properties`:
+```properties
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+STRIPE_API_KEY=your_stripe_api_key
+FIREBASE_WEB_API_KEY=your_firebase_web_api_key
+```
 
-## Features Explained
+4. Build and run:
+   - Open the project in Android Studio
+   - Select a device or emulator
+   - Click "Run" or press `Shift + F10`
 
-### Class Booking Flow
-1. Search by location/style
-2. View class details
-3. Check availability
-4. Complete booking
-5. Receive confirmation
+### Gradle Dependencies
 
-### Event Management
-- Create/host yoga events
-- Invite friends
-- Track attendees
-- Post event updates
+Key dependencies are managed in `build.gradle`:
+- Jetpack Libraries (Lifecycle, Navigation, Compose)
+- Firebase SDK (Auth, Firestore, Storage, Messaging)
+- Google Play Services (Maps, Location)
+- Hilt for dependency injection
+- Retrofit for API calls
+- Glide for image loading
 
-### Social Features
-- Follow other yogis
-- Share achievements
-- Comment on events
-- Rate classes
+## 📱 User Flows
 
-## Testing
+### For Students
+1. **Browse Classes** - Search nearby yoga studios
+2. **View Details** - See class schedule, instructor info, pricing
+3. **Book Class** - Reserve spot and make payment
+4. **Manage Schedule** - View bookings and cancel if needed
+5. **Rate & Review** - Share experience with community
+6. **Connect** - Message instructors with questions
+
+### For Instructors
+1. **Create Classes** - Set schedule, pricing, capacity
+2. **Manage Bookings** - Approve registrations and manage attendance
+3. **View Calendar** - Comprehensive schedule overview
+4. **Communicate** - Message students about classes
+5. **Track Revenue** - View earnings and payment history
+6. **Gather Feedback** - Collect and respond to reviews
+
+## 🗺️ Location Services
+
+- **Google Maps Integration**: Display studios and routes
+- **Geolocation**: Find classes within user-specified radius
+- **Route Navigation**: Integrate with Google Maps for directions
+- **Location Permissions**: Proper handling of Android permissions
+
+## 🔔 Push Notifications
+
+Firebase Cloud Messaging (FCM) enables:
+- Class reminders before scheduled time
+- New booking notifications for instructors
+- Event updates and announcements
+- Direct messaging alerts
+
+## 💳 Payment Integration
+
+- **Stripe Integration**: Secure payment processing
+- **Multiple Payment Methods**: Card, digital wallets
+- **Transaction History**: Receipt and payment records
+- **Refund Handling**: Automated refund processing
+
+## 🔐 Security
+
+- **Firebase Authentication**: Secure user registration and login
+- **Firestore Security Rules**: Row-level access control
+- **Data Encryption**: TLS for network communication
+- **Payment Security**: PCI DSS compliance with Stripe
+- **Permission Management**: Proper Android permission handling
+
+## 🧪 Testing
 
 ```bash
 # Run unit tests
@@ -99,19 +153,83 @@ git clone https://github.com/eranCat/Yoga_app_android.git
 # Run instrumented tests
 ./gradlew connectedAndroidTest
 
-# Generate coverage report
-./gradlew jacocoTestReport
+# Run specific test class
+./gradlew testDebugUnitTest --tests com.yoga.app.YogaRepositoryTest
 ```
 
-## Debugging
+## 🚀 Build & Release
 
-Enable Firebase emulator for local testing:
-
-```kotlin
-// In MainActivity
-Firebase.database.useEmulator("10.0.2.2", 9000)
+### Debug Build
+```bash
+./gradlew assembleDebug
+# Output: app/build/outputs/apk/debug/app-debug.apk
 ```
 
----
+### Release Build
+```bash
+./gradlew assembleRelease
+# Create/update keystore in local properties
+# Output: app/build/outputs/apk/release/app-release.apk
+```
 
-**Yoga connects us all** 🧘‍♂️
+### Deploy to Play Store
+1. Build signed release APK/AAB
+2. Go to Google Play Console
+3. Create new release
+4. Upload APK/AAB and fill release notes
+5. Review and publish
+
+## 📊 Performance Optimization
+
+- **Image Caching**: Glide with custom cache policies
+- **Database Indexing**: Firestore composite indexes
+- **Lazy Loading**: RecyclerView with ViewPager2
+- **Memory Optimization**: Proper lifecycle management
+- **Network Optimization**: Request batching and caching
+
+## 🎨 UI/UX Features
+
+- **Material Design 3**: Modern, consistent UI
+- **Dark Mode Support**: System theme integration
+- **Responsive Layouts**: Works on phones and tablets
+- **Smooth Animations**: Transition effects and micro-interactions
+- **Accessibility**: WCAG 2.1 compliance
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/YogaFeature`
+3. Commit changes: `git commit -m 'Add yoga feature'`
+4. Push branch: `git push origin feature/YogaFeature`
+5. Open Pull Request
+
+## 📝 License
+
+MIT License - See [LICENSE](./LICENSE) for details
+
+## 👤 Author
+
+**Eran Karaso** - Full-Stack Developer  
+GitHub: [@eranCat](https://github.com/eranCat)
+
+## 🔗 Resources
+
+- [Android Developer Guide](https://developer.android.com)
+- [Kotlin Language](https://kotlinlang.org)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Jetpack Compose](https://developer.android.com/jetpack/compose)
+- [Google Maps API](https://developers.google.com/maps)
+- [Stripe Android SDK](https://stripe.com/docs/mobile/android)
+
+## 📞 Support
+
+Found a bug? Have a suggestion? Please open an [issue](https://github.com/eranCat/Yoga_app_android/issues) on GitHub.
+
+## 🚀 Roadmap
+
+- [ ] Video class streaming
+- [ ] AI-powered class recommendations
+- [ ] Offline class access with sync
+- [ ] Advanced analytics dashboard
+- [ ] Social features expansion
+- [ ] Wearable device integration
